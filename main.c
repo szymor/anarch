@@ -67,7 +67,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   if (pixel->isWall)
   {
-    color = SFG_getTexel(SFG_textureWall1,pixel->texCoords.x / 16,pixel->texCoords.y / 16);
+    color = SFG_getTexel(SFG_texturesWall[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32);
     shadow = pixel->hit.direction >> 1;
   }
   else
@@ -84,14 +84,16 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
 RCL_Unit SFG_textureAt(int16_t x, int16_t y)
 {
-  return 0;
+  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+
+  return SFG_TILE_FLOOR_TEXTURE(tile);
 }
 
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
 
-  return SFG_TILE_FLOOR_HEIGHT(tile) * (RCL_UNITS_PER_SQUARE / 2);
+  return SFG_TILE_FLOOR_HEIGHT(tile) * (RCL_UNITS_PER_SQUARE / 4);
 }
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
