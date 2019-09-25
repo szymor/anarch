@@ -60,6 +60,9 @@ void SFG_init();
 RCL_Camera SFG_camera;
 RCL_RayConstraints SFG_rayConstraints;
 
+uint8_t SFG_backgroundScaleMap[SFG_RESOLUTION_Y];
+uint16_t SFG_backgroundScroll;
+
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -67,7 +70,11 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   if (pixel->isWall)
   {
-    color = SFG_getTexel(SFG_texturesWall[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32);
+    color =
+      pixel->hit.type != SFG_TRANSPARENT_TEXTURE ?
+      (SFG_getTexel(SFG_texturesWall[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32)) :
+      SFG_TRANSPARENT_COLOR;
+
     shadow = pixel->hit.direction >> 1;
   }
   else
@@ -75,9 +82,17 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     color = pixel->isFloor ? 20 : 50;
   }
 
-  shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
-
-  color = palette_minusValue(color,shadow);
+  if (color != SFG_TRANSPARENT_COLOR)
+  {
+    shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
+    color = palette_minusValue(color,shadow);
+  }
+  else
+  {
+    color = SFG_getTexel(SFG_backgrounds[0],
+    SFG_backgroundScaleMap[(pixel->position.x + SFG_backgroundScroll) % SFG_RESOLUTION_Y],
+    SFG_backgroundScaleMap[pixel->position.y]);
+  }
 
   SFG_setPixel(pixel->position.x,pixel->position.y,color); 
 }
@@ -85,6 +100,10 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 RCL_Unit SFG_textureAt(int16_t x, int16_t y)
 {
   SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+
+  if (tile == SFG_OUTSIDE_TILE && 
+    (x < 0 || x >= SFG_MAP_SIZE || y < 0 || y >= SFG_MAP_SIZE))
+      return SFG_TRANSPARENT_TEXTURE;
 
   return SFG_TILE_FLOOR_TEXTURE(tile);
 }
@@ -120,6 +139,11 @@ void SFG_init()
 
   SFG_rayConstraints.maxHits = 6;
   SFG_rayConstraints.maxSteps = 32;
+
+  for (uint16_t i = 0; i < SFG_RESOLUTION_Y; ++i)
+    SFG_backgroundScaleMap[i] = (i * SFG_TEXTURE_SIZE) / SFG_RESOLUTION_Y;
+
+  SFG_backgroundScroll = 0;
 }
 
 #define SFG_PLAYER_TURN_UNITS_PER_FRAME\
@@ -145,16 +169,21 @@ void SFG_gameStep()
   }
   else if (SFG_keyPressed(SFG_KEY_RIGHT))
   {
-    SFG_camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME; 
+    SFG_camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
     recomputeDirection = 1;
   }
 
   if (recomputeDirection)
   {
+    SFG_camera.direction = RCL_wrap(SFG_camera.direction,RCL_UNITS_PER_SQUARE);
+
     playerDirection = RCL_angleToDirection(SFG_camera.direction);
 
     playerDirection.x = (playerDirection.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
     playerDirection.y = (playerDirection.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+
+    SFG_backgroundScroll =
+      ((SFG_camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE;
   }
 
   if (SFG_keyPressed(SFG_KEY_UP))

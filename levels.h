@@ -28,6 +28,8 @@ typedef SFG_TileDefinition SFG_TileDictionary[SFG_TILE_DICTIONARY_SIZE];
 #define SFG_TILE_FLOOR_HEIGHT(tile) (tile & 0x1f)
 #define SFG_TILE_FLOOR_TEXTURE(tile) ((tile & 0xe0) >> 5)
 
+#define SFG_OUTSIDE_TILE SFG_TD(63,10,0,0)
+
 typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
 /**<
   Game map represented as a 2D array. Array item has this format:
@@ -56,7 +58,7 @@ typedef struct
 static inline SFG_TileDefinition SFG_getMapTile(SFG_Map *map, int16_t x, int16_t y)
 {
   if (x < 0 || x >= SFG_MAP_SIZE || y < 0 || y >= SFG_MAP_SIZE)
-    return SFG_TD(63,10,0,0);
+    return SFG_OUTSIDE_TILE;
 
   return map->tileDictionary[map->mapArray[y * SFG_MAP_SIZE + x] & 0x3f];
 }
