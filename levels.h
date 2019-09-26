@@ -10,11 +10,15 @@ typedef uint16_t SFG_TileDefinition;
 
     MSB aaabbbbb cccddddd LSB
 
-   aaa:  ceiling texture index (from texture available on the map)
+   aaa:  ceiling texture index (from texture available on the map), 111
+         means completely transparent texture
    bbbb: ceiling height (1111 meaning no ceiling) ABOVE the floor
-   ccc:  floor texture index
+   ccc:  floor texture index, 111 means completely transparent texture
    dddd: floor height
 */
+
+#define SFG_TILE_CEILING_MAX_HEIGHT 31
+#define SFG_TILE_TEXTURE_TRANSPARENT 7
 
 typedef SFG_TileDefinition SFG_TileDictionary[SFG_TILE_DICTIONARY_SIZE];
 
@@ -27,8 +31,9 @@ typedef SFG_TileDefinition SFG_TileDictionary[SFG_TILE_DICTIONARY_SIZE];
 
 #define SFG_TILE_FLOOR_HEIGHT(tile) (tile & 0x1f)
 #define SFG_TILE_FLOOR_TEXTURE(tile) ((tile & 0xe0) >> 5)
+#define SFG_TILE_CEILING_HEIGHT(tile) ((tile & 0x1f00) >> 8)
 
-#define SFG_OUTSIDE_TILE SFG_TD(63,10,0,0)
+#define SFG_OUTSIDE_TILE SFG_TD(63,0,7,7)
 
 typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
 /**<
@@ -77,31 +82,31 @@ static const SFG_Level SFG_level0 =
   {
     .tileDictionary =
     {
-      SFG_TD(0 ,0 ,0,0),SFG_TD(5 ,0 ,0,0),SFG_TD(1 ,0 ,1,0),SFG_TD(2 ,0 ,1,0), // 0
-      SFG_TD(3 ,0 ,1,0),SFG_TD(4 ,0 ,1,0),SFG_TD(5 ,0 ,1,0),SFG_TD(0 ,0 ,0,0), // 4
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 8
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 12
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 16
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 20
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 24
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 28
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 32
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 36
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 40
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 44
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 48
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 52
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 56
-      SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0),SFG_TD(0 ,0 ,0,0), // 60
+      SFG_TD(0 ,31,0,0),SFG_TD(5 ,63,0,0),SFG_TD(1 ,63,3,0),SFG_TD(2 ,63,3,0), // 0
+      SFG_TD(3 ,31,3,0),SFG_TD(4 ,63,3,0),SFG_TD(5 ,63,3,0),SFG_TD(1 ,10,0,0), // 4
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 8
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 12
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 16
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 20
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 24
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 28
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 32
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 36
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 40
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 44
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 48
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 52
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 56
+      SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 60
     },
 
     .mapArray =
     {
       #define o 0
-      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
-      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
-      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
-      o ,o ,o ,o ,o ,o ,o ,o ,2 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
+      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,7 ,7 ,7 ,7 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
+      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,7 ,7 ,7 ,7 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
+      o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,7 ,7 ,7 ,7 ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
+      o ,o ,o ,o ,o ,o ,o ,o ,2 ,o ,7 ,7 ,7 ,7 ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
       o ,o ,o ,o ,o ,o ,o ,o ,3 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
       o ,o ,o ,o ,o ,o ,o ,o ,4 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,
       o ,o ,o ,o ,o ,6 ,6 ,6 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,

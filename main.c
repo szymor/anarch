@@ -71,7 +71,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   if (pixel->isWall)
   {
     color =
-      pixel->hit.type != SFG_TRANSPARENT_TEXTURE ?
+      pixel->hit.type != SFG_TILE_TEXTURE_TRANSPARENT ?
       (SFG_getTexel(SFG_texturesWall[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32)) :
       SFG_TRANSPARENT_COLOR;
 
@@ -100,11 +100,6 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 RCL_Unit SFG_textureAt(int16_t x, int16_t y)
 {
   SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
-
-  if (tile == SFG_OUTSIDE_TILE && 
-    (x < 0 || x >= SFG_MAP_SIZE || y < 0 || y >= SFG_MAP_SIZE))
-      return SFG_TRANSPARENT_TEXTURE;
-
   return SFG_TILE_FLOOR_TEXTURE(tile);
 }
 
@@ -117,7 +112,13 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
-  return RCL_UNITS_PER_SQUARE * 8;
+  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+
+  uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
+
+  return height != SFG_TILE_CEILING_MAX_HEIGHT ?
+    ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * (RCL_UNITS_PER_SQUARE / 4)) :
+    (RCL_UNITS_PER_SQUARE * 32);
 }
 
 uint32_t SFG_frame;
@@ -137,7 +138,7 @@ void SFG_init()
   SFG_camera.position.x = RCL_UNITS_PER_SQUARE * 5;
   SFG_camera.position.y = RCL_UNITS_PER_SQUARE * 5;
 
-  SFG_rayConstraints.maxHits = 6;
+  SFG_rayConstraints.maxHits = 10;
   SFG_rayConstraints.maxSteps = 32;
 
   for (uint16_t i = 0; i < SFG_RESOLUTION_Y; ++i)
