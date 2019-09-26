@@ -99,20 +99,20 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
 RCL_Unit SFG_textureAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
   return SFG_TILE_FLOOR_TEXTURE(tile);
 }
 
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
 
   return SFG_TILE_FLOOR_HEIGHT(tile) * (RCL_UNITS_PER_SQUARE / 4);
 }
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y);
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
 
   uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
 

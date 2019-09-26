@@ -68,8 +68,6 @@ int main()
 
   SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
 
-  SDL_Event event;
-
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
 
   int running = 1;
