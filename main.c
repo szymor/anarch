@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "constants.h"
+#include "settings.h"
 #include "levels.h"
 #include "assets.h"
 
@@ -15,11 +16,7 @@
 
 /* When porting, define the following in your specific platform_*.h. Also you
    have to call SFG_mainLoopBody() in the platform's main loop and SFG_init()
-   in the platform initialization. */
-
-// SFG_RESOLUTION_X    #define this to screen width in pixels
-// SFG_RESOLUTION_Y    #define this to screen height in pixels
-// SFG_FPS             #define this to desired FPS
+   in the platform initialization. Also set specific settings in settings.h */
 
 /** Return 1 (0) if given key is pressed (not pressed). */
 int8_t SFG_keyPressed(uint8_t key);
@@ -73,7 +70,7 @@ struct
   const uint8_t* textures[7];
 } SFG_currentLevel;
 
-void SFG_setLevel(SFG_Level *level)
+void SFG_setLevel(const SFG_Level *level)
 {
   SFG_currentLevel.levelPointer = level;
   SFG_currentLevel.mapPointer = &(level->map);

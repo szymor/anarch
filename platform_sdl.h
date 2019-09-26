@@ -8,11 +8,6 @@
 
 #include "palette.h"
 
-#define SFG_RESOLUTION_X 800
-#define SFG_RESOLUTION_Y 600
-
-#define SFG_FPS 60
-
 const uint8_t *sdlKeyboardState;
 
 uint16_t screen[SFG_RESOLUTION_X * SFG_RESOLUTION_Y]; // RGB565 format
