@@ -106,7 +106,25 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   if (color != SFG_TRANSPARENT_COLOR)
   {
+#if SFG_DITHERED_SHADOW
+    uint8_t fogShadow = (pixel->depth * 2) / RCL_UNITS_PER_SQUARE;
+
+    uint8_t fogShadowPart = fogShadow & 0x03;
+    uint8_t xMod2 = pixel->position.x & 0x01;
+    uint8_t yMod2 = pixel->position.y & 0x01;
+
+    fogShadow >>= 2;
+
+    if (((fogShadowPart == 1) && xMod2 && yMod2) ||
+        ((fogShadowPart == 2) && (xMod2 == yMod2)) ||
+        ((fogShadowPart == 3) && (xMod2 || yMod2)))
+      fogShadow += 1;
+
+    shadow += fogShadow;
+#else
     shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
+#endif
+
     color = palette_minusValue(color,shadow);
   }
   else

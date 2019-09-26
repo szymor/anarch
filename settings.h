@@ -5,4 +5,6 @@
 #define SFG_RESOLUTION_X 1024
 #define SFG_RESOLUTION_Y 768
 
+#define SFG_DITHERED_SHADOW 1
+
 #endif // guard
