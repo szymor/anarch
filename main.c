@@ -63,6 +63,26 @@ RCL_RayConstraints SFG_rayConstraints;
 uint8_t SFG_backgroundScaleMap[SFG_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
 
+/**
+  Stores the current level and helper precomputed vaues for better performance.
+*/
+struct
+{
+  const SFG_Map *mapPointer;
+  const SFG_Level *levelPointer;
+  const uint8_t* textures[7];
+} SFG_currentLevel;
+
+void SFG_setLevel(SFG_Level *level)
+{
+  SFG_currentLevel.levelPointer = level;
+  SFG_currentLevel.mapPointer = &(level->map);
+
+  for (uint8_t i = 0; i < 7; ++i)
+    SFG_currentLevel.textures[i] =
+      SFG_texturesWall[level->map.textureIndices[i]];
+}
+
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -70,9 +90,14 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   if (pixel->isWall)
   {
+    uint8_t textureIndex =
+      pixel->isFloor ?
+      (pixel->hit.type & 0x7) :
+      ((pixel->hit.type & 0x38) >> 3); 
+
     color =
-      pixel->hit.type != SFG_TILE_TEXTURE_TRANSPARENT ?
-      (SFG_getTexel(SFG_texturesWall[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32)) :
+      textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?
+      (SFG_getTexel(SFG_currentLevel.textures[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32)) :
       SFG_TRANSPARENT_COLOR;
 
     shadow = pixel->hit.direction >> 1;
@@ -97,10 +122,11 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   SFG_setPixel(pixel->position.x,pixel->position.y,color); 
 }
 
-RCL_Unit SFG_textureAt(int16_t x, int16_t y)
+RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
   SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
-  return SFG_TILE_FLOOR_TEXTURE(tile);
+  return SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3);
+         // ^ store both textures (floor and ceiling) in one number
 }
 
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
@@ -145,6 +171,8 @@ void SFG_init()
     SFG_backgroundScaleMap[i] = (i * SFG_TEXTURE_SIZE) / SFG_RESOLUTION_Y;
 
   SFG_backgroundScroll = 0;
+
+  SFG_setLevel(&SFG_level0);
 }
 
 #define SFG_PLAYER_TURN_UNITS_PER_FRAME\
@@ -226,7 +254,7 @@ void SFG_mainLoopBody()
     }
 
     // render noly once
-    RCL_renderComplex(SFG_camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_textureAt,SFG_rayConstraints);
+    RCL_renderComplex(SFG_camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_texturesAt,SFG_rayConstraints);
 
     SFG_lastFrameTimeMs = timeNow;
   }
