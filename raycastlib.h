@@ -1182,8 +1182,6 @@ static inline int16_t _RCL_drawWall(
   #endif
 #endif
 
-      pixelInfo->texCoords.y = RCL_absVal(pixelInfo->texCoords.y);
-
       wallPosition++;
       RCL_PIXEL_FUNCTION(pixelInfo);
     }
