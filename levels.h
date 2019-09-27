@@ -99,7 +99,7 @@ static const SFG_Level SFG_level0 =
     .tileDictionary =
     {
       SFG_TD(0 ,31,0,0),SFG_TD(15,63,5,0),SFG_TD(28,63,1,0),SFG_TD(6 ,63,6,0), // 0
-      SFG_TD(10,28,4,0),SFG_TD(4 ,63,4,0),SFG_TD(5 ,63,4,0),SFG_TD(1 ,10,1,0), // 4
+      SFG_TD(0 ,28,2,0),SFG_TD(4 ,63,4,0),SFG_TD(5 ,63,4,0),SFG_TD(1 ,10,1,0), // 4
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 8
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 12
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 16

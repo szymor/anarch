@@ -267,6 +267,7 @@ typedef struct
   int8_t        isHorizon; ///< If the pixel belongs to horizon segment.
   RCL_Unit      depth;     ///< Corrected depth.
   RCL_Unit      height;    ///< World height (mostly for floor).
+  RCL_Unit      wallHeight;///< Only for wall pixels, says its height.
   RCL_HitResult hit;       ///< Corresponding ray hit.
   RCL_Vector2D  texCoords; /**< Normalized (0 to RCL_UNITS_PER_SQUARE - 1)
                                 texture coordinates. */
@@ -1238,6 +1239,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
   p.height = 0;
   p.texCoords.x = 0;
   p.texCoords.y = 0;
+  p.wallHeight = 0;
 
   // we'll be simulatenously drawing the floor and the ceiling now  
   for (RCL_Unit j = 0; j <= hitCount; ++j)
@@ -1294,6 +1296,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
     // draw floor until wall
     p.isFloor = 1;
     p.height = fZ1World + _RCL_camera.height;
+    p.wallHeight = 0;
 
 #if RCL_COMPUTE_FLOOR_DEPTH == 1
     p.depth = (_RCL_fHorizontalDepthStart - fPosY) * _RCL_horizontalDepthStep;
@@ -1336,6 +1339,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
       p.isFloor = 1;
       p.texCoords.x = hit.textureCoord;
       p.height = fZ1World + _RCL_camera.height;
+      p.wallHeight = fWallHeight;
 
       // draw floor wall
 
@@ -1366,6 +1370,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
       {
         p.isFloor = 0;
         p.height = cZ1World + _RCL_camera.height;
+        p.wallHeight = cWallHeight;
 
         limit = _RCL_drawWall(cPosY,cZ1Screen,cZ2Screen,
                   -1,fPosY - 1,
@@ -1398,6 +1403,7 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
 
   RCL_PixelInfo p;
   p.position.x = x;
+  p.wallHeight = RCL_UNITS_PER_SQUARE;
 
   if (hitCount > 0)
   {

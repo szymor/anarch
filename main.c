@@ -88,12 +88,19 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       (pixel->hit.type & 0x7) :
       ((pixel->hit.type & 0x38) >> 3); 
 
+    RCL_Unit textureV = pixel->height - pixel->texCoords.y;
+
+    if (pixel->hit.type & SFG_TILE_PROPERTY_ELEVATOR) 
+      textureV -= pixel->wallHeight;
+
+    textureV %= RCL_UNITS_PER_SQUARE; // hopefully gets optimized to bitwise and
+
     color =
       textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?
       (SFG_getTexel(
-        SFG_currentLevel.textures[pixel->hit.type],
+        SFG_currentLevel.textures[textureIndex],
         pixel->texCoords.x / 32,
-        ((pixel->height - pixel->texCoords.y) % RCL_UNITS_PER_SQUARE) / 32)
+        textureV / 32)
       ) :
       SFG_TRANSPARENT_COLOR;
 
@@ -139,11 +146,12 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
-  uint8_t properties;
+  uint8_t p;
 
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
-  return SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3);
-         // ^ store both textures (floor and ceiling) in one number
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&p);
+  return
+    SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3) | p;
+    // ^ store both textures (floor and ceiling) and properties in one number
 }
 
 RCL_Unit SFG_movingWallHeight
