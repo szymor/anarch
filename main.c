@@ -2,6 +2,7 @@
 #include "constants.h"
 #include "levels.h"
 #include "assets.h"
+#include "palette.h"
 
 #define SFG_KEY_UP 0
 #define SFG_KEY_RIGHT 1
@@ -49,9 +50,19 @@ void SFG_mainLoopBody();
 */
 void SFG_init();
 
-#include "platform_sdl.h"
+#ifdef SFG_PLATFORM_POKITTO
+  #include "platform_pokitto.h"
+#else
+  #include "platform_sdl.h"
+#endif
 
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
+
+#define SFG_PLAYER_TURN_UNITS_PER_FRAME\
+  ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
+
+#define SFG_PLAYER_MOVE_UNITS_PER_FRAME\
+  ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
 #define RCL_PIXEL_FUNCTION SFG_pixelFunc
 #define RCL_TEXTURE_VERTICAL_STRETCH 0
@@ -218,37 +229,6 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 uint32_t SFG_frame;
 uint32_t SFG_lastFrameTimeMs;
 
-void SFG_init()
-{
-  SFG_frame = 0;
-  SFG_lastFrameTimeMs = 0;
-
-  RCL_initCamera(&SFG_camera);
-  RCL_initRayConstraints(&SFG_rayConstraints);
-
-  SFG_camera.resolution.x = SFG_RESOLUTION_X;
-  SFG_camera.resolution.y = SFG_RESOLUTION_Y;
-  SFG_camera.height = RCL_UNITS_PER_SQUARE;
-  SFG_camera.position.x = RCL_UNITS_PER_SQUARE * 5;
-  SFG_camera.position.y = RCL_UNITS_PER_SQUARE * 5;
-
-  SFG_rayConstraints.maxHits = 10;
-  SFG_rayConstraints.maxSteps = 32;
-
-  for (uint16_t i = 0; i < SFG_RESOLUTION_Y; ++i)
-    SFG_backgroundScaleMap[i] = (i * SFG_TEXTURE_SIZE) / SFG_RESOLUTION_Y;
-
-  SFG_backgroundScroll = 0;
-
-  SFG_setLevel(&SFG_level0);
-}
-
-#define SFG_PLAYER_TURN_UNITS_PER_FRAME\
-  ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
-
-#define SFG_PLAYER_MOVE_UNITS_PER_FRAME\
-  ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
-
 RCL_Vector2D SFG_playerDirection;
 
 void SFG_recompurePLayerDirection()
@@ -273,9 +253,34 @@ void SFG_setLevel(const SFG_Level *level)
     SFG_currentLevel.textures[i] =
       SFG_texturesWall[level->map.textureIndices[i]];
 
- SFG_currentLevel.timeStart = SFG_getTimeMs(); 
+  SFG_currentLevel.timeStart = SFG_getTimeMs(); 
  
   SFG_recompurePLayerDirection();  
+}
+
+void SFG_init()
+{
+  SFG_frame = 0;
+  SFG_lastFrameTimeMs = 0;
+
+  RCL_initCamera(&SFG_camera);
+  RCL_initRayConstraints(&SFG_rayConstraints);
+
+  SFG_camera.resolution.x = SFG_RESOLUTION_X;
+  SFG_camera.resolution.y = SFG_RESOLUTION_Y;
+  SFG_camera.height = RCL_UNITS_PER_SQUARE;
+  SFG_camera.position.x = RCL_UNITS_PER_SQUARE * 5;
+  SFG_camera.position.y = RCL_UNITS_PER_SQUARE * 5;
+
+  SFG_rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
+  SFG_rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
+
+  for (uint16_t i = 0; i < SFG_RESOLUTION_Y; ++i)
+    SFG_backgroundScaleMap[i] = (i * SFG_TEXTURE_SIZE) / SFG_RESOLUTION_Y;
+
+  SFG_backgroundScroll = 0;
+
+  SFG_setLevel(&SFG_level0);
 }
 
 /**
