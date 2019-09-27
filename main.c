@@ -100,17 +100,25 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   {
     uint8_t textureIndex =
       pixel->isFloor ?
-      (pixel->hit.type & 0x7) :
+      (
+        ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) != SFG_TILE_PROPERTY_DOOR) ?
+        (pixel->hit.type & 0x7)
+        :
+        (
+          (pixel->texCoords.y >= RCL_UNITS_PER_SQUARE) ?
+          (pixel->hit.type & 0x7) : SFG_currentLevel.mapPointer->doorTextureIndex 
+        )
+      ):
       ((pixel->hit.type & 0x38) >> 3); 
 
-    RCL_Unit textureV = pixel->height - pixel->texCoords.y;
+    RCL_Unit textureV = pixel->height + pixel->texCoords.y;
 
-    if (pixel->hit.type & (SFG_TILE_PROPERTY_ELEVATOR)) 
+    if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
+      SFG_TILE_PROPERTY_ELEVATOR) 
       textureV -= pixel->wallHeight;
-    else if (pixel->hit.type & (SFG_TILE_PROPERTY_SQUEEZER))
+    else if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
+      SFG_TILE_PROPERTY_SQUEEZER)
       textureV += pixel->wallHeight;
-
-    textureV %= RCL_UNITS_PER_SQUARE; // hopefully gets optimized to bitwise and
 
     color =
       textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?

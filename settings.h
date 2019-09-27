@@ -7,4 +7,8 @@
 
 #define SFG_DITHERED_SHADOW 1
 
+#define SFG_RAYCASTING_MAX_STEPS 30
+
+#define SFG_RAYCASTING_MAX_HITS 10
+
 #endif // guard
