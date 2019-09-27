@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include "constants.h"
-#include "settings.h"
 #include "levels.h"
 #include "assets.h"
 
@@ -14,9 +13,14 @@
 
 /* ============================= PORTING =================================== */
 
-/* When porting, define the following in your specific platform_*.h. Also you
-   have to call SFG_mainLoopBody() in the platform's main loop and SFG_init()
-   in the platform initialization. Also set specific settings in settings.h */
+/* When porting, do the following:
+   - implement the following functions in your platform_*.h.
+   - Call SFG_init() from your platform initialization code.
+   - Call SFG_mainLoopBody() from within your platform's main loop.
+   - include "settings.h" in your platform_*.h and optionally hard-override
+     (redefine) some settings in platform_*.h, according to the platform's
+     needs.
+*/
 
 /** Return 1 (0) if given key is pressed (not pressed). */
 int8_t SFG_keyPressed(uint8_t key);

@@ -1,6 +1,8 @@
 #ifndef _SFG_PLATFORM_H
 #define _SFG_PLATFORM_H
 
+#include "settings.h"
+
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <time.h>
