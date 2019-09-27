@@ -94,8 +94,10 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
     RCL_Unit textureV = pixel->height - pixel->texCoords.y;
 
-    if (pixel->hit.type & SFG_TILE_PROPERTY_ELEVATOR) 
+    if (pixel->hit.type & (SFG_TILE_PROPERTY_ELEVATOR)) 
       textureV -= pixel->wallHeight;
+    else if (pixel->hit.type & (SFG_TILE_PROPERTY_SQUEEZER))
+      textureV += pixel->wallHeight;
 
     textureV %= RCL_UNITS_PER_SQUARE; // hopefully gets optimized to bitwise and
 
@@ -201,9 +203,16 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 
   uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
 
-  return height != SFG_TILE_CEILING_MAX_HEIGHT ?
-    ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * SFG_WALL_HEIGHT_STEP) :
-    SFG_CEILING_MAX_HEIGHT;
+  return properties != SFG_TILE_PROPERTY_SQUEEZER ?
+    (
+      height != SFG_TILE_CEILING_MAX_HEIGHT ?
+      ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * SFG_WALL_HEIGHT_STEP) :
+      SFG_CEILING_MAX_HEIGHT
+    ) :
+    SFG_movingWallHeight(
+      SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
 
 uint32_t SFG_frame;
