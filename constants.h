@@ -11,4 +11,9 @@
 */
 #define SFG_PLAYER_MOVE_SPEED 5
 
+/**
+  How quickly elevators and squeezers move, in RCL_Unit per second.
+*/
+#define SFG_MOVING_WALL_SPEED 1024
+
 #endif // guard

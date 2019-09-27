@@ -54,6 +54,11 @@ void SFG_init();
 
 #include "raycastlib.h" 
 
+/**
+  Step in which walls get higher, in raycastlib units.
+*/
+#define SFG_WALL_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 4)
+
 RCL_Camera SFG_camera;
 RCL_RayConstraints SFG_rayConstraints;
 
@@ -68,17 +73,8 @@ struct
   const SFG_Map *mapPointer;
   const SFG_Level *levelPointer;
   const uint8_t* textures[7];
+  uint32_t timeStart;
 } SFG_currentLevel;
-
-void SFG_setLevel(const SFG_Level *level)
-{
-  SFG_currentLevel.levelPointer = level;
-  SFG_currentLevel.mapPointer = &(level->map);
-
-  for (uint8_t i = 0; i < 7; ++i)
-    SFG_currentLevel.textures[i] =
-      SFG_texturesWall[level->map.textureIndices[i]];
-}
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
@@ -139,27 +135,59 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
+  uint8_t properties;
+
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
   return SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3);
          // ^ store both textures (floor and ceiling) in one number
 }
 
+RCL_Unit SFG_movingWallHeight
+(
+  RCL_Unit low,
+  RCL_Unit high,
+  uint32_t time    
+)
+{
+  RCL_Unit height = high - low;
+  RCL_Unit halfHeight = height / 2;
+
+  RCL_Unit sinArg =
+    (time * ((SFG_MOVING_WALL_SPEED * RCL_UNITS_PER_SQUARE) / 1000)) / height;
+
+  return
+    low + halfHeight + (RCL_sinInt(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
+}
+
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
+  uint8_t properties;
 
-  return SFG_TILE_FLOOR_HEIGHT(tile) * (RCL_UNITS_PER_SQUARE / 4);
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
+
+  return properties != SFG_TILE_PROPERTY_ELEVATOR ?
+    SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP :
+    SFG_movingWallHeight(
+      SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
+
+#define SFG_CEILING_MAX_HEIGHT (32 * RCL_UNITS_PER_SQUARE)
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y);
+  uint8_t properties;
+  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
+
+  if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+    return SFG_CEILING_MAX_HEIGHT;
 
   uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
 
   return height != SFG_TILE_CEILING_MAX_HEIGHT ?
-    ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * (RCL_UNITS_PER_SQUARE / 4)) :
-    (RCL_UNITS_PER_SQUARE * 32);
+    ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * SFG_WALL_HEIGHT_STEP) :
+    SFG_CEILING_MAX_HEIGHT;
 }
 
 uint32_t SFG_frame;
@@ -196,7 +224,34 @@ void SFG_init()
 #define SFG_PLAYER_MOVE_UNITS_PER_FRAME\
   ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
-RCL_Vector2D playerDirection;
+RCL_Vector2D SFG_playerDirection;
+
+void SFG_recompurePLayerDirection()
+{
+  SFG_camera.direction = RCL_wrap(SFG_camera.direction,RCL_UNITS_PER_SQUARE);
+
+  SFG_playerDirection = RCL_angleToDirection(SFG_camera.direction);
+
+  SFG_playerDirection.x = (SFG_playerDirection.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+  SFG_playerDirection.y = (SFG_playerDirection.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+
+  SFG_backgroundScroll =
+    ((SFG_camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
+}
+
+void SFG_setLevel(const SFG_Level *level)
+{
+  SFG_currentLevel.levelPointer = level;
+  SFG_currentLevel.mapPointer = &(level->map);
+
+  for (uint8_t i = 0; i < 7; ++i)
+    SFG_currentLevel.textures[i] =
+      SFG_texturesWall[level->map.textureIndices[i]];
+
+ SFG_currentLevel.timeStart = SFG_getTimeMs(); 
+ 
+  SFG_recompurePLayerDirection();  
+}
 
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
@@ -218,27 +273,17 @@ void SFG_gameStep()
   }
 
   if (recomputeDirection)
-  {
-    SFG_camera.direction = RCL_wrap(SFG_camera.direction,RCL_UNITS_PER_SQUARE);
-
-    playerDirection = RCL_angleToDirection(SFG_camera.direction);
-
-    playerDirection.x = (playerDirection.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-    playerDirection.y = (playerDirection.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-
-    SFG_backgroundScroll =
-      ((SFG_camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE;
-  }
+    SFG_recompurePLayerDirection();
 
   if (SFG_keyPressed(SFG_KEY_UP))
   {
-    SFG_camera.position.x += playerDirection.x;
-    SFG_camera.position.y += playerDirection.y;
+    SFG_camera.position.x += SFG_playerDirection.x;
+    SFG_camera.position.y += SFG_playerDirection.y;
   }
   else if (SFG_keyPressed(SFG_KEY_DOWN))
   {
-    SFG_camera.position.x -= playerDirection.x;
-    SFG_camera.position.y -= playerDirection.y;
+    SFG_camera.position.x -= SFG_playerDirection.x;
+    SFG_camera.position.y -= SFG_playerDirection.y;
   }
 
   if (SFG_keyPressed(SFG_KEY_A))
