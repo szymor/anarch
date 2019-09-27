@@ -90,7 +90,11 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
     color =
       textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?
-      (SFG_getTexel(SFG_currentLevel.textures[pixel->hit.type],pixel->texCoords.x / 32,pixel->texCoords.y / 32)) :
+      (SFG_getTexel(
+        SFG_currentLevel.textures[pixel->hit.type],
+        pixel->texCoords.x / 32,
+        ((pixel->height - pixel->texCoords.y) % RCL_UNITS_PER_SQUARE) / 32)
+      ) :
       SFG_TRANSPARENT_COLOR;
 
     shadow = pixel->hit.direction >> 1;

@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.81
+  version: 0.82
 */
 
 #include <stdint.h>
@@ -471,6 +471,8 @@ void RCL_initRayConstraints(RCL_RayConstraints *constraints);
 
 //=============================================================================
 // privates
+
+#define _RCL_UNUSED(what) (void)(what);
 
 // global helper variables, for precomputing stuff etc.
 RCL_Camera _RCL_camera;
@@ -1042,7 +1044,7 @@ RCL_Unit RCL_adjustDistance(RCL_Unit distance, RCL_Camera *camera,
 }
 
 /// Helper for drawing floor or ceiling. Returns the last drawn pixel position.
-static inline int16_t _RCL_drawHorizontal(
+static inline int16_t _RCL_drawVertical(
   RCL_Unit yCurrent,
   RCL_Unit yTo,
   RCL_Unit limit1, // TODO: int16_t?
@@ -1056,6 +1058,8 @@ static inline int16_t _RCL_drawHorizontal(
   RCL_PixelInfo *pixelInfo
 )
 {
+  _RCL_UNUSED(ray);
+
   RCL_Unit depthIncrement;
   RCL_Unit dx;
   RCL_Unit dy;
@@ -1132,6 +1136,8 @@ static inline int16_t _RCL_drawWall(
   RCL_PixelInfo *pixelInfo
   )
 {
+  _RCL_UNUSED(height)
+
   pixelInfo->isWall = 1;
 
   RCL_Unit limit = RCL_clamp(yTo,limit1,limit2);
@@ -1295,7 +1301,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
     p.depth = 0;
 #endif
 
-    limit = _RCL_drawHorizontal(fPosY,fZ1Screen,cPosY + 1,
+    limit = _RCL_drawVertical(fPosY,fZ1Screen,cPosY + 1,
      _RCL_camera.resolution.y,fZ1World,-1,RCL_COMPUTE_FLOOR_DEPTH,
      // ^ purposfully allow outside screen bounds
        RCL_COMPUTE_FLOOR_TEXCOORDS && p.height == RCL_FLOOR_TEXCOORDS_HEIGHT,
@@ -1315,7 +1321,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
         _RCL_horizontalDepthStep;
 #endif
 
-      limit = _RCL_drawHorizontal(cPosY,cZ1Screen,
+      limit = _RCL_drawVertical(cPosY,cZ1Screen,
         -1,fPosY - 1,cZ1World,1,RCL_COMPUTE_CEILING_DEPTH,0,1,&ray,&p);
       // ^ purposfully allow outside screen bounds here
 
@@ -1329,7 +1335,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
       p.depth = distance;
       p.isFloor = 1;
       p.texCoords.x = hit.textureCoord;
-      p.height = 0; // don't compute this, no use
+      p.height = fZ1World + _RCL_camera.height;
 
       // draw floor wall
 
@@ -1359,6 +1365,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
       if (_RCL_ceilFunction != 0 && cPosY < _RCL_camResYLimit) // pixels left?
       {
         p.isFloor = 0;
+        p.height = cZ1World + _RCL_camera.height;
 
         limit = _RCL_drawWall(cPosY,cZ1Screen,cZ2Screen,
                   -1,fPosY - 1,
@@ -1476,7 +1483,7 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
   p.depth = 1;
   p.height = RCL_UNITS_PER_SQUARE;
 
-  y = _RCL_drawHorizontal(-1,wallStart,-1,_RCL_middleRow,_RCL_camera.height,1,
+  y = _RCL_drawVertical(-1,wallStart,-1,_RCL_middleRow,_RCL_camera.height,1,
     RCL_COMPUTE_CEILING_DEPTH,0,1,&ray,&p);
 
   // draw wall
@@ -1507,7 +1514,7 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
   p.depth = (_RCL_camera.resolution.y - y) * _RCL_horizontalDepthStep + 1;
 #endif
 
-  _RCL_drawHorizontal(y,_RCL_camResYLimit,-1,_RCL_camResYLimit,
+  _RCL_drawVertical(y,_RCL_camResYLimit,-1,_RCL_camResYLimit,
     _RCL_camera.height,1,RCL_COMPUTE_FLOOR_DEPTH,RCL_COMPUTE_FLOOR_TEXCOORDS,
     -1,&ray,&p);
 }
