@@ -105,12 +105,11 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         (pixel->hit.type & 0x7)
         :
         (
-          (pixel->texCoords.y < (pixel->wallHeight - RCL_UNITS_PER_SQUARE)) ?
-          (pixel->hit.type & 0x7) : SFG_currentLevel.mapPointer->doorTextureIndex 
+          (pixel->texCoords.y > RCL_UNITS_PER_SQUARE) ?
+          (pixel->hit.type & 0x7) : 255 // SFG_currentLevel.mapPointer->doorTextureIndex 
         )
       ):
       ((pixel->hit.type & 0x38) >> 3); 
-
     RCL_Unit textureV = pixel->texCoords.y;
 
     if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
@@ -120,13 +119,16 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     color =
       textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?
       (SFG_getTexel(
-        SFG_currentLevel.textures[textureIndex],
+        textureIndex != 255 ?
+          SFG_currentLevel.textures[textureIndex]:
+          SFG_texturesWall[SFG_currentLevel.mapPointer->doorTextureIndex],
         pixel->texCoords.x / 32,
         textureV / 32)
       ) :
       SFG_TRANSPARENT_COLOR;
 
     shadow = pixel->hit.direction >> 1;
+
   }
   else
   {

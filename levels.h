@@ -190,7 +190,7 @@ static const SFG_Level SFG_level0 =
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 60
     },
     {0, 1, 2, 3, 4, 5, 6}, // map.textureIndices
-    0                      // map.doorTextureIndex
+    7                      // map.doorTextureIndex
   }
 };
 
