@@ -161,11 +161,18 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   else
   {
     color = SFG_getTexel(SFG_backgrounds[0],
-    SFG_backgroundScaleMap[(pixel->position.x + SFG_backgroundScroll) % SFG_RESOLUTION_Y],
+    SFG_backgroundScaleMap[(pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_RESOLUTION_Y],
+                                                                   // ^ TODO: get rid of mod?
     SFG_backgroundScaleMap[pixel->position.y]);
   }
 
-  SFG_setPixel(pixel->position.x,pixel->position.y,color); 
+  RCL_Unit screenX = pixel->position.x * SFG_RAYCASTING_SUBSAMPLE;
+
+  for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
+  {
+    SFG_setPixel(screenX,pixel->position.y,color);
+    screenX++;
+  }
 }
 
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
@@ -273,7 +280,7 @@ void SFG_init()
   RCL_initCamera(&SFG_camera);
   RCL_initRayConstraints(&SFG_rayConstraints);
 
-  SFG_camera.resolution.x = SFG_RESOLUTION_X;
+  SFG_camera.resolution.x = SFG_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
   SFG_camera.resolution.y = SFG_RESOLUTION_Y;
   SFG_camera.height = RCL_UNITS_PER_SQUARE;
   SFG_camera.position.x = RCL_UNITS_PER_SQUARE * 5;
