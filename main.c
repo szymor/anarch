@@ -105,7 +105,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         (pixel->hit.type & 0x7)
         :
         (
-          (pixel->texCoords.y >= RCL_UNITS_PER_SQUARE) ?
+          (pixel->texCoords.y < (pixel->wallHeight - RCL_UNITS_PER_SQUARE)) ?
           (pixel->hit.type & 0x7) : SFG_currentLevel.mapPointer->doorTextureIndex 
         )
       ):
