@@ -96,9 +96,6 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t color;
   uint8_t shadow = 0;
 
-  pixel->texCoords.y = -1 * pixel->texCoords.y;
-  // ^ raycastlib gives negative coords here, so make them positive
-
   if (pixel->isWall)
   {
     uint8_t textureIndex =
@@ -114,12 +111,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       ):
       ((pixel->hit.type & 0x38) >> 3); 
 
-    RCL_Unit textureV = pixel->height + pixel->texCoords.y;
+    RCL_Unit textureV = pixel->texCoords.y;
 
     if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
-      SFG_TILE_PROPERTY_ELEVATOR) 
-      textureV -= pixel->wallHeight;
-    else if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
       SFG_TILE_PROPERTY_SQUEEZER)
       textureV += pixel->wallHeight;
 
