@@ -221,7 +221,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
       SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
 
-#define SFG_CEILING_MAX_HEIGHT (32 * RCL_UNITS_PER_SQUARE)
+#define SFG_CEILING_MAX_HEIGHT (32 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
