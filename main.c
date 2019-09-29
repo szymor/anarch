@@ -90,6 +90,8 @@ struct
   const SFG_Level *levelPointer;
   const uint8_t* textures[7];
   uint32_t timeStart;
+  uint8_t floorColor;
+  uint8_t ceilingColor;
 } SFG_currentLevel;
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
@@ -138,7 +140,8 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
   else
   {
-    color = pixel->isFloor ? 20 : 50;
+    color = pixel->isFloor ?
+      SFG_currentLevel.floorColor : SFG_currentLevel.ceilingColor;
   }
 
   if (color != SFG_TRANSPARENT_COLOR)
@@ -269,6 +272,9 @@ void SFG_setLevel(const SFG_Level *level)
   SFG_LOG("setting and initializing level");
 
   SFG_currentLevel.levelPointer = level;
+
+  SFG_currentLevel.floorColor = level->floorColor;
+  SFG_currentLevel.ceilingColor = level->ceilingColor;
 
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =

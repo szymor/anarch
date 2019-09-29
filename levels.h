@@ -67,6 +67,8 @@ typedef struct
                              texture). */
   uint8_t doorTextureIndex; /**< Index (global, NOT from textureIndices) of a
                              texture used for door. */
+  uint8_t floorColor;
+  uint8_t ceilingColor;
 } SFG_Level;
 
 static inline SFG_TileDefinition SFG_getMapTile
@@ -180,7 +182,9 @@ static const SFG_Level SFG_level0 =
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 60
   },
   {0, 1, 2, 6, 3,12, 10}, // textureIndices
-  7                       // doorTextureIndex
+  7,                      // doorTextureIndex
+  10,                      // floorColor
+  32                      // ceilingColor
 };
 
 static const SFG_Level SFG_level1 =
@@ -280,7 +284,9 @@ static const SFG_Level SFG_level1 =
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 60
   },
   {0, 1, 2, 3, 4, 5, 11}, // textureIndices
-  7                       // doorTextureIndex
+  7,                      // doorTextureIndex
+  10,                     // floorColor
+  32                      // ceilingColor
 };
 
 #endif // guard
