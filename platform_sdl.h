@@ -66,6 +66,10 @@ int main()
 
   SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
 
+#if SFG_FULLSCREEN
+  SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+#endif
+
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
 
   SFG_init();

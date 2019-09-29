@@ -6,6 +6,11 @@
 #define SFG_RESOLUTION_Y 768
 
 /**
+  Hint as to whether run in fullscreen, if the platform allows it.
+*/
+#define SFG_FULLSCREEN 0
+
+/**
   Whether shadows (fog) should be dithered, i.e. more smooth (needs a bit more
   performance).
 */
