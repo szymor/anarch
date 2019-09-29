@@ -85,7 +85,6 @@ uint16_t SFG_backgroundScroll;
 */
 struct
 {
-  const SFG_Map *mapPointer;
   const SFG_Level *levelPointer;
   const uint8_t* textures[7];
   uint32_t timeStart;
@@ -106,7 +105,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         :
         (
           (pixel->texCoords.y > RCL_UNITS_PER_SQUARE) ?
-          (pixel->hit.type & 0x7) : 255 // SFG_currentLevel.mapPointer->doorTextureIndex 
+          (pixel->hit.type & 0x7) : 255 // SFG_currentLevel.levelPointer->doorTextureIndex 
         )
       ):
       ((pixel->hit.type & 0x38) >> 3); 
@@ -121,7 +120,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       (SFG_getTexel(
         textureIndex != 255 ?
           SFG_currentLevel.textures[textureIndex]:
-          SFG_texturesWall[SFG_currentLevel.mapPointer->doorTextureIndex],
+          SFG_texturesWall[SFG_currentLevel.levelPointer->doorTextureIndex],
         pixel->texCoords.x / 32,
         textureV / 32)
       ) :
@@ -179,7 +178,7 @@ RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
   uint8_t p;
 
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&p);
+  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&p);
   return
     SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3) | p;
     // ^ store both textures (floor and ceiling) and properties in one number
@@ -206,7 +205,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
 
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
+  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&properties);
 
   return properties != SFG_TILE_PROPERTY_ELEVATOR ?
     SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP :
@@ -221,7 +220,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
-  SFG_TileDefinition tile = SFG_getMapTile(&(SFG_level0.map),x,y,&properties);
+  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&properties);
 
   if (properties == SFG_TILE_PROPERTY_ELEVATOR)
     return SFG_CEILING_MAX_HEIGHT;
@@ -261,11 +260,10 @@ void SFG_recompurePLayerDirection()
 void SFG_setLevel(const SFG_Level *level)
 {
   SFG_currentLevel.levelPointer = level;
-  SFG_currentLevel.mapPointer = &(level->map);
 
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =
-      SFG_texturesWall[level->map.textureIndices[i]];
+      SFG_texturesWall[level->textureIndices[i]];
 
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
  
