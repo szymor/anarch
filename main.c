@@ -97,7 +97,11 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t color;
   uint8_t shadow = 0;
 
-  if (pixel->isWall)
+  if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
+  {
+    color = SFG_TRANSPARENT_COLOR;
+  }
+  else if (pixel->isWall)
   {
     uint8_t textureIndex =
       pixel->isFloor ?
@@ -107,7 +111,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         :
         (
           (pixel->texCoords.y > RCL_UNITS_PER_SQUARE) ?
-          (pixel->hit.type & 0x7) : 255 // SFG_currentLevel.levelPointer->doorTextureIndex 
+          (pixel->hit.type & 0x7) : 255
         )
       ):
       ((pixel->hit.type & 0x38) >> 3); 
@@ -139,7 +143,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   if (color != SFG_TRANSPARENT_COLOR)
   {
 #if SFG_DITHERED_SHADOW
-    uint8_t fogShadow = (pixel->depth * 2) / RCL_UNITS_PER_SQUARE;
+    uint8_t fogShadow = (pixel->depth) / RCL_UNITS_PER_SQUARE;
 
     uint8_t fogShadowPart = fogShadow & 0x03;
     uint8_t xMod2 = pixel->position.x & 0x01;
@@ -325,8 +329,8 @@ void SFG_gameStep()
 
   if (SFG_keyPressed(SFG_KEY_UP))
   {
-    SFG_camera.position.x += SFG_playerDirection.x;
-    SFG_camera.position.y += SFG_playerDirection.y;
+    SFG_camera.position.x += SFG_playerDirection.x    * 5;
+    SFG_camera.position.y += SFG_playerDirection.y    * 5;
   }
   else if (SFG_keyPressed(SFG_KEY_DOWN))
   {
