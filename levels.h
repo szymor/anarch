@@ -91,7 +91,7 @@ static inline SFG_TileDefinition SFG_getMapTile
 
 static const SFG_Level SFG_level0 =
 {
-  { // map.mapArray
+  { // mapArray
     #define o 0
     #define AA (0x04 | SFG_TILE_PROPERTY_ELEVATOR)
     #define BB (0x04 | SFG_TILE_PROPERTY_SQUEEZER)
@@ -167,7 +167,7 @@ static const SFG_Level SFG_level0 =
     #undef CC
     #undef DD
   },
-  { // map.tileDictionary
+  { // tileDictionary
     SFG_TD(0 ,31,0,0),SFG_TD(15,63,6,0),SFG_TD(28,63,1,0),SFG_TD(4 ,63,6,0), // 0
     SFG_TD(10,28,2,4),SFG_TD(4 ,26,4,6),SFG_TD(5 ,63,4,0),SFG_TD(1 ,10,1,0), // 4
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 8
@@ -185,8 +185,8 @@ static const SFG_Level SFG_level0 =
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 56
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0),SFG_TD(0 ,63,0,0), // 60
   },
-  {0, 1, 2, 3, 4, 5, 11}, // map.textureIndices
-  7                       // map.doorTextureIndex
+  {0, 1, 2, 3, 4, 5, 11}, // textureIndices
+  7                       // doorTextureIndex
 };
 
 #endif // guard
