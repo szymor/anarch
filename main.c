@@ -23,6 +23,8 @@
      needs.
 */
 
+#define SFG_LOG(str) ; ///< Can be redefined to log messages for better debug.
+
 /** Return 1 (0) if given key is pressed (not pressed). */
 int8_t SFG_keyPressed(uint8_t key);
 
@@ -259,6 +261,8 @@ void SFG_recompurePLayerDirection()
 
 void SFG_setLevel(const SFG_Level *level)
 {
+  SFG_LOG("setting and initializing level");
+
   SFG_currentLevel.levelPointer = level;
 
   for (uint8_t i = 0; i < 7; ++i)
@@ -272,6 +276,8 @@ void SFG_setLevel(const SFG_Level *level)
 
 void SFG_init()
 {
+  SFG_LOG("initializing game")
+
   SFG_frame = 0;
   SFG_lastFrameTimeMs = 0;
 
@@ -366,4 +372,6 @@ void SFG_mainLoopBody()
 
   if (timeNextFrame > timeNow)
     SFG_sleepMs((timeNextFrame - timeNow) / 2); // wait, relieve CPU
+  else
+    SFG_LOG("failed to reach target FPS!")
 }

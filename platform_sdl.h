@@ -10,6 +10,9 @@
 
 #include "palette.h"
 
+#undef SFG_LOG
+#define SFG_LOG(str) printf("game: %s\n",str);
+
 const uint8_t *sdlKeyboardState;
 
 uint16_t screen[SFG_RESOLUTION_X * SFG_RESOLUTION_Y]; // RGB565 format
@@ -46,11 +49,9 @@ int8_t SFG_keyPressed(uint8_t key)
 
 int main()
 {
-  printf("starting\n");
+  printf("SDL: starting\n");
 
-  SFG_init();
-
-  printf("initializing SDL\n");
+  printf("SDL: initializing SDL\n");
 
   SDL_Window *window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
@@ -66,6 +67,8 @@ int main()
   SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
 
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
+
+  SFG_init();
 
   int running = 1;
 
@@ -85,13 +88,13 @@ int main()
     SDL_RenderPresent(renderer);
   }    
 
-  printf("freeing SDL\n");
+  printf("SDL: freeing SDL\n");
 
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer); 
   SDL_DestroyWindow(window); 
 
-  printf("ending\n");
+  printf("SDL: ending\n");
 
   return 0;
 }
