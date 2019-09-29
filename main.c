@@ -115,6 +115,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         )
       ):
       ((pixel->hit.type & 0x38) >> 3); 
+
     RCL_Unit textureV = pixel->texCoords.y;
 
     if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
