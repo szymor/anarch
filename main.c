@@ -248,7 +248,8 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
     ) :
     SFG_movingWallHeight(
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
-      SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      (SFG_TILE_CEILING_HEIGHT(tile) + SFG_TILE_FLOOR_HEIGHT(tile))
+         * SFG_WALL_HEIGHT_STEP,
       SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
 
