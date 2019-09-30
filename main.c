@@ -76,6 +76,9 @@ void SFG_init();
 */
 #define SFG_WALL_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 4)
 
+#define SFG_CEILING_MAX_HEIGHT\
+  (16 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
+
 RCL_Camera SFG_camera;
 RCL_RayConstraints SFG_rayConstraints;
 
@@ -141,7 +144,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   else
   {
     color = pixel->isFloor ?
-      SFG_currentLevel.floorColor : SFG_currentLevel.ceilingColor;
+      (SFG_currentLevel.floorColor) : 
+      (pixel->height < SFG_CEILING_MAX_HEIGHT ?
+         SFG_currentLevel.ceilingColor : SFG_TRANSPARENT_COLOR);
   }
 
   if (color != SFG_TRANSPARENT_COLOR)
@@ -224,8 +229,6 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
       SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
-
-#define SFG_CEILING_MAX_HEIGHT (32 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
