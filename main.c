@@ -188,7 +188,7 @@ RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
   uint8_t p;
 
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&p);
+  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&p);
   return
     SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3) | p;
     // ^ store both textures (floor and ceiling) and properties in one number
@@ -215,7 +215,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
 
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&properties);
+  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
   return properties != SFG_TILE_PROPERTY_ELEVATOR ?
     SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP :
@@ -230,7 +230,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
-  SFG_TileDefinition tile = SFG_getMapTile(&SFG_level0,x,y,&properties);
+  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
   if (properties == SFG_TILE_PROPERTY_ELEVATOR)
     return SFG_CEILING_MAX_HEIGHT;

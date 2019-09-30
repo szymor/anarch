@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.84
+  version: 0.85
 */
 
 #include <stdint.h>
@@ -89,14 +89,6 @@
                                        slightly slower if on). */
 #endif
 
-#ifndef RCL_ACCURATE_WALL_TEXTURING
-#define RCL_ACCURATE_WALL_TEXTURING 0 /**< If turned on, vertical wall texture
-                                      coordinates will always be calculated
-                                      with more precise (but slower) method,
-                                      otherwise RCL_MIN_TEXTURE_STEP will be
-                                      used to decide the method. */
-#endif
-
 #ifndef RCL_COMPUTE_FLOOR_DEPTH
 #define RCL_COMPUTE_FLOOR_DEPTH 1 /**< Whether depth should be computed for
                                    floor pixels - turns this off if not
@@ -140,15 +132,12 @@
 #define RCL_CAMERA_COLL_STEP_HEIGHT (RCL_UNITS_PER_SQUARE / 2)
 #endif
 
-#ifndef RCL_MIN_TEXTURE_STEP
-  #if RCL_TEXTURE_VERTICAL_STRETCH == 1
-  #define RCL_MIN_TEXTURE_STEP 12 /**< Specifies the minimum step in pixels
-                                   that can be used to compute texture
-                                   coordinates in a fast way. Smallet step
-                                   should be faster (but less accurate). */
-  #else
-  #define RCL_MIN_TEXTURE_STEP 24
-  #endif
+#ifndef RCL_TEXTURE_INTERPOLATION_SCALE
+  #define RCL_TEXTURE_INTERPOLATION_SCALE 1024 /**< This says scaling of fixed
+                                             poit vertical texture coord
+                                             computation. This should be power
+                                             of two! Higher number can look more 
+                                             accurate but may cause overflow. */
 #endif
 
 #define RCL_HORIZON_DEPTH (11 * RCL_UNITS_PER_SQUARE) /**< What depth the
@@ -1139,85 +1128,58 @@ static inline int16_t _RCL_drawWall(
 {
   _RCL_UNUSED(height)
 
+  height = RCL_absVal(height);
+
   pixelInfo->isWall = 1;
 
   RCL_Unit limit = RCL_clamp(yTo,limit1,limit2);
 
-  RCL_Unit wallLength = RCL_absVal(yTo - yFrom - 1);
-
-  wallLength = RCL_nonZero(wallLength);
+  RCL_Unit wallLength = RCL_nonZero(RCL_absVal(yTo - yFrom - 1));
 
   RCL_Unit wallPosition = RCL_absVal(yFrom - yCurrent) - increment;
 
-  RCL_Unit coordStep = RCL_COMPUTE_WALL_TEXCOORDS ?
+  RCL_Unit heightScaled = height * RCL_TEXTURE_INTERPOLATION_SCALE;
+  _RCL_UNUSED(heightScaled);
+
+  RCL_Unit coordStepScaled = RCL_COMPUTE_WALL_TEXCOORDS ?
 #if RCL_TEXTURE_VERTICAL_STRETCH == 1
-    RCL_UNITS_PER_SQUARE / wallLength
+    ((RCL_UNITS_PER_SQUARE * RCL_TEXTURE_INTERPOLATION_SCALE) / wallLength)
 #else
-    height / wallLength
+    (heightScaled / wallLength)
 #endif
-    : 1;
+    : 0;
 
   pixelInfo->texCoords.y = RCL_COMPUTE_WALL_TEXCOORDS ?
-    wallPosition * coordStep : 0;
+    (wallPosition * coordStepScaled) : 0;
 
   if (increment < 0)
   {
-    coordStep *= -1;
+    coordStepScaled *= -1;
     pixelInfo->texCoords.y =
 #if RCL_TEXTURE_VERTICAL_STRETCH == 1
-      RCL_UNITS_PER_SQUARE - pixelInfo->texCoords.y;
+      (RCL_UNITS_PER_SQUARE * RCL_TEXTURE_INTERPOLATION_SCALE)
+      - pixelInfo->texCoords.y;
 #else
-      height - pixelInfo->texCoords.y;
+      heightScaled - pixelInfo->texCoords.y;
 #endif
-
-    wallPosition = wallLength - wallPosition;
   }
 
-#if RCL_ACCURATE_WALL_TEXTURING == 1
-  if (1)
-#else
-  if (RCL_absVal(coordStep) < RCL_MIN_TEXTURE_STEP)
-    /* for the sake of performance there are two-versions of the loop - it's
-       better to branch early than inside the loop */
-#endif
+  RCL_Unit textureCoordScaled = pixelInfo->texCoords.y;
+
+  for (RCL_Unit i = yCurrent + increment; 
+       increment == -1 ? i >= limit : i <= limit; // TODO: is efficient?
+       i += increment)
   {
-    for (RCL_Unit i = yCurrent + increment; 
-         increment == -1 ? i >= limit : i <= limit; // TODO: is efficient?
-         i += increment)
-    {
-      // more expensive texture coord computing
-      pixelInfo->position.y = i;
+    pixelInfo->position.y = i;
 
 #if RCL_COMPUTE_WALL_TEXCOORDS == 1
-  #if RCL_TEXTURE_VERTICAL_STRETCH == 1
-      pixelInfo->texCoords.y =
-        (wallPosition * RCL_UNITS_PER_SQUARE) / wallLength;
-  #else
-      pixelInfo->texCoords.y = (wallPosition * height) / wallLength;
-  #endif
+    pixelInfo->texCoords.y =
+      textureCoordScaled / RCL_TEXTURE_INTERPOLATION_SCALE;
+
+    textureCoordScaled += coordStepScaled;
 #endif
 
-      wallPosition += increment;
-
-      RCL_PIXEL_FUNCTION(pixelInfo);
-    }
-  }
-  else
-  {
-    for (RCL_Unit i = yCurrent + increment;
-         increment == -1 ? i >= limit : i <= limit; // TODO: is efficient?
-         i += increment)
-    {
-      // cheaper texture coord computing
-
-      pixelInfo->position.y = i;
-
-#if RCL_COMPUTE_WALL_TEXCOORDS == 1
-      pixelInfo->texCoords.y += coordStep;
-#endif
-
-      RCL_PIXEL_FUNCTION(pixelInfo);
-    }
+    RCL_PIXEL_FUNCTION(pixelInfo);
   }
   
   return limit;
