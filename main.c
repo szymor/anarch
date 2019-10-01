@@ -229,6 +229,96 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
 }
 
+#define SFG_MAX_SPRITE_SIZE SFG_RESOLUTION_X
+
+uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
+
+void SFG_drawScaledImage(
+  const uint8_t *image,
+  int16_t centerX,
+  int16_t centerY,
+  int16_t size)
+{
+  if ((size > SFG_MAX_SPRITE_SIZE) || (size == 0))
+    return;
+
+  uint16_t halfSize = size / 2;
+
+  int16_t topLeftX = centerX - halfSize;
+  int16_t topLeftY = centerY - halfSize; 
+
+  int16_t x0, u0;
+
+  if (topLeftX < 0)
+  {
+    u0 = -1 * topLeftX;
+    x0 = 0;
+  }
+  else
+  {
+    u0 = 0;
+    x0 = topLeftX;
+  }
+
+  int16_t x1 = topLeftX + size - 1;
+
+  if (x1 >= SFG_RESOLUTION_X)
+    x1 = SFG_RESOLUTION_X - 1;
+
+  int16_t y0, v0;
+
+  if (topLeftY < 0)
+  {
+    v0 = -1 * topLeftY;
+    y0 = 0;
+  }
+  else
+  {
+    v0 = 0;
+    y0 = topLeftY;
+  }
+
+  int16_t y1 = topLeftY + size - 1;
+
+  if (y1 >= SFG_RESOLUTION_Y)
+    y1 = SFG_RESOLUTION_Y - 1;
+
+  if ((x0 > x1) || (y0 > y1)) // completely outside screen?
+    return;
+
+  int16_t u1 = u0 + (x1 - x0);
+  int16_t v1 = v0 + (y1 - y0);
+
+  // precompute sampling positions:
+
+  int16_t uMin = RCL_min(u0,u1);
+  int16_t vMin = RCL_min(v0,v1);
+  int16_t uMax = RCL_max(u0,u1);
+  int16_t vMax = RCL_max(v0,v1);
+
+  int16_t precompFrom = RCL_min(uMin,vMin);
+  int16_t precompTo = RCL_max(uMax,vMax);
+
+  #define PRECOMP_SCALE 2048
+
+  int16_t precompStepScaled = (SFG_TEXTURE_SIZE * PRECOMP_SCALE) / size;
+  int16_t precompPosScaled = precompFrom * precompStepScaled;
+
+  for (int16_t i = precompFrom; i <= precompTo; ++i)
+  {
+    SFG_spriteSamplingPoints[i] = precompPosScaled / PRECOMP_SCALE;
+    precompPosScaled += precompStepScaled;
+  }
+
+  #undef PRECOMP_SCALE
+
+  for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
+    for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
+      SFG_setPixel(x,y,SFG_getTexel(image,
+                                    SFG_spriteSamplingPoints[u],
+                                    SFG_spriteSamplingPoints[v]));
+}
+
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
   uint8_t p;
