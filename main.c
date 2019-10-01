@@ -62,12 +62,19 @@ void SFG_init();
 
 #define SFG_PLAYER_TURN_UNITS_PER_FRAME\
   ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
+// TODO: ^ if zero, set to 1?
 
 #define SFG_PLAYER_MOVE_UNITS_PER_FRAME\
   ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
+#define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME\
+  ((SFG_GRAVITY_ACCELERATION * RCL_UNITS_PER_SQUARE) / (SFG_FPS * SFG_FPS))
+
 #define RCL_PIXEL_FUNCTION SFG_pixelFunc
 #define RCL_TEXTURE_VERTICAL_STRETCH 0
+
+#define RCL_CAMERA_COLL_HEIGHT_BELOW 800
+#define RCL_CAMERA_COLL_HEIGHT_ABOVE 100
 
 #include "raycastlib.h" 
 
@@ -79,11 +86,44 @@ void SFG_init();
 #define SFG_CEILING_MAX_HEIGHT\
   (16 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
 
-RCL_Camera SFG_camera;
-RCL_RayConstraints SFG_rayConstraints;
-
-uint8_t SFG_backgroundScaleMap[SFG_RESOLUTION_Y];
+int8_t SFG_backgroundScaleMap[SFG_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
+
+struct
+{
+  RCL_Camera camera;
+  RCL_Vector2D direction;
+  RCL_Unit verticalSpeed;
+} SFG_player;
+
+void SFG_recompurePLayerDirection()
+{
+  SFG_player.camera.direction = RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
+
+  SFG_player.direction = RCL_angleToDirection(SFG_player.camera.direction);
+
+  SFG_player.direction.x = (SFG_player.direction.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+  SFG_player.direction.y = (SFG_player.direction.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+
+  SFG_backgroundScroll =
+    ((SFG_player.camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
+}
+
+void SFG_initPlayer()
+{
+  RCL_initCamera(&SFG_player.camera);
+
+  SFG_player.camera.resolution.x = SFG_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
+  SFG_player.camera.resolution.y = SFG_RESOLUTION_Y;
+  SFG_player.camera.height = RCL_UNITS_PER_SQUARE * 12;
+  SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE * 15;
+  SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE * 8;
+
+  SFG_recompurePLayerDirection();
+  SFG_player.verticalSpeed = 0;
+}
+
+RCL_RayConstraints SFG_rayConstraints;
 
 /**
   Stores the current level and helper precomputed vaues for better performance.
@@ -256,21 +296,6 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 uint32_t SFG_frame;
 uint32_t SFG_lastFrameTimeMs;
 
-RCL_Vector2D SFG_playerDirection;
-
-void SFG_recompurePLayerDirection()
-{
-  SFG_camera.direction = RCL_wrap(SFG_camera.direction,RCL_UNITS_PER_SQUARE);
-
-  SFG_playerDirection = RCL_angleToDirection(SFG_camera.direction);
-
-  SFG_playerDirection.x = (SFG_playerDirection.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-  SFG_playerDirection.y = (SFG_playerDirection.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-
-  SFG_backgroundScroll =
-    ((SFG_camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
-}
-
 void SFG_setLevel(const SFG_Level *level)
 {
   SFG_LOG("setting and initializing level");
@@ -286,7 +311,7 @@ void SFG_setLevel(const SFG_Level *level)
 
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
  
-  SFG_recompurePLayerDirection();  
+  SFG_initPlayer();
 }
 
 void SFG_init()
@@ -296,14 +321,7 @@ void SFG_init()
   SFG_frame = 0;
   SFG_lastFrameTimeMs = 0;
 
-  RCL_initCamera(&SFG_camera);
   RCL_initRayConstraints(&SFG_rayConstraints);
-
-  SFG_camera.resolution.x = SFG_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
-  SFG_camera.resolution.y = SFG_RESOLUTION_Y;
-  SFG_camera.height = RCL_UNITS_PER_SQUARE;
-  SFG_camera.position.x = RCL_UNITS_PER_SQUARE * 5;
-  SFG_camera.position.y = RCL_UNITS_PER_SQUARE * 5;
 
   SFG_rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
@@ -324,35 +342,61 @@ void SFG_gameStep()
 {
   int8_t recomputeDirection = 0;
 
-  if (SFG_keyPressed(SFG_KEY_LEFT))
+  RCL_Vector2D moveOffset;
+
+  moveOffset.x = 0;
+  moveOffset.y = 0;
+
+  if (SFG_keyPressed(SFG_KEY_A))
   {
-    SFG_camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
-    recomputeDirection = 1;
+    if (SFG_keyPressed(SFG_KEY_LEFT))
+    {
+      moveOffset.x = -1 * SFG_player.direction.y;
+      moveOffset.y = SFG_player.direction.x;
+    }
+    else if (SFG_keyPressed(SFG_KEY_RIGHT))
+    {
+      moveOffset.x = SFG_player.direction.y;
+      moveOffset.y = -1 * SFG_player.direction.x;
+    }
   }
-  else if (SFG_keyPressed(SFG_KEY_RIGHT))
+  else
   {
-    SFG_camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
-    recomputeDirection = 1;
+    if (SFG_keyPressed(SFG_KEY_LEFT))
+    {
+      SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
+      recomputeDirection = 1;
+    }
+    else if (SFG_keyPressed(SFG_KEY_RIGHT))
+    {
+      SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
+      recomputeDirection = 1;
+    }
+
+    if (recomputeDirection)
+      SFG_recompurePLayerDirection();
   }
 
-  if (recomputeDirection)
-    SFG_recompurePLayerDirection();
+  SFG_player.verticalSpeed -= SFG_GRAVITY_SPEED_INCREASE_PER_FRAME;
 
   if (SFG_keyPressed(SFG_KEY_UP))
   {
-    SFG_camera.position.x += SFG_playerDirection.x    * 5;
-    SFG_camera.position.y += SFG_playerDirection.y    * 5;
+    moveOffset.x += SFG_player.direction.x;
+    moveOffset.y += SFG_player.direction.y;
   }
   else if (SFG_keyPressed(SFG_KEY_DOWN))
   {
-    SFG_camera.position.x -= SFG_playerDirection.x;
-    SFG_camera.position.y -= SFG_playerDirection.y;
+    moveOffset.x -= SFG_player.direction.x;
+    moveOffset.y -= SFG_player.direction.y;
   }
 
-  if (SFG_keyPressed(SFG_KEY_A))
-    SFG_camera.height += SFG_PLAYER_MOVE_UNITS_PER_FRAME;
-  else if (SFG_keyPressed(SFG_KEY_B))
-    SFG_camera.height -= SFG_PLAYER_MOVE_UNITS_PER_FRAME;
+  RCL_Unit previousHeight = SFG_player.camera.height;
+
+  RCL_moveCameraWithCollision(&(SFG_player.camera),moveOffset,
+    SFG_player.verticalSpeed,SFG_floorHeightAt,SFG_ceilingHeightAt,1,1);
+
+  SFG_player.verticalSpeed =
+    RCL_min(0,SFG_player.camera.height - previousHeight);
 }
 
 void SFG_mainLoopBody()
@@ -377,7 +421,7 @@ void SFG_mainLoopBody()
     }
 
     // render noly once
-    RCL_renderComplex(SFG_camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_texturesAt,SFG_rayConstraints);
+    RCL_renderComplex(SFG_player.camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_texturesAt,SFG_rayConstraints);
 
     SFG_lastFrameTimeMs = timeNow;
   }
