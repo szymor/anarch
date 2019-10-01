@@ -16,6 +16,7 @@ def printHelp():
   print("  -nS     use the name S for the texture (defaut: \"texture\")")
   print("  -pT     use palette from file T and indexed colors (otherwise direct colors)")
   print("  -5      use 565 format instead of RGB8")
+  print("  -t      transpose (store by columns)")
   print("");
   print("by Miloslav \"drummyfish\" Ciz")
   print("released under CC0 1.0")
@@ -35,6 +36,7 @@ GUARDS = False
 OUT_WIDTH = 64
 OUT_HEIGHT = 64
 USE_565 = False
+TRANSPOSE = False
 
 for s in sys.argv:
   if s [:2] == "-x":
@@ -50,6 +52,8 @@ for s in sys.argv:
   elif s[:2] == "-p":
     PALETTE = s[2:]
     USE_PALETTE = True
+  elif s[:2] == "-t":
+    TRANSPOSE = True
   else:
     FILENAME = s
 
@@ -81,9 +85,12 @@ pixels2 = image2.load()
 
 for y in range(OUT_HEIGHT):
   for x in range(OUT_WIDTH):
+    x2 = y if TRANSPOSE else x
+    y2 = x if TRANSPOSE else y
+
     coord = (
-      int(x / float(OUT_WIDTH) * image.size[0]),
-      int(y / float(OUT_HEIGHT) * image.size[1]))
+      int(x2 / float(OUT_WIDTH) * image.size[0]),
+      int(y2 / float(OUT_HEIGHT) * image.size[1]))
 
     pixel = pixels[coord]
 
