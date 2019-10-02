@@ -6,6 +6,16 @@
 #define SFG_RESOLUTION_Y 768
 
 /**
+  Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
+*/
+#define SFG_PREVIEW_MODE 1
+
+/**
+  How much faster movement is in the preview mode.
+*/
+#define SFG_PREVIEW_MODE_SPEED_MULTIPLIER 2
+
+/**
   Hint as to whether run in fullscreen, if the platform allows it.
 */
 #define SFG_FULLSCREEN 0

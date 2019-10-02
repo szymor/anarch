@@ -467,7 +467,16 @@ void SFG_gameStep()
       SFG_recompurePLayerDirection();
   }
 
+#if SFG_PREVIEW_MODE
+  if (SFG_keyPressed(SFG_KEY_B))
+    SFG_player.verticalSpeed = SFG_PLAYER_MOVE_UNITS_PER_FRAME;
+  else if (SFG_keyPressed(SFG_KEY_C))
+    SFG_player.verticalSpeed = -1 * SFG_PLAYER_MOVE_UNITS_PER_FRAME;
+  else
+    SFG_player.verticalSpeed = 0;
+#else
   SFG_player.verticalSpeed -= SFG_GRAVITY_SPEED_INCREASE_PER_FRAME;
+#endif
 
   if (SFG_keyPressed(SFG_KEY_UP))
   {
@@ -482,11 +491,22 @@ void SFG_gameStep()
 
   RCL_Unit previousHeight = SFG_player.camera.height;
 
+#if SFG_PREVIEW_MODE
+  SFG_player.camera.position.x +=
+    SFG_PREVIEW_MODE_SPEED_MULTIPLIER * moveOffset.x;
+
+  SFG_player.camera.position.y +=
+    SFG_PREVIEW_MODE_SPEED_MULTIPLIER * moveOffset.y;
+
+  SFG_player.camera.height += 
+    SFG_PREVIEW_MODE_SPEED_MULTIPLIER * SFG_player.verticalSpeed;
+#else
   RCL_moveCameraWithCollision(&(SFG_player.camera),moveOffset,
     SFG_player.verticalSpeed,SFG_floorHeightAt,SFG_ceilingHeightAt,1,1);
 
   SFG_player.verticalSpeed =
     RCL_min(0,SFG_player.camera.height - previousHeight);
+#endif
 }
 
 void SFG_mainLoopBody()
