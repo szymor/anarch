@@ -22,6 +22,7 @@
 #define SFG_RAYCASTING_MAX_HITS 6
 
 #include "Pokitto.h"
+#include "palette.h"
 
 Pokitto::Core pokitto;
 

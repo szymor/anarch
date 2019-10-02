@@ -1,8 +1,4 @@
 #include <stdint.h>
-#include "constants.h"
-#include "levels.h"
-#include "assets.h"
-#include "palette.h"
 
 /*
   The following keys are mandatory to be implemented on any platform in order
@@ -35,6 +31,9 @@
 */
 
 #define SFG_LOG(str) ; ///< Can be redefined to log messages for better debug.
+
+#define SFG_PROGRAM_MEMORY static const /**< Can be redefined to platform's
+                                         specifier of program meory. */
 
 /** Return 1 (0) if given key is pressed (not pressed). At least the mandatory
   keys have to be implemented, the optional keys don't have to ever return 1.
@@ -70,6 +69,11 @@ void SFG_init();
 #else
   #include "platform_sdl.h"
 #endif
+
+#include "constants.h"
+#include "levels.h"
+#include "assets.h"
+#include "palette.h"
 
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
 
@@ -138,6 +142,21 @@ void SFG_initPlayer()
 
 RCL_RayConstraints SFG_rayConstraints;
 
+typedef struct
+{
+  uint8_t coords[2];
+  uint8_t state;     /**< door state in format:
+                          
+                          ccbaaaaa
+
+                          aaaaa: current door height (how much they're open)
+                          b:     whether currently going up (0) or down (1)
+                          cc:    by which keys the door is unlocked
+                     */
+} SFG_doorRecord;
+
+#define SFG_MAX_DOORS 32
+
 /**
   Stores the current level and helper precomputed vaues for better performance.
 */
@@ -148,6 +167,8 @@ struct
   uint32_t timeStart;
   uint8_t floorColor;
   uint8_t ceilingColor;
+  SFG_doorRecord doors[SFG_MAX_DOORS];
+  uint8_t doorRecordCount;
 } SFG_currentLevel;
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)

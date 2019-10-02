@@ -25,7 +25,8 @@ static inline uint8_t SFG_getTexel(const uint8_t *texture, uint8_t x, uint8_t y)
   return texture[(x & 0x1f) * SFG_TEXTURE_SIZE + (y & 0x1f)];
 }
 
-const uint8_t SFG_texturesWall[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t
+SFG_texturesWall[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
 {
   { // 0: white wooden planks
 4,4,4,21,4,4,4,3,5,4,4,21,5,21,4,4,57,21,20,4,4,21,21,4,20,4,4,3,4,3,5,4,4,4,21,
@@ -486,7 +487,7 @@ const uint8_t SFG_texturesWall[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
   }
 };
 
-const uint8_t SFG_sprites[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t SFG_sprites[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
 {
   { // 0: barrel
 175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,
@@ -532,7 +533,8 @@ const uint8_t SFG_sprites[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
   }
 };
 
-const uint8_t SFG_backgrounds[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
+SFG_PROGRAM_MEMORY
+uint8_t SFG_backgrounds[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
 {
   { // 5
 10,10,10,10,10,10,19,19,12,13,13,13,13,13,13,13,13,14,64,80,64,64,73,64,64,64,

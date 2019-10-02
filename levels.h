@@ -91,7 +91,7 @@ static inline SFG_TileDefinition SFG_getMapTile
   return level->tileDictionary[tile & 0x3f];
 }
 
-static const SFG_Level SFG_level0 =
+SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
 {
   { // mapArray
     #define o 0
@@ -194,7 +194,7 @@ static const SFG_Level SFG_level0 =
   32                       // ceilingColor
 };
 
-static const SFG_Level SFG_level1 =
+SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
 {
   { // mapArray
     #define o 0
