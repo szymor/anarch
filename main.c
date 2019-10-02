@@ -4,6 +4,10 @@
 #include "assets.h"
 #include "palette.h"
 
+/*
+  The following keys are mandatory to be implemented on any platform in order
+  for the game to be playable.
+*/
 #define SFG_KEY_UP 0
 #define SFG_KEY_RIGHT 1
 #define SFG_KEY_DOWN 2
@@ -11,6 +15,13 @@
 #define SFG_KEY_A 4
 #define SFG_KEY_B 5
 #define SFG_KEY_C 6
+/*
+  The following keys are optional for a platform to implement. They just make
+  the controls more comfortable.
+*/
+#define SFG_KEY_JUMP 7
+#define SFG_KEY_STRAFE_LEFT 8
+#define SFG_KEY_STRAFE_RIGHT 9
 
 /* ============================= PORTING =================================== */
 
@@ -25,7 +36,9 @@
 
 #define SFG_LOG(str) ; ///< Can be redefined to log messages for better debug.
 
-/** Return 1 (0) if given key is pressed (not pressed). */
+/** Return 1 (0) if given key is pressed (not pressed). At least the mandatory
+  keys have to be implemented, the optional keys don't have to ever return 1.
+  See the key contant definitions to see which ones are mandatory. */
 int8_t SFG_keyPressed(uint8_t key);
 
 /** Return time in ms sice program start. */
@@ -386,7 +399,7 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 uint32_t SFG_frame;
 uint32_t SFG_lastFrameTimeMs;
 
-void SFG_setLevel(const SFG_Level *level)
+void SFG_setAndInitLevel(const SFG_Level *level)
 {
   SFG_LOG("setting and initializing level");
 
@@ -421,7 +434,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setLevel(&SFG_level0);
+  SFG_setAndInitLevel(&SFG_level0);
 }
 
 /**
@@ -437,18 +450,14 @@ void SFG_gameStep()
   moveOffset.x = 0;
   moveOffset.y = 0;
 
+  int8_t strafe = 0;
+
   if (SFG_keyPressed(SFG_KEY_A))
   {
     if (SFG_keyPressed(SFG_KEY_LEFT))
-    {
-      moveOffset.x = -1 * SFG_player.direction.y;
-      moveOffset.y = SFG_player.direction.x;
-    }
+      strafe = -1;
     else if (SFG_keyPressed(SFG_KEY_RIGHT))
-    {
-      moveOffset.x = SFG_player.direction.y;
-      moveOffset.y = -1 * SFG_player.direction.x;
-    }
+      strafe = 1;
   }
   else
   {
@@ -465,6 +474,17 @@ void SFG_gameStep()
 
     if (recomputeDirection)
       SFG_recompurePLayerDirection();
+  }
+
+  if (SFG_keyPressed(SFG_KEY_STRAFE_LEFT))
+    strafe = -1;
+  else if (SFG_keyPressed(SFG_KEY_STRAFE_RIGHT))
+    strafe = 1;
+
+  if (strafe != 0)
+  {
+    moveOffset.x = strafe * SFG_player.direction.y;
+    moveOffset.y = -1 * strafe * SFG_player.direction.x;
   }
 
 #if SFG_PREVIEW_MODE

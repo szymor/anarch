@@ -43,6 +43,11 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_A: return sdlKeyboardState[SDL_SCANCODE_A]; break;
     case SFG_KEY_B: return sdlKeyboardState[SDL_SCANCODE_S]; break;
     case SFG_KEY_C: return sdlKeyboardState[SDL_SCANCODE_D]; break;
+
+    case SFG_KEY_JUMP: return sdlKeyboardState[SDL_SCANCODE_SPACE]; break;
+    case SFG_KEY_STRAFE_LEFT: return sdlKeyboardState[SDL_SCANCODE_Q]; break;
+    case SFG_KEY_STRAFE_RIGHT: return sdlKeyboardState[SDL_SCANCODE_E]; break;
+
     default: return 0; break;
   }
 }
@@ -80,7 +85,7 @@ int main()
   {
     SDL_PumpEvents(); // updates the keyboard state
 
-    if (sdlKeyboardState[SDL_SCANCODE_Q])
+    if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
       break;
 
     SFG_mainLoopBody();
