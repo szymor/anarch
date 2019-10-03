@@ -18,6 +18,12 @@
 #define SFG_GRAVITY_ACCELERATION 30
 
 /**
+  Initial upwards speed of player's jump, in squares per second. 
+*/
+
+#define SFG_PLAYER_JUMP_SPEED 80
+
+/**
   How quickly elevators and squeezers move, in RCL_Unit per second.
 */
 #define SFG_MOVING_WALL_SPEED 1024

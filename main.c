@@ -111,6 +111,9 @@ struct
   RCL_Camera camera;
   RCL_Vector2D direction;
   RCL_Unit verticalSpeed;
+  RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
+                                  for determining whether player is in the
+                                  air. */
 } SFG_player;
 
 void SFG_recompurePLayerDirection()
@@ -138,6 +141,7 @@ void SFG_initPlayer()
 
   SFG_recompurePLayerDirection();
   SFG_player.verticalSpeed = 0;
+  SFG_player.previousVerticalSpeed = 0;
 }
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -516,7 +520,11 @@ void SFG_gameStep()
   else
     SFG_player.verticalSpeed = 0;
 #else
-  SFG_player.verticalSpeed -= SFG_GRAVITY_SPEED_INCREASE_PER_FRAME;
+  RCL_Unit verticalOffset = 
+    (SFG_keyPressed(SFG_KEY_JUMP) && (SFG_player.verticalSpeed == 0) &&
+      (SFG_player.previousVerticalSpeed == 0)) ?
+    SFG_PLAYER_JUMP_SPEED :
+    (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
   if (SFG_keyPressed(SFG_KEY_UP))
@@ -543,10 +551,16 @@ void SFG_gameStep()
     SFG_PREVIEW_MODE_SPEED_MULTIPLIER * SFG_player.verticalSpeed;
 #else
   RCL_moveCameraWithCollision(&(SFG_player.camera),moveOffset,
-    SFG_player.verticalSpeed,SFG_floorHeightAt,SFG_ceilingHeightAt,1,1);
+    verticalOffset,SFG_floorHeightAt,SFG_ceilingHeightAt,1,1);
 
+  SFG_player.previousVerticalSpeed = SFG_player.verticalSpeed;
+
+  RCL_Unit limit = RCL_max(RCL_max(0,verticalOffset),SFG_player.verticalSpeed);
+  
   SFG_player.verticalSpeed =
-    RCL_min(0,SFG_player.camera.height - previousHeight);
+    RCL_min(limit,SFG_player.camera.height - previousHeight);
+  /* ^ By "limit" we assure height increase caused by climbing a step doesn't
+     add vertical velocity. */
 #endif
 }
 
