@@ -1,9 +1,14 @@
 /*
+  @file palette.h
+
   General purpose HSV-based 256 color palette.
 
-  Define PALETTE_FORMAT_565 to use the RGB565 palette, otherwise RGB8 is used.
+  by Miloslav Ciz (drummyfish), 2019
 
-  by Drummyfish, released under CC0 1.0
+  Released under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  plus a waiver of all other intellectual property. The goal of this work is
+  be and remain completely in the public domain forever, available for any use
+  whatsoever.
 */
 
 #ifndef PALETTE_256_H
