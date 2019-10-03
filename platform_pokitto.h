@@ -4,7 +4,7 @@
 #include "settings.h"
 
 #undef SFG_FPS
-#define SFG_FPS 30
+#define SFG_FPS 50
 
 #undef SFG_RESOLUTION_X
 #define SFG_RESOLUTION_X 110

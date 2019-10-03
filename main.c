@@ -417,7 +417,7 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
       SFG_getTimeMs() - SFG_currentLevel.timeStart);
 }
 
-uint32_t SFG_frame;
+uint32_t SFG_gameFrame;
 uint32_t SFG_lastFrameTimeMs;
 
 void SFG_setAndInitLevel(const SFG_Level *level)
@@ -442,7 +442,7 @@ void SFG_init()
 {
   SFG_LOG("initializing game")
 
-  SFG_frame = 0;
+  SFG_gameFrame = 0;
   SFG_lastFrameTimeMs = 0;
 
   RCL_initRayConstraints(&SFG_rayConstraints);
@@ -557,10 +557,14 @@ void SFG_mainLoopBody()
      delta time. */
 
   uint32_t timeNow = SFG_getTimeMs();
-  uint16_t timeSinceLastFrame = timeNow - SFG_lastFrameTimeMs;
+  uint32_t timeNextFrame = SFG_lastFrameTimeMs + SFG_MS_PER_FRAME;
 
-  if (timeSinceLastFrame >= SFG_MS_PER_FRAME)
+  if (timeNow >= timeNextFrame)
   {
+    uint32_t timeSinceLastFrame = timeNow - SFG_lastFrameTimeMs;
+
+    uint8_t steps = 0;
+
     // perform game logic (physics), for each frame
     while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
@@ -568,20 +572,20 @@ void SFG_mainLoopBody()
 
       timeSinceLastFrame -= SFG_MS_PER_FRAME;
 
-      SFG_frame++;
+      SFG_gameFrame++;
+      steps++;
     }
+
+    if (steps > 1)
+      SFG_LOG("Failed to reach target FPS! Consider setting a lower value.")
 
     // render noly once
     RCL_renderComplex(SFG_player.camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_texturesAt,SFG_rayConstraints);
 
     SFG_lastFrameTimeMs = timeNow;
   }
-
-  uint32_t timeNextFrame = timeNow + SFG_MS_PER_FRAME;
-  timeNow = SFG_getTimeMs();
-
-  if (timeNextFrame > timeNow)
-    SFG_sleepMs((timeNextFrame - timeNow) / 2); // wait, relieve CPU
   else
-    SFG_LOG("failed to reach target FPS!")
+  {
+    SFG_sleepMs((timeNextFrame - timeNow) / 2); // wait, relieve CPU
+  }
 }
