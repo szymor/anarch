@@ -22,7 +22,7 @@
 
 /**
   Whether shadows (fog) should be dithered, i.e. more smooth (needs a bit more
-  performance).
+  CPU performance and memory).
 */
 #define SFG_DITHERED_SHADOW 1
 

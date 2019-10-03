@@ -175,6 +175,38 @@ struct
   uint8_t doorRecordCount;
 } SFG_currentLevel;
 
+#if SFG_DITHERED_SHADOW
+SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
+{
+  0,0,0,0,
+  0,0,0,0,
+
+  0,0,0,0,
+  0,1,0,0,
+
+  0,0,0,0,
+  0,1,0,1,
+
+  1,0,1,0,
+  0,1,0,0,
+
+  1,0,1,0,
+  0,1,0,1,
+
+  1,0,1,0,
+  0,1,1,1,
+
+  1,1,1,1,
+  0,1,0,1,
+
+  1,1,1,1,
+  0,1,1,1,
+ 
+  1,1,1,1,
+  1,1,1,1
+};
+#endif
+
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -230,20 +262,17 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   if (color != SFG_TRANSPARENT_COLOR)
   {
 #if SFG_DITHERED_SHADOW
-    uint8_t fogShadow = (pixel->depth) / RCL_UNITS_PER_SQUARE;
+    uint8_t fogShadow = (pixel->depth * 4) / (RCL_UNITS_PER_SQUARE);
+    
+    uint8_t fogShadowPart = fogShadow & 0x07;
 
-    uint8_t fogShadowPart = fogShadow & 0x03;
-    uint8_t xMod2 = pixel->position.x & 0x01;
+    fogShadow /= 8;
+
+    uint8_t xMod4 = pixel->position.x & 0x03;
     uint8_t yMod2 = pixel->position.y & 0x01;
 
-    fogShadow >>= 2;
-
-    if (((fogShadowPart == 1) && xMod2 && yMod2) ||
-        ((fogShadowPart == 2) && (xMod2 == yMod2)) ||
-        ((fogShadowPart == 3) && (xMod2 || yMod2)))
-      fogShadow += 1;
-
-    shadow += fogShadow;
+    shadow +=
+      fogShadow + SFG_ditheringPatterns[fogShadowPart * 8 + yMod2 * 4 + xMod4];
 #else
     shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
 #endif
