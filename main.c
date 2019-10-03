@@ -521,7 +521,12 @@ void SFG_gameStep()
     SFG_player.verticalSpeed = 0;
 #else
   RCL_Unit verticalOffset = 
-    (SFG_keyPressed(SFG_KEY_JUMP) && (SFG_player.verticalSpeed == 0) &&
+    (  
+      (
+        SFG_keyPressed(SFG_KEY_JUMP) ||
+        (SFG_keyPressed(SFG_KEY_UP) && SFG_keyPressed(SFG_KEY_C))
+      ) &&
+      (SFG_player.verticalSpeed == 0) &&
       (SFG_player.previousVerticalSpeed == 0)) ?
     SFG_PLAYER_JUMP_SPEED :
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);

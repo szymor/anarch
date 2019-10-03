@@ -36,17 +36,55 @@ int8_t SFG_keyPressed(uint8_t key)
 {
   switch (key)
   {
-    case SFG_KEY_UP: return sdlKeyboardState[SDL_SCANCODE_UP]; break;
-    case SFG_KEY_RIGHT: return sdlKeyboardState[SDL_SCANCODE_RIGHT]; break;
-    case SFG_KEY_DOWN: return sdlKeyboardState[SDL_SCANCODE_DOWN]; break;
-    case SFG_KEY_LEFT: return sdlKeyboardState[SDL_SCANCODE_LEFT]; break;
-    case SFG_KEY_A: return sdlKeyboardState[SDL_SCANCODE_A]; break;
-    case SFG_KEY_B: return sdlKeyboardState[SDL_SCANCODE_S]; break;
-    case SFG_KEY_C: return sdlKeyboardState[SDL_SCANCODE_D]; break;
+    case SFG_KEY_UP:
+      return sdlKeyboardState[SDL_SCANCODE_UP] ||
+             sdlKeyboardState[SDL_SCANCODE_W] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_8];
+      break;
 
-    case SFG_KEY_JUMP: return sdlKeyboardState[SDL_SCANCODE_SPACE]; break;
-    case SFG_KEY_STRAFE_LEFT: return sdlKeyboardState[SDL_SCANCODE_Q]; break;
-    case SFG_KEY_STRAFE_RIGHT: return sdlKeyboardState[SDL_SCANCODE_E]; break;
+    case SFG_KEY_RIGHT:
+      return sdlKeyboardState[SDL_SCANCODE_RIGHT] ||
+             sdlKeyboardState[SDL_SCANCODE_E] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_6];
+      break;
+
+    case SFG_KEY_DOWN:
+      return sdlKeyboardState[SDL_SCANCODE_DOWN] ||
+             sdlKeyboardState[SDL_SCANCODE_S] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_5]; 
+      break;
+
+    case SFG_KEY_LEFT:
+      return sdlKeyboardState[SDL_SCANCODE_LEFT] ||
+             sdlKeyboardState[SDL_SCANCODE_Q] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_4];
+      break;
+
+    case SFG_KEY_A:
+      return sdlKeyboardState[SDL_SCANCODE_G];
+      break;
+
+    case SFG_KEY_B:
+      return sdlKeyboardState[SDL_SCANCODE_H];
+      break;
+
+    case SFG_KEY_C:
+      return sdlKeyboardState[SDL_SCANCODE_J];
+      break;
+
+    case SFG_KEY_JUMP:
+      return sdlKeyboardState[SDL_SCANCODE_SPACE];
+      break;
+
+    case SFG_KEY_STRAFE_LEFT:
+      return sdlKeyboardState[SDL_SCANCODE_A] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_7];
+      break;
+
+    case SFG_KEY_STRAFE_RIGHT:
+      return sdlKeyboardState[SDL_SCANCODE_D] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_9];
+      break;
 
     default: return 0; break;
   }
