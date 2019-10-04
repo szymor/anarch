@@ -1,0 +1,12 @@
+- port to GB Meta
+- custom font
+- GUI
+- menu
+- sounds (music?)
+- level 2D map (with revealing, bitmap), special key for quick displaying map
+- save/load (optional)
+- enemies
+- weapons
+- more levels
+- disable transparency for walls for performance (setting)?
+- replace textures in distace with constant color for performance (setting)?

@@ -85,4 +85,11 @@
 */
 #define SFG_RAYCASTING_SUBSAMPLE 1
 
+/**
+  Enables or disables fog (darkness) due to distance. Recommended to keep on
+  for good look, but can be turned off for performance.
+*/
+
+#define SFG_ENABLE_FOG 1
+
 #endif // guard

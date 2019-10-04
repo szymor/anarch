@@ -346,7 +346,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
 #endif
 
+#if SFG_ENABLE_FOG
     color = palette_minusValue(color,shadow);
+#endif
   }
   else
   {
