@@ -88,6 +88,15 @@ void SFG_init();
 #include "levels.h"
 #include "assets.h"
 #include "palette.h"
+#include "settings.h" // will include if not included by platform
+
+#define RCL_PIXEL_FUNCTION SFG_pixelFunc
+#define RCL_TEXTURE_VERTICAL_STRETCH 0
+
+#define RCL_CAMERA_COLL_HEIGHT_BELOW 800
+#define RCL_CAMERA_COLL_HEIGHT_ABOVE 100
+
+#include "raycastlib.h" 
 
 #define SFG_GAME_RESOLUTION_X \
   (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
@@ -97,23 +106,30 @@ void SFG_init();
 
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
 
-#define SFG_PLAYER_TURN_UNITS_PER_FRAME\
-  ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
-// TODO: ^ if zero, set to 1?
+#if SFG_MS_PER_FRAME == 0
+  #define SFG_MS_PER_FRAME 1
+#endif
 
-#define SFG_PLAYER_MOVE_UNITS_PER_FRAME\
+#define SFG_PLAYER_TURN_UNITS_PER_FRAME \
+  ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
+
+#if SFG_PLAYER_TURN_UNITS_PER_FRAME == 0
+  #define SFG_PLAYER_TURN_UNITS_PER_FRAME 1
+#endif
+
+#define SFG_PLAYER_MOVE_UNITS_PER_FRAME \
   ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
-#define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME\
+#if SFG_PLAYER_MOVE_UNITS_PER_FRAME == 0
+  #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
+#endif
+
+#define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME \
   ((SFG_GRAVITY_ACCELERATION * RCL_UNITS_PER_SQUARE) / (SFG_FPS * SFG_FPS))
 
-#define RCL_PIXEL_FUNCTION SFG_pixelFunc
-#define RCL_TEXTURE_VERTICAL_STRETCH 0
-
-#define RCL_CAMERA_COLL_HEIGHT_BELOW 800
-#define RCL_CAMERA_COLL_HEIGHT_ABOVE 100
-
-#include "raycastlib.h" 
+#if SFG_GRAVITY_SPEED_INCREASE_PER_FRAME == 0
+  #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
+#endif
 
 /**
   Step in which walls get higher, in raycastlib units.
@@ -200,6 +216,15 @@ typedef struct
 } SFG_DoorRecord;
 
 #define SFG_DOOR_DEFAULT_STATE 0x1f
+#define SFG_DOOR_UP_DOWN_MASK 0x20
+#define SFG_DOOR_VERTICAL_POSITION_MASK 0x1f
+#define SFG_DOOR_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 0x1f)
+#define SFG_DOOR_INCREMENT_PER_FRAME \
+  (SFG_DOOR_OPEN_SPEED / (SFG_DOOR_HEIGHT_STEP * SFG_FPS))
+
+#if SFG_DOOR_INCREMENT_PER_FRAME == 0
+  #define SFG_DOOR_INCREMENT_PER_FRAME 1
+#endif
 
 #define SFG_MAX_DOORS 32
 
@@ -461,14 +486,34 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
 
-  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
+  SFG_TileDefinition tile =
+    SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
-  return properties != SFG_TILE_PROPERTY_ELEVATOR ?
-    SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP :
-    SFG_movingWallHeight(
+  uint8_t doorHeight = 0;
+
+  if (properties == SFG_TILE_PROPERTY_DOOR)
+  {
+    for (uint8_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+    {
+      SFG_DoorRecord *door = &(SFG_currentLevel.doors[i]);
+
+      if ((door->coords[0] == x) && (door->coords[1] == y))
+      {
+        doorHeight = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+        break;
+      }
+    }
+  }
+  else if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+  {
+    return SFG_movingWallHeight(
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_getTimeMs() - SFG_currentLevel.timeStart);
+  }
+ 
+  return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP -
+           doorHeight * SFG_DOOR_HEIGHT_STEP;
 }
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
@@ -686,20 +731,35 @@ void SFG_gameStep()
   /* Check one door on whether a player is standing nearby. For performance
      reasons we only check one door and move to another in the next frame. */
 
-  SFG_DoorRecord door =
-    SFG_currentLevel.doors[SFG_currentLevel.checkedDoorIndex];
+  SFG_DoorRecord *door =
+    &(SFG_currentLevel.doors[SFG_currentLevel.checkedDoorIndex]);
 
-  if (
-    (door.coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-    (door.coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-    (door.coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-    (door.coords[1] <= (SFG_player.squarePosition[1] + 1)))
-    printf("%d %d\n",SFG_player.squarePosition[0],SFG_player.squarePosition[1]);
+  door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
+    (
+      ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+       (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+       (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+       (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
+       SFG_DOOR_UP_DOWN_MASK : 0x00 
+    );
 
   SFG_currentLevel.checkedDoorIndex++;
 
   if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
     SFG_currentLevel.checkedDoorIndex = 0;
+
+  for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+  {
+    SFG_DoorRecord *door = &(SFG_currentLevel.doors[i]);
+
+    int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+
+    height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
+          RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
+          RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
+
+    door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
+  }
 }
 
 void SFG_mainLoopBody()

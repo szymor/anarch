@@ -64,7 +64,8 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_DOWN:
       return sdlKeyboardState[SDL_SCANCODE_DOWN] ||
              sdlKeyboardState[SDL_SCANCODE_S] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_5]; 
+             sdlKeyboardState[SDL_SCANCODE_KP_5] ||
+             sdlKeyboardState[SDL_SCANCODE_KP_2]; 
       break;
 
     case SFG_KEY_LEFT:

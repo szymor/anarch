@@ -43,4 +43,10 @@
 */
 #define SFG_MOVING_WALL_SPEED 1024
 
+/**
+  How quickly doors open and close, in RCL_Unit per second.
+*/
+
+#define SFG_DOOR_OPEN_SPEED 2048
+
 #endif // guard
