@@ -129,6 +129,7 @@ uint16_t SFG_backgroundScroll;
 struct
 {
   RCL_Camera camera;
+  int8_t squarePosition[2];
   RCL_Vector2D direction;
   RCL_Unit verticalSpeed;
   RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
@@ -198,6 +199,8 @@ typedef struct
                      */
 } SFG_DoorRecord;
 
+#define SFG_DOOR_DEFAULT_STATE 0x1f
+
 #define SFG_MAX_DOORS 32
 
 /**
@@ -208,10 +211,12 @@ struct
   const SFG_Level *levelPointer;
   const uint8_t* textures[7];
   uint32_t timeStart;
+  uint32_t frameStart;
   uint8_t floorColor;
   uint8_t ceilingColor;
   SFG_DoorRecord doors[SFG_MAX_DOORS];
   uint8_t doorRecordCount;
+  uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -524,7 +529,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
         d->coords[0] = i;
         d->coords[1] = j;
-        d->state = 0;
+        d->state = SFG_DOOR_DEFAULT_STATE;
 
         SFG_currentLevel.doorRecordCount++;
       }
@@ -537,8 +542,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
       break;
   }
 
-
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
+  SFG_currentLevel.frameStart = SFG_gameFrame;
  
   SFG_initPlayer();
 }
@@ -669,6 +674,32 @@ void SFG_gameStep()
   /* ^ By "limit" we assure height increase caused by climbing a step doesn't
      add vertical velocity. */
 #endif
+
+  SFG_player.squarePosition[0] =
+    SFG_player.camera.position.x / RCL_UNITS_PER_SQUARE;
+
+  SFG_player.squarePosition[1] =
+    SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
+
+  // handle door:
+
+  /* Check one door on whether a player is standing nearby. For performance
+     reasons we only check one door and move to another in the next frame. */
+
+  SFG_DoorRecord door =
+    SFG_currentLevel.doors[SFG_currentLevel.checkedDoorIndex];
+
+  if (
+    (door.coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+    (door.coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+    (door.coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+    (door.coords[1] <= (SFG_player.squarePosition[1] + 1)))
+    printf("%d %d\n",SFG_player.squarePosition[0],SFG_player.squarePosition[1]);
+
+  SFG_currentLevel.checkedDoorIndex++;
+
+  if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
+    SFG_currentLevel.checkedDoorIndex = 0;
 }
 
 void SFG_mainLoopBody()
