@@ -17,9 +17,33 @@
 #ifndef _SFG_SETTINGS_H
 #define _SFG_SETTINGS_H
 
+/**
+  Target FPS (frames per second). This sets the game logic FPS and will try to
+  render at the same rate. If such fast rendering can't be achieved, frames will
+  be droped, but the game logic will still be forced to run at this speed, so
+  the game may actually become slowed down if FPS is set too high.
+*/
 #define SFG_FPS 60
-#define SFG_RESOLUTION_X 1024
-#define SFG_RESOLUTION_Y 768
+
+/**
+  Width of the screen in pixels. Set this to ACTUAL resolution. If you want the
+  game to run at smaller resolution (with bigger pixels), do his using
+  SFG_RESOLUTION_SCALEDOWN;  
+*/
+#define SFG_SCREEN_RESOLUTION_X 1024
+
+/**
+  Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
+  game to run at smaller resolution (with bigger pixels), do his using
+  SFG_RESOLUTION_SCALEDOWN;  
+*/
+#define SFG_SCREEN_RESOLUTION_Y 768
+
+/**
+  How many times the screen resolution will be divided (how many times a game
+  pixel will be bigger than the screen pixel).
+*/
+#define SFG_RESOLUTION_SCALEDOWN 4
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).

@@ -28,11 +28,11 @@
 
 const uint8_t *sdlKeyboardState;
 
-uint16_t screen[SFG_RESOLUTION_X * SFG_RESOLUTION_Y]; // RGB565 format
+uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
-  screen[y * SFG_RESOLUTION_X + x] = paletteRGB565[colorIndex];
+  screen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
 }
 
 uint32_t SFG_getTimeMs()
@@ -128,7 +128,10 @@ int main(int argc, char *argv[])
     printf("possible arguments:\n\n");
     printf("-h       print this help and end\n");
     printf("-w       force run in window\n");
-    printf("-f       force run fullscreen\n");
+    printf("-f       force run fullscreen\n\n");
+    printf("controls:\n");
+    printf("TODO\n");
+
     return 0;
   }
 
@@ -138,14 +141,14 @@ int main(int argc, char *argv[])
 
   SDL_Window *window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
-    SDL_WINDOWPOS_UNDEFINED, SFG_RESOLUTION_X, SFG_RESOLUTION_Y,
+    SDL_WINDOWPOS_UNDEFINED, SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y,
     SDL_WINDOW_SHOWN); 
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window,-1,0);
 
   SDL_Texture *texture =
     SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB565,SDL_TEXTUREACCESS_STATIC,
-    SFG_RESOLUTION_X,SFG_RESOLUTION_Y);
+    SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
 
   SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
 
@@ -174,7 +177,7 @@ int main(int argc, char *argv[])
 
     SFG_mainLoopBody();
 
-    SDL_UpdateTexture(texture,NULL,screen,SFG_RESOLUTION_X * sizeof(uint16_t));
+    SDL_UpdateTexture(texture,NULL,screen,SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
 
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer,texture,NULL,NULL);

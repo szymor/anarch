@@ -89,6 +89,12 @@ void SFG_init();
 #include "assets.h"
 #include "palette.h"
 
+#define SFG_GAME_RESOLUTION_X \
+  (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
+
+#define SFG_GAME_RESOLUTION_Y \
+  (SFG_SCREEN_RESOLUTION_Y / SFG_RESOLUTION_SCALEDOWN)
+
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
 
 #define SFG_PLAYER_TURN_UNITS_PER_FRAME\
@@ -117,7 +123,7 @@ void SFG_init();
 #define SFG_CEILING_MAX_HEIGHT\
   (16 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
 
-int8_t SFG_backgroundScaleMap[SFG_RESOLUTION_Y];
+int8_t SFG_backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
 
 struct
@@ -130,6 +136,25 @@ struct
                                   air. */
 } SFG_player;
 
+
+#if SFG_RESOLUTION_SCALEDOWN == 1
+  #define SFG_setGamePixel SFG_setPixel
+#else
+/**
+  Sets the game pixel (a pixel that can potentially be bigger than the screen
+  pixel).
+*/
+static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
+{
+  uint16_t screenY = y * SFG_RESOLUTION_SCALEDOWN;
+  uint16_t screenX = x * SFG_RESOLUTION_SCALEDOWN;
+
+  for (uint16_t j = screenY; j < screenY + SFG_RESOLUTION_SCALEDOWN; ++j)
+    for (uint16_t i = screenX; i < screenX + SFG_RESOLUTION_SCALEDOWN; ++i)
+      SFG_setPixel(i,j,colorIndex);
+}
+#endif
+
 void SFG_recompurePLayerDirection()
 {
   SFG_player.camera.direction = RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
@@ -140,15 +165,15 @@ void SFG_recompurePLayerDirection()
   SFG_player.direction.y = (SFG_player.direction.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 
   SFG_backgroundScroll =
-    ((SFG_player.camera.direction * 8) * SFG_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
+    ((SFG_player.camera.direction * 8) * SFG_GAME_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
 }
 
 void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
 
-  SFG_player.camera.resolution.x = SFG_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
-  SFG_player.camera.resolution.y = SFG_RESOLUTION_Y;
+  SFG_player.camera.resolution.x = SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
+  SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y;
   SFG_player.camera.height = RCL_UNITS_PER_SQUARE * 12;
   SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE * 15;
   SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE * 8;
@@ -296,7 +321,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   else
   {
     color = SFG_getTexel(SFG_backgrounds[0],
-    SFG_backgroundScaleMap[(pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_RESOLUTION_Y],
+    SFG_backgroundScaleMap[(pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_GAME_RESOLUTION_Y],
                                                                    // ^ TODO: get rid of mod?
     SFG_backgroundScaleMap[pixel->position.y]);
   }
@@ -305,12 +330,12 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
   {
-    SFG_setPixel(screenX,pixel->position.y,color);
+    SFG_setGamePixel(screenX,pixel->position.y,color);
     screenX++;
   }
 }
 
-#define SFG_MAX_SPRITE_SIZE SFG_RESOLUTION_X
+#define SFG_MAX_SPRITE_SIZE SFG_GAME_RESOLUTION_X
 
 uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
 
@@ -343,8 +368,8 @@ void SFG_drawScaledImage(
 
   int16_t x1 = topLeftX + size - 1;
 
-  if (x1 >= SFG_RESOLUTION_X)
-    x1 = SFG_RESOLUTION_X - 1;
+  if (x1 >= SFG_GAME_RESOLUTION_X)
+    x1 = SFG_GAME_RESOLUTION_X - 1;
 
   int16_t y0, v0;
 
@@ -361,8 +386,8 @@ void SFG_drawScaledImage(
 
   int16_t y1 = topLeftY + size - 1;
 
-  if (y1 >= SFG_RESOLUTION_Y)
-    y1 = SFG_RESOLUTION_Y - 1;
+  if (y1 >= SFG_GAME_RESOLUTION_Y)
+    y1 = SFG_GAME_RESOLUTION_Y - 1;
 
   if ((x0 > x1) || (y0 > y1)) // completely outside screen?
     return;
@@ -395,7 +420,7 @@ void SFG_drawScaledImage(
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
     for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
-      SFG_setPixel(x,y,SFG_getTexel(image,
+      SFG_setGamePixel(x,y,SFG_getTexel(image,
                                     SFG_spriteSamplingPoints[u],
                                     SFG_spriteSamplingPoints[v]));
 }
@@ -497,8 +522,9 @@ void SFG_init()
   SFG_rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
 
-  for (uint16_t i = 0; i < SFG_RESOLUTION_Y; ++i)
-    SFG_backgroundScaleMap[i] = (i * SFG_TEXTURE_SIZE) / SFG_RESOLUTION_Y;
+  for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_Y; ++i)
+    SFG_backgroundScaleMap[i] =
+      (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
 
   SFG_backgroundScroll = 0;
 

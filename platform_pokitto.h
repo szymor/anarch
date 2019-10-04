@@ -19,11 +19,14 @@
 #undef SFG_FPS
 #define SFG_FPS 50
 
-#undef SFG_RESOLUTION_X
-#define SFG_RESOLUTION_X 110
+#undef SFG_SCREEN_RESOLUTION_X
+#define SFG_SCREEN_RESOLUTION_X 110
 
-#undef SFG_RESOLUTION_Y
-#define SFG_RESOLUTION_Y 88
+#undef SFG_SCREEN_RESOLUTION_Y
+#define SFG_SCREEN_RESOLUTION_Y 88
+
+#undef SFG_RESOLUTION_SCALEDOWN
+#define SFG_RESOLUTION_SCALEDOWN 1
 
 #undef SFG_DITHERED_SHADOW
 #define SFG_DITHERED_SHADOW 0
@@ -43,7 +46,7 @@ uint8_t *pokittoScreen;
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
-  pokittoScreen[y * SFG_RESOLUTION_X + x] = colorIndex;
+  pokittoScreen[y * SFG_SCREEN_RESOLUTION_X + x] = colorIndex;
 }
 
 uint32_t SFG_getTimeMs()
