@@ -190,13 +190,13 @@ typedef struct
   uint8_t coords[2];
   uint8_t state;     /**< door state in format:
                           
-                          ccbaaaaa
+                          MSB  ccbaaaaa  LSB
 
                           aaaaa: current door height (how much they're open)
                           b:     whether currently going up (0) or down (1)
                           cc:    by which keys the door is unlocked
                      */
-} SFG_doorRecord;
+} SFG_DoorRecord;
 
 #define SFG_MAX_DOORS 32
 
@@ -210,7 +210,7 @@ struct
   uint32_t timeStart;
   uint8_t floorColor;
   uint8_t ceilingColor;
-  SFG_doorRecord doors[SFG_MAX_DOORS];
+  SFG_DoorRecord doors[SFG_MAX_DOORS];
   uint8_t doorRecordCount;
 } SFG_currentLevel;
 
@@ -504,6 +504,39 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =
       SFG_texturesWall[level->textureIndices[i]];
+
+  SFG_LOG("initializing doors");
+
+  SFG_currentLevel.doorRecordCount = 0;
+
+  for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
+  {
+    for (uint8_t i = 0; i < SFG_MAP_SIZE; ++i)
+    {
+      uint8_t properties;
+     
+      SFG_getMapTile(level,i,j,&properties);
+
+      if ((properties & SFG_TILE_PROPERTY_MASK) == SFG_TILE_PROPERTY_DOOR)
+      {
+        SFG_DoorRecord *d =
+          &(SFG_currentLevel.doors[SFG_currentLevel.doorRecordCount]);
+
+        d->coords[0] = i;
+        d->coords[1] = j;
+        d->state = 0;
+
+        SFG_currentLevel.doorRecordCount++;
+      }
+
+      if (SFG_currentLevel.doorRecordCount >= SFG_MAX_DOORS)
+        break;
+    }
+
+    if (SFG_currentLevel.doorRecordCount >= SFG_MAX_DOORS)
+      break;
+  }
+
 
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
  
