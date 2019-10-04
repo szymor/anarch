@@ -103,8 +103,35 @@ int8_t SFG_keyPressed(uint8_t key)
   }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+  uint8_t argHelp = 0;
+  uint8_t argForceWindow = 0;
+  uint8_t argForceFullscreen = 0;
+
+  for (uint8_t i = 1; i < argc; ++i)
+  {
+    if (argv[i][0] == '-' && argv[i][1] == 'h' && argv[i][2] == 0)
+      argHelp = 1;
+    else if (argv[i][0] == '-' && argv[i][1] == 'w' && argv[i][2] == 0)       
+      argForceWindow = 1;
+    else if (argv[i][0] == '-' && argv[i][1] == 'f' && argv[i][2] == 0)       
+      argForceFullscreen = 1;
+    else
+      printf("SDL: unknown argument: %s\n",argv[i]); 
+  }
+
+  if (argHelp)
+  {
+    printf("TODOGAME, a suckless first person shooter game (SDL2 frontend)\n\n");
+    printf("version TODO, by Miloslav Ciz, released under CC0 1.0 + waiver of all IP\n");
+    printf("possible arguments:\n\n");
+    printf("-h       print this help and end\n");
+    printf("-w       force run in window\n");
+    printf("-f       force run fullscreen\n");
+    return 0;
+  }
+
   printf("SDL: starting\n");
 
   printf("SDL: initializing SDL\n");
@@ -123,8 +150,14 @@ int main()
   SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
 
 #if SFG_FULLSCREEN
-  SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+  argForceFullscreen = 1;
 #endif
+
+  if (!argForceWindow && argForceFullscreen)
+  {
+    printf("SDL: setting fullscreen\n");
+    SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+  }
 
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
 
