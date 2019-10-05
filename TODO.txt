@@ -1,3 +1,4 @@
+- texture coords of floor walls should start from the floor?
 - port to GB Meta
 - custom font
 - GUI
@@ -10,3 +11,4 @@
 - more levels
 - disable transparency for walls for performance (setting)?
 - replace textures in distace with constant color for performance (setting)?
+- add time slowdown constant
