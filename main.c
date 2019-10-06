@@ -476,9 +476,14 @@ void SFG_drawScaledImage(
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
     for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
-      SFG_setGamePixel(x,y,SFG_getTexel(image,
-                                    SFG_spriteSamplingPoints[u],
-                                    SFG_spriteSamplingPoints[v]));
+    {
+      uint8_t color =
+        SFG_getTexel(image,SFG_spriteSamplingPoints[u],
+          SFG_spriteSamplingPoints[v]);
+
+      if (color != SFG_TRANSPARENT_COLOR)
+        SFG_setGamePixel(x,y,color);
+    }
 }
 
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
