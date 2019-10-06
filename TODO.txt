@@ -12,6 +12,11 @@
 - replace textures in distace with constant color for performance (setting)?
 - add time slowdown constant
 
+bugs:
+
+- sprite positioning inccuracy
+
+
 done:
 
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES

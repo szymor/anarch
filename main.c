@@ -446,8 +446,8 @@ void SFG_drawScaledImage(
   if (y1 >= SFG_GAME_RESOLUTION_Y)
     y1 = SFG_GAME_RESOLUTION_Y - 1;
 
-  if ((x0 > x1) || (y0 > y1)) // completely outside screen?
-    return;
+  if ((x0 > x1) || (y0 > y1) || (u0 >= size) || (v0 >= size))
+    return;     // outside screen?
 
   int16_t u1 = u0 + (x1 - x0);
   int16_t v1 = v0 + (y1 - y0);
@@ -461,6 +461,9 @@ void SFG_drawScaledImage(
 
   int16_t precompFrom = RCL_min(uMin,vMin);
   int16_t precompTo = RCL_max(uMax,vMax);
+
+  precompFrom = RCL_max(0,precompFrom);
+  precompTo = RCL_min(SFG_MAX_SPRITE_SIZE - 1,precompTo);
 
   #define PRECOMP_SCALE 2048
 
@@ -649,6 +652,12 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_currentLevel.frameStart = SFG_gameFrame;
  
   SFG_initPlayer();
+
+SFG_player.camera.position.x = 13185; 
+SFG_player.camera.position.y = 4395; 
+SFG_player.camera.direction = 846; 
+SFG_player.camera.height = 3360; 
+
 }
 
 void SFG_init()
