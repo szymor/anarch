@@ -43,7 +43,7 @@
   How many times the screen resolution will be divided (how many times a game
   pixel will be bigger than the screen pixel).
 */
-#define SFG_RESOLUTION_SCALEDOWN 4
+#define SFG_RESOLUTION_SCALEDOWN 1
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).

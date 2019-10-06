@@ -229,19 +229,39 @@ typedef struct
 #define SFG_MAX_DOORS 32
 
 /**
+  Holds information about one instance of a level item (a type of level element,
+  e.g. pickable items, decorations etc.). The format is following:
+
+  MSB  abbbbbbb  LSB
+
+  a:        active flag, 1 means the item is nearby to player and is active
+  bbbbbbb:  index to elements array of the current level, pointing to element
+            representing this item 
+*/
+typedef uint8_t SFG_ItemRecord;
+
+#define SFG_MAX_LEVEL_ITEMS SFG_MAX_LEVEL_ELEMENTS
+
+/**
   Stores the current level and helper precomputed vaues for better performance.
 */
 struct
 {
   const SFG_Level *levelPointer;
   const uint8_t* textures[7];
+
   uint32_t timeStart;
   uint32_t frameStart;
+
   uint8_t floorColor;
   uint8_t ceilingColor;
-  SFG_DoorRecord doors[SFG_MAX_DOORS];
+
+  SFG_DoorRecord doorRecords[SFG_MAX_DOORS];
   uint8_t doorRecordCount;
   uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
+
+  SFG_ItemRecord itemRecords[SFG_MAX_LEVEL_ITEMS]; ///< Holds level items
+  uint8_t itemRecordCount;
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -497,7 +517,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
   {
     for (uint8_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
     {
-      SFG_DoorRecord *door = &(SFG_currentLevel.doors[i]);
+      SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
 
       if ((door->coords[0] == x) && (door->coords[1] == y))
       {
@@ -572,7 +592,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
       if ((properties & SFG_TILE_PROPERTY_MASK) == SFG_TILE_PROPERTY_DOOR)
       {
         SFG_DoorRecord *d =
-          &(SFG_currentLevel.doors[SFG_currentLevel.doorRecordCount]);
+          &(SFG_currentLevel.doorRecords[SFG_currentLevel.doorRecordCount]);
 
         d->coords[0] = i;
         d->coords[1] = j;
@@ -589,6 +609,23 @@ void SFG_setAndInitLevel(const SFG_Level *level)
       break;
   }
 
+  SFG_LOG("initializing level elements");
+
+  SFG_currentLevel.itemRecordCount = 0;
+
+  for (uint8_t i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
+  {
+    SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
+
+    if (e->elementType == SFG_LEVEL_ELEMENT_BARREL)
+    {
+      SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] =
+        SFG_LEVEL_ELEMENT_BARREL;
+
+      SFG_currentLevel.itemRecordCount++;
+    }
+  } 
+
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
   SFG_currentLevel.frameStart = SFG_gameFrame;
  
@@ -600,7 +637,6 @@ void SFG_init()
   SFG_LOG("initializing game")
 
   SFG_gameFrame = 0;
-  SFG_lastFrameTimeMs = 0;
 
   RCL_initRayConstraints(&SFG_rayConstraints);
 
@@ -614,6 +650,8 @@ void SFG_init()
   SFG_backgroundScroll = 0;
 
   SFG_setAndInitLevel(&SFG_level0);
+
+  SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
 
 /**
@@ -734,7 +772,7 @@ void SFG_gameStep()
      reasons we only check one door and move to another in the next frame. */
 
   SFG_DoorRecord *door =
-    &(SFG_currentLevel.doors[SFG_currentLevel.checkedDoorIndex]);
+    &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
 
   door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
     (
@@ -752,7 +790,7 @@ void SFG_gameStep()
 
   for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
   {
-    SFG_DoorRecord *door = &(SFG_currentLevel.doors[i]);
+    SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
 
     int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
 
