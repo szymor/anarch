@@ -240,6 +240,8 @@ typedef struct
 */
 typedef uint8_t SFG_ItemRecord;
 
+#define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
+
 #define SFG_MAX_LEVEL_ITEMS SFG_MAX_LEVEL_ELEMENTS
 
 /**
@@ -262,6 +264,8 @@ struct
 
   SFG_ItemRecord itemRecords[SFG_MAX_LEVEL_ITEMS]; ///< Holds level items
   uint8_t itemRecordCount;
+  uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
+
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -579,6 +583,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_LOG("initializing doors");
 
+  SFG_currentLevel.checkedDoorIndex = 0;
+
   SFG_currentLevel.doorRecordCount = 0;
 
   for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
@@ -611,6 +617,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_LOG("initializing level elements");
 
+  SFG_currentLevel.checkedItemIndex = 0;
+
   SFG_currentLevel.itemRecordCount = 0;
 
   for (uint8_t i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
@@ -619,8 +627,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
     if (e->elementType == SFG_LEVEL_ELEMENT_BARREL)
     {
-      SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] =
-        SFG_LEVEL_ELEMENT_BARREL;
+      SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
 
       SFG_currentLevel.itemRecordCount++;
     }
@@ -768,37 +775,69 @@ void SFG_gameStep()
 
   // handle door:
 
-  /* Check one door on whether a player is standing nearby. For performance
-     reasons we only check one door and move to another in the next frame. */
-
-  SFG_DoorRecord *door =
-    &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
-
-  door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
-    (
-      ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-       (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-       (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-       (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
-       SFG_DOOR_UP_DOWN_MASK : 0x00 
-    );
-
-  SFG_currentLevel.checkedDoorIndex++;
-
-  if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
-    SFG_currentLevel.checkedDoorIndex = 0;
-
-  for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+  if (SFG_currentLevel.doorRecordCount > 0) // has to be here
   {
-    SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
+    /* Check one door on whether a player is standing nearby. For performance
+       reasons we only check one door and move to another in the next frame. */
 
-    int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+    SFG_DoorRecord *door =
+      &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
 
-    height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
-          RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
-          RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
+    door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
+      (
+        ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+         (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+         (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+         (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
+         SFG_DOOR_UP_DOWN_MASK : 0x00 
+      );
 
-    door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
+    SFG_currentLevel.checkedDoorIndex++;
+
+    if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
+      SFG_currentLevel.checkedDoorIndex = 0;
+
+    for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+    {
+      SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
+
+      int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+
+      height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
+            RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
+            RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
+
+      door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
+    }
+  }
+
+  // handle items, in a similar manner to door:
+
+  if (SFG_currentLevel.itemRecordCount > 0) // has to be here
+  {
+    SFG_ItemRecord item =
+      SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex];
+
+    item &= ~SFG_ITEM_RECORD_ACTIVE_MASK;
+
+    SFG_LevelElement e =
+      SFG_currentLevel.levelPointer->elements[item];
+
+    if (
+        (RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE)
+        &&
+        (RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE)
+      )
+      item |= SFG_ITEM_RECORD_ACTIVE_MASK;
+
+    SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
+
+    SFG_currentLevel.checkedItemIndex++;
+
+    if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
+      SFG_currentLevel.checkedItemIndex = 0;
   }
 }
 

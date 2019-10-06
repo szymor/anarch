@@ -46,7 +46,12 @@
 /**
   How quickly doors open and close, in RCL_Unit per second.
 */
-
 #define SFG_DOOR_OPEN_SPEED 2048
+
+/**
+  Says the (Chebyshev) distance in game squares at which level elements
+  (items, monsters etc.) become active.
+*/
+#define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 8
 
 #endif // guard
