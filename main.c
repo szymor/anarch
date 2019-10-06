@@ -841,6 +841,43 @@ void SFG_gameStep()
   }
 }
 
+void SFG_draw()
+{
+  RCL_renderComplex(
+    SFG_player.camera,
+    SFG_floorHeightAt,
+    SFG_ceilingHeightAt,
+    SFG_texturesAt,
+    SFG_rayConstraints);
+  
+  // draw sprites:
+
+  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+    if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
+    {
+      RCL_Vector2D worldPosition;
+
+      SFG_LevelElement e = 
+        SFG_currentLevel.levelPointer->elements[
+          SFG_currentLevel.itemRecords[i] & ~SFG_ITEM_RECORD_ACTIVE_MASK];
+
+      worldPosition.x =
+        e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+
+      worldPosition.y =
+        e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+
+      RCL_PixelInfo p =
+        RCL_mapToScreen(
+          worldPosition,
+          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2,
+          SFG_player.camera);
+
+      SFG_drawScaledImage(SFG_sprites[0],p.position.x,p.position.y,
+        RCL_perspectiveScale(256,p.depth));
+    }
+}
+
 void SFG_mainLoopBody()
 {
   /* standard deterministic game loop, independed on actuall achieved FPS,
@@ -871,7 +908,7 @@ void SFG_mainLoopBody()
       SFG_LOG("Failed to reach target FPS! Consider setting a lower value.")
 
     // render noly once
-    RCL_renderComplex(SFG_player.camera,SFG_floorHeightAt,SFG_ceilingHeightAt,SFG_texturesAt,SFG_rayConstraints);
+    SFG_draw();
 
     SFG_lastFrameTimeMs = timeNow;
   }
