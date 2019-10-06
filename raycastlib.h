@@ -487,7 +487,7 @@ RCL_Unit *_RCL_floorPixelDistances = 0;
   uint32_t profile_RCL_angleToDirection = 0;
   uint32_t profile_RCL_dist = 0;
   uint32_t profile_RCL_len = 0;
-  uint32_t profile_RCL_pointIfLeftOfRay = 0;
+  uint32_t profile_RCL_pointIsLeftOfRay = 0;
   uint32_t profile_RCL_castRayMultiHit = 0; 
   uint32_t profile_RCL_castRay = 0;
   uint32_t profile_RCL_absVal = 0;
@@ -506,7 +506,7 @@ RCL_Unit *_RCL_floorPixelDistances = 0;
     printf("  RCL_angleToDirection: %d\n",profile_RCL_angleToDirection);\
     printf("  RCL_dist: %d\n",profile_RCL_dist);\
     printf("  RCL_len: %d\n",profile_RCL_len);\
-    printf("  RCL_pointIfLeftOfRay: %d\n",profile_RCL_pointIfLeftOfRay);\
+    printf("  RCL_pointIsLeftOfRay: %d\n",profile_RCL_pointIsLeftOfRay);\
     printf("  RCL_castRayMultiHit : %d\n",profile_RCL_castRayMultiHit);\
     printf("  RCL_castRay: %d\n",profile_RCL_castRay);\
     printf("  RCL_normalize: %d\n",profile_RCL_normalize);\
@@ -730,9 +730,9 @@ RCL_Unit RCL_len(RCL_Vector2D v)
   return RCL_dist(zero,v);
 }
 
-static inline int8_t RCL_pointIfLeftOfRay(RCL_Vector2D point, RCL_Ray ray)
+static inline int8_t RCL_pointIsLeftOfRay(RCL_Vector2D point, RCL_Ray ray)
 {
-  RCL_profileCall(RCL_pointIfLeftOfRay);
+  RCL_profileCall(RCL_pointIsLeftOfRay);
 
   RCL_Unit dX    = point.x - ray.start.x;
   RCL_Unit dY    = point.y - ray.start.y;
@@ -1641,23 +1641,21 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
 
   RCL_Unit middleColumn = camera.resolution.x / 2;
 
+  // compute the third side of the triangle
+
   RCL_Unit a = RCL_sqrtInt(d * d - result.depth * result.depth);
 
-  RCL_Ray r;
-  r.start = camera.position;
-  r.direction = cameraDir;
+  RCL_Unit tmp = cameraDir.x; // rotate vector 90 degrees
+  cameraDir.x = cameraDir.y;
+  cameraDir.y = -1 * tmp;
 
-  if (!RCL_pointIfLeftOfRay(worldPosition,r))
+  // decide whether the point is in the left or right part of screen
+
+  if (RCL_vectorsAngleCos(toPoint,cameraDir) <= 0)
     a *= -1;
 
-  RCL_Unit cos = RCL_cosInt(RCL_HORIZONTAL_FOV_HALF);
-
-  RCL_Unit b = (result.depth * RCL_sinInt(RCL_HORIZONTAL_FOV_HALF)) /
-    RCL_nonZero(cos);
-    // sin/cos = tan
-
-  result.position.x = (a * middleColumn) / RCL_nonZero(b);
-  result.position.x = middleColumn - result.position.x;
+  result.position.x =
+    middleColumn + (a * middleColumn) / RCL_nonZero(result.depth);
 
   return result;
 }
