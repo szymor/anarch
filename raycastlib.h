@@ -1649,9 +1649,10 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
   cameraDir.x = cameraDir.y;
   cameraDir.y = -1 * tmp;
 
-  // decide whether the point is in the left or right part of screen
+  /* decide whether the point is in the left or right part of screen, using
+     dot product (non-normalized, as we only need to compare to 0) */
 
-  if (RCL_vectorsAngleCos(toPoint,cameraDir) <= 0)
+  if ((toPoint.x * cameraDir.x + toPoint.y * cameraDir.y) <= 0)
     a *= -1;
 
   result.position.x =
