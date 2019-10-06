@@ -131,6 +131,8 @@ void SFG_init();
   #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
 #endif
 
+uint16_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
+
 /**
   Step in which walls get higher, in raycastlib units.
 */
@@ -305,6 +307,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t color;
   uint8_t shadow = 0;
 
+  if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
+    SFG_zBuffer[pixel->position.x] = pixel->depth;
+
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
     color = SFG_TRANSPARENT_COLOR;
@@ -395,12 +400,13 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
 uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
 
-void SFG_drawScaledImage(
+void SFG_drawScaledSprite(
   const uint8_t *image,
   int16_t centerX,
   int16_t centerY,
   int16_t size,
-  uint8_t minusValue)
+  uint8_t minusValue,
+  RCL_Unit distance)
 {
   if ((size > SFG_MAX_SPRITE_SIZE) || (size == 0))
     return;
@@ -479,21 +485,33 @@ void SFG_drawScaledImage(
   #undef PRECOMP_SCALE
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
-    for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
+  {
+    if (SFG_zBuffer[x] > distance)
     {
-      uint8_t color =
-        SFG_getTexel(image,SFG_spriteSamplingPoints[u],
-          SFG_spriteSamplingPoints[v]);
+      int8_t columnTransparent = 1;
 
-      if (color != SFG_TRANSPARENT_COLOR)
+      for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
       {
-#if SFG_DIMINISH_SPRITES
-        color = palette_minusValue(color,minusValue);
-#endif
+        uint8_t color =
+          SFG_getTexel(image,SFG_spriteSamplingPoints[u],
+            SFG_spriteSamplingPoints[v]);
 
-        SFG_setGamePixel(x,y,color);
+        if (color != SFG_TRANSPARENT_COLOR)
+        {
+  #if SFG_DIMINISH_SPRITES
+          color = palette_minusValue(color,minusValue);
+  #endif
+ 
+          columnTransparent = 0;
+
+          SFG_setGamePixel(x,y,color);
+        }
       }
+
+      if (!columnTransparent)
+        SFG_zBuffer[x] = distance;
     }
+  }
 }
 
 RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
@@ -864,6 +882,9 @@ void SFG_gameStep()
 
 void SFG_draw()
 {
+  for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+    SFG_zBuffer[i] = 65535;
+
   RCL_renderComplex(
     SFG_player.camera,
     SFG_floorHeightAt,
@@ -895,9 +916,9 @@ void SFG_draw()
           SFG_player.camera);
 
       if (p.depth > 0)
-        SFG_drawScaledImage(SFG_sprites[0],p.position.x,p.position.y,
+        SFG_drawScaledSprite(SFG_sprites[0],p.position.x,p.position.y,
           RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
-          p.depth / (RCL_UNITS_PER_SQUARE * 2));
+          p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
     }
 }
 
