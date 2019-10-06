@@ -635,7 +635,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   for (uint8_t i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
   {
-    SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
+    const SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
 
     if (e->elementType == SFG_LEVEL_ELEMENT_BARREL)
     {
@@ -885,9 +885,10 @@ void SFG_draw()
           SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2,
           SFG_player.camera);
 
-      SFG_drawScaledImage(SFG_sprites[0],p.position.x,p.position.y,
-        RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
-        p.depth / (RCL_UNITS_PER_SQUARE * 2));
+      if (p.depth > 0)
+        SFG_drawScaledImage(SFG_sprites[0],p.position.x,p.position.y,
+          RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
+          p.depth / (RCL_UNITS_PER_SQUARE * 2));
     }
 }
 

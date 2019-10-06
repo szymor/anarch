@@ -1636,8 +1636,8 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
 
   result.position.y = camera.resolution.y / 2 -
     (camera.resolution.y *
-     RCL_perspectiveScale(height - camera.height,result.depth)) / RCL_UNITS_PER_SQUARE
-    + camera.shear;
+     RCL_perspectiveScale(height - camera.height,result.depth))
+     / RCL_UNITS_PER_SQUARE + camera.shear;
 
   RCL_Unit middleColumn = camera.resolution.x / 2;
 
