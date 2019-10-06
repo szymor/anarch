@@ -399,7 +399,8 @@ void SFG_drawScaledImage(
   const uint8_t *image,
   int16_t centerX,
   int16_t centerY,
-  int16_t size)
+  int16_t size,
+  uint8_t minusValue)
 {
   if ((size > SFG_MAX_SPRITE_SIZE) || (size == 0))
     return;
@@ -482,7 +483,13 @@ void SFG_drawScaledImage(
           SFG_spriteSamplingPoints[v]);
 
       if (color != SFG_TRANSPARENT_COLOR)
+      {
+#if SFG_DIMINISH_SPRITES
+        color = palette_minusValue(color,minusValue);
+#endif
+
         SFG_setGamePixel(x,y,color);
+      }
     }
 }
 
@@ -879,7 +886,8 @@ void SFG_draw()
           SFG_player.camera);
 
       SFG_drawScaledImage(SFG_sprites[0],p.position.x,p.position.y,
-        RCL_perspectiveScale(256,p.depth));
+        RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
+        p.depth / (RCL_UNITS_PER_SQUARE * 2));
     }
 }
 

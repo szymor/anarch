@@ -89,7 +89,12 @@
   Enables or disables fog (darkness) due to distance. Recommended to keep on
   for good look, but can be turned off for performance.
 */
-
 #define SFG_ENABLE_FOG 1
+
+/**
+  Says whether sprites should diminish in fog. This takes more performance but
+  looks better.
+*/
+#define SFG_DIMINISH_SPRITES 1
 
 #endif // guard
