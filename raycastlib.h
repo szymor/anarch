@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.85
+  version: 0.86
 */
 
 #include <stdint.h>
@@ -1629,34 +1629,27 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
   toPoint.x = worldPosition.x - camera.position.x;
   toPoint.y = worldPosition.y - camera.position.y;
 
-  RCL_Vector2D cameraDir = RCL_angleToDirection(camera.direction);
+  RCL_Unit middleColumn = camera.resolution.x / 2;
 
-  result.depth = // adjusted distance
-    (d * RCL_vectorsAngleCos(cameraDir,toPoint)) / RCL_UNITS_PER_SQUARE;
+  // rotate the point
+
+  RCL_Unit cos = RCL_cosInt(camera.direction);
+  RCL_Unit sin = RCL_sinInt(camera.direction);
+
+  RCL_Unit tmp = toPoint.x;
+
+  toPoint.x = (toPoint.x * cos - toPoint.y * sin) / RCL_UNITS_PER_SQUARE; 
+  toPoint.y = (tmp * sin + toPoint.y * cos) / RCL_UNITS_PER_SQUARE; 
+
+  result.depth = toPoint.x;
+
+  result.position.x =
+    middleColumn + (-1 * toPoint.y * middleColumn) / RCL_nonZero(result.depth);
 
   result.position.y = camera.resolution.y / 2 -
     (camera.resolution.y *
      RCL_perspectiveScale(height - camera.height,result.depth))
      / RCL_UNITS_PER_SQUARE + camera.shear;
-
-  RCL_Unit middleColumn = camera.resolution.x / 2;
-
-  // compute the third side of the triangle
-
-  RCL_Unit a = RCL_sqrtInt(d * d - result.depth * result.depth);
-
-  RCL_Unit tmp = cameraDir.x; // rotate vector 90 degrees
-  cameraDir.x = cameraDir.y;
-  cameraDir.y = -1 * tmp;
-
-  /* decide whether the point is in the left or right part of screen, using
-     dot product (non-normalized, as we only need to compare to 0) */
-
-  if ((toPoint.x * cameraDir.x + toPoint.y * cameraDir.y) <= 0)
-    a *= -1;
-
-  result.position.x =
-    middleColumn + (a * middleColumn) / RCL_nonZero(result.depth);
 
   return result;
 }
