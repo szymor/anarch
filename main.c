@@ -131,7 +131,9 @@ void SFG_init();
   #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
 #endif
 
-uint16_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
+uint8_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
+
+#define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
 
 /**
   Step in which walls get higher, in raycastlib units.
@@ -308,7 +310,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t shadow = 0;
 
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
-    SFG_zBuffer[pixel->position.x] = pixel->depth;
+    SFG_zBuffer[pixel->position.x] = SFG_RCL_UNIT_TO_Z_BUFFER(pixel->depth);
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
@@ -483,9 +485,11 @@ void SFG_drawScaledSprite(
 
   #undef PRECOMP_SCALE
 
+  uint8_t zDistance = SFG_RCL_UNIT_TO_Z_BUFFER(distance);
+
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
-    if (SFG_zBuffer[x] > distance)
+    if (SFG_zBuffer[x] > zDistance)
     {
       int8_t columnTransparent = 1;
 
@@ -497,9 +501,9 @@ void SFG_drawScaledSprite(
 
         if (color != SFG_TRANSPARENT_COLOR)
         {
-  #if SFG_DIMINISH_SPRITES
+#if SFG_DIMINISH_SPRITES
           color = palette_minusValue(color,minusValue);
-  #endif
+#endif
  
           columnTransparent = 0;
 
@@ -508,7 +512,7 @@ void SFG_drawScaledSprite(
       }
 
       if (!columnTransparent)
-        SFG_zBuffer[x] = distance;
+        SFG_zBuffer[x] = zDistance;
     }
   }
 }
@@ -884,7 +888,7 @@ void SFG_gameStep()
 void SFG_draw()
 {
   for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
-    SFG_zBuffer[i] = 65535;
+    SFG_zBuffer[i] = 255;
 
   RCL_renderComplex(
     SFG_player.camera,
