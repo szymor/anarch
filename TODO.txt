@@ -1,3 +1,4 @@
+- make zBuffer 8bit only?
 - port to GB Meta
 - custom font
 - GUI
