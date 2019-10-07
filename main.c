@@ -347,7 +347,6 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       SFG_TRANSPARENT_COLOR;
 
     shadow = pixel->hit.direction >> 1;
-
   }
   else
   {
@@ -541,6 +540,8 @@ RCL_Unit SFG_movingWallHeight
     low + halfHeight + (RCL_sinInt(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
 }
 
+uint32_t SFG_frameTime; ///< Keeps a constant time (in ms) during a frame
+
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
@@ -568,7 +569,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
     return SFG_movingWallHeight(
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
-      SFG_getTimeMs() - SFG_currentLevel.timeStart);
+      SFG_frameTime - SFG_currentLevel.timeStart);
   }
  
   return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP -
@@ -595,7 +596,7 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       (SFG_TILE_CEILING_HEIGHT(tile) + SFG_TILE_FLOOR_HEIGHT(tile))
          * SFG_WALL_HEIGHT_STEP,
-      SFG_getTimeMs() - SFG_currentLevel.timeStart);
+      SFG_frameTime - SFG_currentLevel.timeStart);
 }
 
 uint32_t SFG_gameFrame;
@@ -671,10 +672,10 @@ void SFG_setAndInitLevel(const SFG_Level *level)
  
   SFG_initPlayer();
 
-SFG_player.camera.position.x = 13185; 
-SFG_player.camera.position.y = 4395; 
-SFG_player.camera.direction = 846; 
-SFG_player.camera.height = 3360; 
+SFG_player.camera.position.x = 5674; 
+SFG_player.camera.position.y = 19257; 
+SFG_player.camera.direction = 352; 
+SFG_player.camera.height = 8480; 
 
 }
 
@@ -930,6 +931,8 @@ void SFG_mainLoopBody()
 
   uint32_t timeNow = SFG_getTimeMs();
   uint32_t timeNextFrame = SFG_lastFrameTimeMs + SFG_MS_PER_FRAME;
+
+  SFG_frameTime = timeNow;
 
   if (timeNow >= timeNextFrame)
   {

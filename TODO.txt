@@ -16,8 +16,8 @@ bugs:
 
 - sprite positioning inccuracy
 
-
 done:
 
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES
+- vertical visual noise when standing on elevator
 
