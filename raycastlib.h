@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.86
+  version: 0.87
 */
 
 #include <stdint.h>
@@ -1162,6 +1162,11 @@ static inline int16_t _RCL_drawWall(
 #else
       heightScaled - pixelInfo->texCoords.y;
 #endif
+  }
+  else
+  {
+    // with floor wall, don't start under 0
+    pixelInfo->texCoords.y = RCL_max(0,pixelInfo->texCoords.y);
   }
 
   RCL_Unit textureCoordScaled = pixelInfo->texCoords.y;
