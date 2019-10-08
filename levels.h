@@ -23,11 +23,11 @@ typedef uint16_t SFG_TileDefinition;
 
     MSB aaabbbbb cccddddd LSB
 
-   aaa:  ceiling texture index (from texture available on the map), 111
-         means completely transparent texture
-   bbbb: ceiling height (1111 meaning no ceiling) ABOVE the floor
-   ccc:  floor texture index, 111 means completely transparent texture
-   dddd: floor height
+   aaa:   ceiling texture index (from texture available on the map), 111
+          means completely transparent texture
+   bbbbb: ceiling height (1111 meaning no ceiling) ABOVE the floor
+   ccc:   floor texture index, 111 means completely transparent texture
+   ddddd: floor height
 */
 
 #define SFG_TILE_CEILING_MAX_HEIGHT 31

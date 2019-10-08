@@ -30,14 +30,14 @@
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_X 1024
+#define SFG_SCREEN_RESOLUTION_X 640
 
 /**
   Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_Y 768
+#define SFG_SCREEN_RESOLUTION_Y 480
 
 /**
   How many times the screen resolution will be divided (how many times a game

@@ -32,6 +32,7 @@
 #define SFG_KEY_JUMP 7
 #define SFG_KEY_STRAFE_LEFT 8
 #define SFG_KEY_STRAFE_RIGHT 9
+#define SFG_KEY_MAP 10
 
 /* ============================= PORTING =================================== */
 
@@ -583,7 +584,8 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
-  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
+  SFG_TileDefinition tile =
+    SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
   if (properties == SFG_TILE_PROPERTY_ELEVATOR)
     return SFG_CEILING_MAX_HEIGHT;
@@ -885,46 +887,130 @@ void SFG_gameStep()
   }
 }
 
+void SFG_clearScreen(uint8_t color)
+{
+  for (uint16_t j = 0; j < SFG_GAME_RESOLUTION_Y; ++j)
+    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+      SFG_setGamePixel(i,j,color);
+}
+
+#define SFG_MAP_PIXEL_SIZE (SFG_GAME_RESOLUTION_Y / SFG_MAP_SIZE)
+
+#if SFG_MAP_PIXEL_SIZE == 0
+  #define SFG_MAP_SIZE 1
+#endif
+
+/**
+  Draws fullscreen map of the current level.
+*/
+void SFG_drawMap()
+{
+  SFG_clearScreen(0);
+    
+  uint16_t maxJ =
+    (SFG_MAP_PIXEL_SIZE * SFG_MAP_SIZE) < SFG_GAME_RESOLUTION_Y ?
+    (SFG_MAP_SIZE) : (SFG_GAME_RESOLUTION_Y / SFG_MAP_PIXEL_SIZE);
+
+  uint16_t maxI =
+    (SFG_MAP_PIXEL_SIZE * SFG_MAP_SIZE) < SFG_GAME_RESOLUTION_X ?
+    (SFG_MAP_SIZE) : (SFG_GAME_RESOLUTION_X / SFG_MAP_PIXEL_SIZE);
+
+  uint16_t topLeftX =
+    (SFG_GAME_RESOLUTION_X - (maxI * SFG_MAP_PIXEL_SIZE)) / 2;
+
+  uint16_t topLeftY =
+    (SFG_GAME_RESOLUTION_Y - (maxJ * SFG_MAP_PIXEL_SIZE)) / 2;
+
+  uint16_t x;
+  uint16_t y = topLeftY;
+
+  for (int16_t j = maxJ - 1; j >= 0; --j)
+  {
+    x = topLeftX;
+
+    for (uint16_t i = 0; i < maxI; ++i)
+    {
+      uint8_t properties;
+
+      SFG_TileDefinition tile =
+        SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
+
+      uint8_t color = 94; // init with player color
+
+      if (i != SFG_player.squarePosition[0] ||
+          j != SFG_player.squarePosition[1])
+      {
+        if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+          color = 46;
+        else if (properties == SFG_TILE_PROPERTY_SQUEEZER)
+          color = 63;
+        else
+        {
+          color = SFG_TILE_FLOOR_HEIGHT(tile) / 8 + 2;
+
+          if (properties == SFG_TILE_PROPERTY_DOOR)
+            color += 8;
+        }
+      }
+
+      for (uint16_t k = 0; k < SFG_MAP_PIXEL_SIZE; ++k)
+        for (uint16_t l = 0; l < SFG_MAP_PIXEL_SIZE; ++l)
+          SFG_setGamePixel(x + l, y + k,color);
+
+      x += SFG_MAP_PIXEL_SIZE;
+    }
+
+    y += SFG_MAP_PIXEL_SIZE;
+  }
+}
+
 void SFG_draw()
 {
-  for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
-    SFG_zBuffer[i] = 255;
+  if (SFG_keyPressed(SFG_KEY_MAP))
+  {
+    SFG_drawMap();
+  } 
+  else
+  { 
+    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+      SFG_zBuffer[i] = 255;
 
-  RCL_renderComplex(
-    SFG_player.camera,
-    SFG_floorHeightAt,
-    SFG_ceilingHeightAt,
-    SFG_texturesAt,
-    SFG_rayConstraints);
-  
-  // draw sprites:
+    RCL_renderComplex(
+      SFG_player.camera,
+      SFG_floorHeightAt,
+      SFG_ceilingHeightAt,
+      SFG_texturesAt,
+      SFG_rayConstraints);
+    
+    // draw sprites:
 
-  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
-    if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
-    {
-      RCL_Vector2D worldPosition;
+    for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+      if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
+      {
+        RCL_Vector2D worldPosition;
 
-      SFG_LevelElement e = 
-        SFG_currentLevel.levelPointer->elements[
-          SFG_currentLevel.itemRecords[i] & ~SFG_ITEM_RECORD_ACTIVE_MASK];
+        SFG_LevelElement e = 
+          SFG_currentLevel.levelPointer->elements[
+            SFG_currentLevel.itemRecords[i] & ~SFG_ITEM_RECORD_ACTIVE_MASK];
 
-      worldPosition.x =
-        e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+        worldPosition.x =
+          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
 
-      worldPosition.y =
-        e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+        worldPosition.y =
+          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
 
-      RCL_PixelInfo p =
-        RCL_mapToScreen(
-          worldPosition,
-          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2,
-          SFG_player.camera);
+        RCL_PixelInfo p =
+          RCL_mapToScreen(
+            worldPosition,
+            SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2,
+            SFG_player.camera);
 
-      if (p.depth > 0)
-        SFG_drawScaledSprite(SFG_sprites[0],p.position.x,p.position.y,
-          RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
-          p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
-    }
+        if (p.depth > 0)
+          SFG_drawScaledSprite(SFG_sprites[0],p.position.x,p.position.y,
+            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+      }
+  }
 }
 
 void SFG_mainLoopBody()
