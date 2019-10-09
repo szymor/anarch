@@ -1,4 +1,4 @@
-- make zBuffer 8bit only?
+- add headbob
 - port to GB Meta
 - custom font
 - GUI
@@ -17,6 +17,7 @@ bugs:
 
 done:
 
+- make zBuffer 8bit only?
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES
 - vertical visual noise when standing on elevator
 - sprite positioning inccuracy
