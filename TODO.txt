@@ -1,4 +1,3 @@
-- add headbob
 - port to GB Meta
 - custom font
 - GUI
@@ -17,6 +16,7 @@ bugs:
 
 done:
 
+- add headbob
 - make zBuffer 8bit only?
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES
 - vertical visual noise when standing on elevator

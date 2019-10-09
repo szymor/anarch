@@ -97,4 +97,15 @@
 */
 #define SFG_DIMINISH_SPRITES 1
 
+/**
+  How quick player head bob is, 1024 meaning once per second. 0 Means turn off
+  head bob.
+*/
+#define SFG_HEADBOB_SPEED 900
+
+/**
+  Sets head bob offset, in RCL_UNITS_PER_SQUARE. 0 Means turn off head bob.
+*/
+#define SFG_HEADBOB_OFFSET 200
+
 #endif // guard

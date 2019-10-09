@@ -132,6 +132,15 @@ void SFG_init();
   #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
 #endif
 
+#define SFG_HEADBOB_FRAME_INCREASE_PER_FRAME \
+  (SFG_HEADBOB_SPEED / SFG_FPS)
+
+#if SFG_HEADBOB_FRAME_INCREASE_PER_FRAME == 0
+  #define SFG_HEADBOB_FRAME_INCREASE_PER_FRAME 1
+#endif
+
+#define SFG_HEADBOB_ENABLED (SFG_HEADBOB_SPEED > 0 && SFG_HEADBOB_OFFSET > 0)
+
 uint8_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
 
 #define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
@@ -156,6 +165,7 @@ struct
   RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
                                   for determining whether player is in the
                                   air. */
+  uint16_t headBobFrame;
 } SFG_player;
 
 
@@ -203,6 +213,8 @@ void SFG_initPlayer()
   SFG_recompurePLayerDirection();
   SFG_player.verticalSpeed = 0;
   SFG_player.previousVerticalSpeed = 0;
+
+  SFG_player.headBobFrame = 0;
 }
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -677,12 +689,6 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_currentLevel.frameStart = SFG_gameFrame;
  
   SFG_initPlayer();
-
-SFG_player.camera.position.x = 5674; 
-SFG_player.camera.position.y = 19257; 
-SFG_player.camera.direction = 352; 
-SFG_player.camera.height = 8480; 
-
 }
 
 void SFG_init()
@@ -777,16 +783,59 @@ void SFG_gameStep()
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
+#if SFG_HEADBOB_ENABLED
+  int8_t bobbing = 0;
+#endif
+
   if (SFG_keyPressed(SFG_KEY_UP))
   {
     moveOffset.x += SFG_player.direction.x;
     moveOffset.y += SFG_player.direction.y;
+#if SFG_HEADBOB_ENABLED
+    bobbing = 1;
+#endif
   }
   else if (SFG_keyPressed(SFG_KEY_DOWN))
   {
     moveOffset.x -= SFG_player.direction.x;
     moveOffset.y -= SFG_player.direction.y;
+#if SFG_HEADBOB_ENABLED
+    bobbing = 1;
+#endif
   }
+
+#if SFG_HEADBOB_ENABLED
+  if (bobbing)
+  {
+    SFG_player.headBobFrame += SFG_HEADBOB_FRAME_INCREASE_PER_FRAME; 
+  }
+  else if (SFG_player.headBobFrame != 0)
+  {
+    // smoothly stop bobbing
+
+    uint8_t quadrant = (SFG_player.headBobFrame % RCL_UNITS_PER_SQUARE) /
+      (RCL_UNITS_PER_SQUARE / 4);
+
+    /* when in quadrant in which sin is going away from zero, switch to the
+       same value of the next quadrant, so that bobbing starts to go towards
+       zero immediately */
+
+    if (quadrant % 2 == 0)
+      SFG_player.headBobFrame =
+        ((quadrant + 1) * RCL_UNITS_PER_SQUARE / 4) +
+        (RCL_UNITS_PER_SQUARE / 4 - SFG_player.headBobFrame %
+        (RCL_UNITS_PER_SQUARE / 4));
+
+    RCL_Unit currentFrame = SFG_player.headBobFrame;
+    RCL_Unit nextFrame = SFG_player.headBobFrame + 16;
+
+    // only stop bobbing when we pass frame at which sin crosses ero
+    SFG_player.headBobFrame =
+      (currentFrame / (RCL_UNITS_PER_SQUARE / 2) ==
+       nextFrame / (RCL_UNITS_PER_SQUARE / 2)) ?
+       nextFrame : 0;
+  }
+#endif
 
   RCL_Unit previousHeight = SFG_player.camera.height;
 
@@ -975,13 +1024,22 @@ void SFG_draw()
     for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
       SFG_zBuffer[i] = 255;
 
+#if SFG_HEADBOB_ENABLED
+    RCL_Unit headBobOffset =
+      (RCL_sinInt(SFG_player.headBobFrame) * SFG_HEADBOB_OFFSET) /
+      RCL_UNITS_PER_SQUARE;
+
+    // add head bob just for the rendering
+    SFG_player.camera.height += headBobOffset;
+#endif
+
     RCL_renderComplex(
       SFG_player.camera,
       SFG_floorHeightAt,
       SFG_ceilingHeightAt,
       SFG_texturesAt,
       SFG_rayConstraints);
-    
+ 
     // draw sprites:
 
     for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
@@ -1010,6 +1068,11 @@ void SFG_draw()
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
       }
+
+#if SFG_HEADBOB_ENABLED
+    // substract head bob after rendering
+    SFG_player.camera.height -= headBobOffset;
+#endif
   }
 }
 
