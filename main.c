@@ -1023,6 +1023,9 @@ void SFG_drawText(
   uint8_t size,
   uint8_t color)
 {
+  if (size == 0)
+    size = 1;
+
   uint16_t pos = 0;
 
   uint16_t currentX = x;
@@ -1045,8 +1048,8 @@ void SFG_drawText(
               uint16_t drawX = currentX + k;
               uint16_t drawY = currentY + l;
 
-              if (drawX >= 0 && drawX < SFG_GAME_RESOLUTION_X &&
-                  drawY >= 0 && drawY < SFG_GAME_RESOLUTION_Y)
+              if (drawX < SFG_GAME_RESOLUTION_X &&
+                drawY < SFG_GAME_RESOLUTION_Y)
                 SFG_setGamePixel(drawX,drawY,color);
             }
 
