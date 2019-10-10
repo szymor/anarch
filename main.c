@@ -1010,6 +1010,62 @@ void SFG_drawMap()
     }
 
     y += SFG_MAP_PIXEL_SIZE;
+  } 
+}
+
+/**
+  Draws text on screen using the bitmap font stored in assets.
+*/
+void SFG_drawText(
+  const char *text,
+  uint16_t x,
+  uint16_t y,
+  uint8_t size,
+  uint8_t color)
+{
+  uint16_t pos = 0;
+
+  uint16_t currentX = x;
+  uint16_t currentY = y;
+
+  while (text[pos] != 0)
+  {
+    uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
+
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+      currentY = y;
+
+      for (uint8_t j = 0; j < 4; ++j)
+      {
+        if (character & 0x8000)
+          for (uint8_t k = 0; k < size; ++k)
+            for (uint8_t l = 0; l < size; ++l)
+            {
+              uint16_t drawX = currentX + k;
+              uint16_t drawY = currentY + l;
+
+              if (drawX >= 0 && drawX < SFG_GAME_RESOLUTION_X &&
+                  drawY >= 0 && drawY < SFG_GAME_RESOLUTION_Y)
+                SFG_setGamePixel(drawX,drawY,color);
+            }
+
+        currentY += size;
+        character = character << 1;
+      }
+
+      currentX += size;
+
+      if (currentX >= SFG_GAME_RESOLUTION_X)
+        break;
+    }
+    
+    currentX += size;
+      
+    if (currentX >= SFG_GAME_RESOLUTION_X)
+      break;
+
+    pos++;    
   }
 }
 
@@ -1073,6 +1129,8 @@ void SFG_draw()
     // substract head bob after rendering
     SFG_player.camera.height -= headBobOffset;
 #endif
+
+SFG_drawText("test text!",10,20,3,7);
   }
 }
 
