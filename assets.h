@@ -597,7 +597,7 @@ uint8_t SFG_charToFontIndex(char c)
     return c - 'A';
 
   if (c >= '0' && c <= '9')
-    return c - '0';
+    return c - '0' + 31;
 
   switch (c)
   {
@@ -614,6 +614,8 @@ uint8_t SFG_charToFontIndex(char c)
     default:  return 30; break; // "?"
   }
 }
+
+#define SFG_FONT_CHARACTER_SIZE 4
 
 /**
   4x4 font, each character stored as 16 bits.

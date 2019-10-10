@@ -141,6 +141,27 @@ void SFG_init();
 
 #define SFG_HEADBOB_ENABLED (SFG_HEADBOB_SPEED > 0 && SFG_HEADBOB_OFFSET > 0)
 
+#define SFG_FONT_SIZE_SMALL \
+ (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 50))
+
+#if SFG_FONT_SIZE_SMALL == 0
+  #define SFG_FONT_SIZE_SMALL 1
+#endif
+
+#define SFG_FONT_SIZE_MEDIUM \
+  (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 30))
+
+#if SFG_FONT_SIZE_MEDIUM == 0
+  #define SFG_FONT_SIZE_MEDIUM 1
+#endif
+
+#define SFG_FONT_SIZE_BIG \
+  (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 18))
+
+#if SFG_FONT_SIZE_BIG == 0
+  #define SFG_FONT_SIZE_BIG 1
+#endif
+
 uint8_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
 
 #define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
@@ -1072,6 +1093,53 @@ void SFG_drawText(
   }
 }
 
+/**
+  Draws a number as text on screen, returns the number of characters drawn.
+*/
+uint8_t SFG_drawNumber(
+  int16_t number,
+  uint16_t x,
+  uint16_t y,
+  uint8_t size,
+  uint8_t color
+)
+{
+  char text[7];
+
+  text[6] = 0; // terminate the string
+
+  int8_t positive = 1;
+
+  if (number < 0)
+  {
+    positive = 0;
+    number *= -1;
+  }
+
+  int8_t position = 5;
+
+  while (1)
+  {
+    text[position] = '0' + number % 10;
+    number /= 10;
+
+    position--;
+
+    if (number == 0 || position == 0)
+      break;
+  }
+
+  if (!positive)
+  {
+    text[position] = '-';
+    position--;
+  }
+
+  SFG_drawText(text + position + 1,x,y,size,color);
+
+  return 5 - position;
+}
+
 void SFG_draw()
 {
   if (SFG_keyPressed(SFG_KEY_MAP))
@@ -1133,7 +1201,14 @@ void SFG_draw()
     SFG_player.camera.height -= headBobOffset;
 #endif
 
-SFG_drawText("test text!",10,20,3,7);
+
+
+SFG_drawText("124",10,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
+SFG_drawText("ammo",
+
+SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + 1)
+,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
+
   }
 }
 
