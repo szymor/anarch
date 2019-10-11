@@ -108,4 +108,14 @@
 */
 #define SFG_HEADBOB_OFFSET 200
 
+/**
+  Camera shearing (looking up/down) speed, in vertical resolutions per second.
+*/
+#define SFG_CAMERA_SHEAR_SPEED 3
+
+/**
+  Maximum camera shear (vertical angle). 1024 means 1.0 * vertical resolution.
+*/
+#define SFG_CAMERA_MAX_SHEAR 1024
+
 #endif // guard

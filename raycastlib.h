@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.87
+  version: 0.88
 */
 
 #include <stdint.h>
@@ -280,6 +280,10 @@ typedef struct
   very often.
 */ 
 typedef RCL_Unit (*RCL_ArrayFunction)(int16_t x, int16_t y);
+/*
+  TODO: maybe array functions should be replaced by defines of funtion names
+  like with pixelFunc? Could be more efficient than function pointers.
+*/
 
 /**
   Function that renders a single pixel at the display. It is handed an info
@@ -1034,7 +1038,7 @@ RCL_Unit RCL_adjustDistance(RCL_Unit distance, RCL_Camera *camera,
 }
 
 /// Helper for drawing floor or ceiling. Returns the last drawn pixel position.
-static inline int16_t _RCL_drawVertical(
+static inline int16_t _RCL_drawHorizontalColumn(
   RCL_Unit yCurrent,
   RCL_Unit yTo,
   RCL_Unit limit1, // TODO: int16_t?
@@ -1058,13 +1062,19 @@ static inline int16_t _RCL_drawVertical(
 
   int16_t limit = RCL_clamp(yTo,limit1,limit2);
 
+  RCL_Unit depth = 0; /* TODO: this is for clamping depth to 0 so that we don't
+                         have negative depths, but we should do it more
+                         elegantly and efficiently */
+
+  _RCL_UNUSED(depth);
+
   /* for performance reasons have different version of the critical loop
      to be able to branch early */
   #define loop(doDepth,doCoords)\
   {\
     if (doDepth) /*constant condition - compiler should optimize it out*/\
     {\
-      pixelInfo->depth += RCL_absVal(verticalOffset) *\
+      depth = pixelInfo->depth + RCL_absVal(verticalOffset) *\
         RCL_VERTICAL_DEPTH_MULTIPLY;\
       depthIncrement = depthIncrementMultiplier *\
         _RCL_horizontalDepthStep;\
@@ -1080,7 +1090,10 @@ static inline int16_t _RCL_drawVertical(
     {\
       pixelInfo->position.y = i;\
       if (doDepth)  /*constant condition - compiler should optimize it out*/\
-        pixelInfo->depth += depthIncrement;\
+      {\
+        depth += depthIncrement;\
+        pixelInfo->depth = RCL_max(0,depth); /*TODO: optimize */\
+      }\
       if (doCoords) /*constant condition - compiler should optimize it out*/\
       {\
         RCL_Unit d = _RCL_floorPixelDistances[i];\
@@ -1287,7 +1300,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
     p.depth = 0;
 #endif
 
-    limit = _RCL_drawVertical(fPosY,fZ1Screen,cPosY + 1,
+    limit = _RCL_drawHorizontalColumn(fPosY,fZ1Screen,cPosY + 1,
      _RCL_camera.resolution.y,fZ1World,-1,RCL_COMPUTE_FLOOR_DEPTH,
      // ^ purposfully allow outside screen bounds
        RCL_COMPUTE_FLOOR_TEXCOORDS && p.height == RCL_FLOOR_TEXCOORDS_HEIGHT,
@@ -1307,7 +1320,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
         _RCL_horizontalDepthStep;
 #endif
 
-      limit = _RCL_drawVertical(cPosY,cZ1Screen,
+      limit = _RCL_drawHorizontalColumn(cPosY,cZ1Screen,
         -1,fPosY - 1,cZ1World,1,RCL_COMPUTE_CEILING_DEPTH,0,1,&ray,&p);
       // ^ purposfully allow outside screen bounds here
 
@@ -1472,7 +1485,7 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
   p.depth = 1;
   p.height = RCL_UNITS_PER_SQUARE;
 
-  y = _RCL_drawVertical(-1,wallStart,-1,_RCL_middleRow,_RCL_camera.height,1,
+  y = _RCL_drawHorizontalColumn(-1,wallStart,-1,_RCL_middleRow,_RCL_camera.height,1,
     RCL_COMPUTE_CEILING_DEPTH,0,1,&ray,&p);
 
   // draw wall
@@ -1503,7 +1516,7 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
   p.depth = (_RCL_camera.resolution.y - y) * _RCL_horizontalDepthStep + 1;
 #endif
 
-  _RCL_drawVertical(y,_RCL_camResYLimit,-1,_RCL_camResYLimit,
+  _RCL_drawHorizontalColumn(y,_RCL_camResYLimit,-1,_RCL_camResYLimit,
     _RCL_camera.height,1,RCL_COMPUTE_FLOOR_DEPTH,RCL_COMPUTE_FLOOR_TEXCOORDS,
     -1,&ray,&p);
 }
@@ -1626,8 +1639,6 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
   RCL_Camera camera)
 {
   RCL_PixelInfo result;
-
-  RCL_Unit d = RCL_dist(worldPosition,camera.position);
 
   RCL_Vector2D toPoint;
 

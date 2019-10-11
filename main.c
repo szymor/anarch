@@ -141,6 +141,16 @@ void SFG_init();
 
 #define SFG_HEADBOB_ENABLED (SFG_HEADBOB_SPEED > 0 && SFG_HEADBOB_OFFSET > 0)
 
+#define SFG_CAMERA_SHEAR_STEP_PER_FRAME \
+  ((SFG_GAME_RESOLUTION_Y * SFG_CAMERA_SHEAR_SPEED) / SFG_FPS)
+
+#if SFG_CAMERA_SHEAR_STEP_PER_FRAME == 0
+  #define SFG_CAMERA_SHEAR_STEP_PER_FRAME 1
+#endif
+
+#define SFG_CAMERA_MAX_SHEAR_PIXELS \
+  (SFG_CAMERA_MAX_SHEAR * SFG_GAME_RESOLUTION_Y / 1024)
+
 #define SFG_FONT_SIZE_SMALL \
  (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 50))
 
@@ -214,19 +224,28 @@ void SFG_recompurePLayerDirection()
 
   SFG_player.direction = RCL_angleToDirection(SFG_player.camera.direction);
 
-  SFG_player.direction.x = (SFG_player.direction.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-  SFG_player.direction.y = (SFG_player.direction.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+  SFG_player.direction.x =
+    (SFG_player.direction.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME)
+    / RCL_UNITS_PER_SQUARE;
+
+  SFG_player.direction.y =
+    (SFG_player.direction.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME)
+    / RCL_UNITS_PER_SQUARE;
 
   SFG_backgroundScroll =
-    ((SFG_player.camera.direction * 8) * SFG_GAME_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE; 
+    ((SFG_player.camera.direction * 8) * SFG_GAME_RESOLUTION_Y)
+    / RCL_UNITS_PER_SQUARE; 
 }
 
 void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
 
-  SFG_player.camera.resolution.x = SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
+  SFG_player.camera.resolution.x =
+    SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
+
   SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y;
+
   SFG_player.camera.height = RCL_UNITS_PER_SQUARE * 12;
   SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE * 15;
   SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE * 8;
@@ -396,7 +415,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   {
 #if SFG_DITHERED_SHADOW
     uint8_t fogShadow = (pixel->depth * 4) / (RCL_UNITS_PER_SQUARE);
-    
+   
     uint8_t fogShadowPart = fogShadow & 0x07;
 
     fogShadow /= 8;
@@ -749,8 +768,31 @@ void SFG_gameStep()
 
   int8_t strafe = 0;
 
+#if SFG_HEADBOB_ENABLED
+  int8_t bobbing = 0;
+#endif
+
+  int8_t shearing = 0;
+
   if (SFG_keyPressed(SFG_KEY_A))
   {
+    if (SFG_keyPressed(SFG_KEY_UP))
+    {
+      SFG_player.camera.shear =
+        RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
+                SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+
+      shearing = 1;
+    }
+    else if (SFG_keyPressed(SFG_KEY_DOWN))
+    {
+      SFG_player.camera.shear =
+        RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
+                SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+
+      shearing = 1;
+    }
+
     if (SFG_keyPressed(SFG_KEY_LEFT))
       strafe = -1;
     else if (SFG_keyPressed(SFG_KEY_RIGHT))
@@ -771,6 +813,23 @@ void SFG_gameStep()
 
     if (recomputeDirection)
       SFG_recompurePLayerDirection();
+
+    if (SFG_keyPressed(SFG_KEY_UP))
+    {
+      moveOffset.x += SFG_player.direction.x;
+      moveOffset.y += SFG_player.direction.y;
+#if SFG_HEADBOB_ENABLED
+      bobbing = 1;
+#endif
+    }
+    else if (SFG_keyPressed(SFG_KEY_DOWN))
+    {
+      moveOffset.x -= SFG_player.direction.x;
+      moveOffset.y -= SFG_player.direction.y;
+#if SFG_HEADBOB_ENABLED
+      bobbing = 1;
+#endif
+    }
   }
 
   if (SFG_keyPressed(SFG_KEY_STRAFE_LEFT))
@@ -804,25 +863,14 @@ void SFG_gameStep()
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
-#if SFG_HEADBOB_ENABLED
-  int8_t bobbing = 0;
-#endif
+  if (!shearing && SFG_player.camera.shear != 0)
+  {
+    // gradually shear back to zero
 
-  if (SFG_keyPressed(SFG_KEY_UP))
-  {
-    moveOffset.x += SFG_player.direction.x;
-    moveOffset.y += SFG_player.direction.y;
-#if SFG_HEADBOB_ENABLED
-    bobbing = 1;
-#endif
-  }
-  else if (SFG_keyPressed(SFG_KEY_DOWN))
-  {
-    moveOffset.x -= SFG_player.direction.x;
-    moveOffset.y -= SFG_player.direction.y;
-#if SFG_HEADBOB_ENABLED
-    bobbing = 1;
-#endif
+    SFG_player.camera.shear =
+      (SFG_player.camera.shear > 0) ?
+      RCL_max(0,SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME) :
+      RCL_min(0,SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
   }
 
 #if SFG_HEADBOB_ENABLED
