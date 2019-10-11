@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.88
+  version: 0.89
 */
 
 #include <stdint.h>
@@ -154,7 +154,8 @@
 
 #define RCL_min(a,b) ((a) < (b) ? (a) : (b))
 #define RCL_max(a,b) ((a) > (b) ? (a) : (b))
-#define RCL_nonZero(v) ((v) != 0 ? (v) : 1) ///< To prevent zero divisions.
+#define RCL_nonZero(v) (v + (v == 0)) ///< To prevent zero divisions.
+#define RCL_zeroClamp(x) (x * (x >= 0))
 
 #define RCL_logV2D(v)\
   printf("[%d,%d]\n",v.x,v.y);
@@ -542,7 +543,7 @@ static inline RCL_Unit RCL_absVal(RCL_Unit value)
 {
   RCL_profileCall(RCL_absVal);
 
-  return value >= 0 ? value : -1 * value;
+  return value * (((value >= 0) << 1) - 1);
 }
 
 /// Like mod, but behaves differently for negative values.
@@ -1092,7 +1093,7 @@ static inline int16_t _RCL_drawHorizontalColumn(
       if (doDepth)  /*constant condition - compiler should optimize it out*/\
       {\
         depth += depthIncrement;\
-        pixelInfo->depth = depth * (depth > 0); /* fast abs val */ \
+        pixelInfo->depth = RCL_zeroClamp(depth); \
         /* ^ int comparison is fast, it is not braching! (= test instr.) */\
       }\
       if (doCoords) /*constant condition - compiler should optimize it out*/\
@@ -1180,7 +1181,7 @@ static inline int16_t _RCL_drawWall(
   else
   {
     // with floor wall, don't start under 0
-    pixelInfo->texCoords.y = RCL_max(0,pixelInfo->texCoords.y);
+    pixelInfo->texCoords.y = RCL_zeroClamp(pixelInfo->texCoords.y);
   }
 
   RCL_Unit textureCoordScaled = pixelInfo->texCoords.y;
