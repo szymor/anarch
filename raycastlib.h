@@ -1092,7 +1092,8 @@ static inline int16_t _RCL_drawHorizontalColumn(
       if (doDepth)  /*constant condition - compiler should optimize it out*/\
       {\
         depth += depthIncrement;\
-        pixelInfo->depth = RCL_max(0,depth); /*TODO: optimize */\
+        pixelInfo->depth = depth * (depth > 0); /* fast abs val */ \
+        /* ^ int comparison is fast, it is not braching! (= test instr.) */\
       }\
       if (doCoords) /*constant condition - compiler should optimize it out*/\
       {\
