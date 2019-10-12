@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.89
+  version: 0.90
 */
 
 #include <stdint.h>
@@ -156,6 +156,8 @@
 #define RCL_max(a,b) ((a) > (b) ? (a) : (b))
 #define RCL_nonZero(v) (v + (v == 0)) ///< To prevent zero divisions.
 #define RCL_zeroClamp(x) (x * (x >= 0))
+#define RCL_likely(cond)    __builtin_expect(!!(cond),1) 
+#define RCL_unlikely(cond)  __builtin_expect(!!(cond),0) 
 
 #define RCL_logV2D(v)\
   printf("[%d,%d]\n",v.x,v.y);
@@ -550,8 +552,8 @@ static inline RCL_Unit RCL_absVal(RCL_Unit value)
 static inline RCL_Unit RCL_wrap(RCL_Unit value, RCL_Unit mod)
 {
   RCL_profileCall(RCL_wrap);
-
-  return value >= 0 ? (value % mod) : (mod + (value % mod) - 1);
+  RCL_Unit cmp = value < 0;
+  return cmp * mod + (value % mod) - cmp;
 }
 
 /// Performs division, rounding down, NOT towards zero.
@@ -696,8 +698,8 @@ RCL_Unit RCL_dist(RCL_Vector2D p1, RCL_Vector2D p2)
 
   RCL_Unit a, b, result;
 
-  dx = dx < 0 ? -1 * dx : dx;
-  dy = dy < 0 ? -1 * dy : dy;
+  dx = ((dx < 0) * 2 - 1) * dx;
+  dy = ((dy < 0) * 2 - 1) * dy;
 
   if (dx < dy)
   {
@@ -807,11 +809,17 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
   // DDA loop
 
+  #define RECIP_SCALE 65536
+
+  RCL_Unit rayDirXRecip = RECIP_SCALE / RCL_nonZero(ray.direction.x);
+  RCL_Unit rayDirYRecip = RECIP_SCALE / RCL_nonZero(ray.direction.y);
+  // ^ we precompute reciprocals to avoid divisions in the loop
+
   for (uint16_t i = 0; i < constraints.maxSteps; ++i)
   {
     RCL_Unit currentType = arrayFunc(currentSquare.x,currentSquare.y);
 
-    if (currentType != squareType)
+    if (RCL_unlikely(currentType != squareType))
     {
       // collision
 
@@ -834,8 +842,9 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         }
 
         RCL_Unit diff = h.position.x - ray.start.x;
-        h.position.y = ray.start.y + ((ray.direction.y * diff) /
-          RCL_nonZero(ray.direction.x)); 
+
+        h.position.y = // avoid division by multiplying with reciprocal
+          ray.start.y + ((ray.direction.y * diff) * rayDirXRecip) / RECIP_SCALE;
 
 #if RCL_RECTILINEAR
         /* Here we compute the fish eye corrected distance (perpendicular to
@@ -846,8 +855,8 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         divided by leg B (length along the same axis). */
 
         h.distance =
-         ((h.position.x - ray.start.x) * RCL_UNITS_PER_SQUARE) /
-         RCL_nonZero(ray.direction.x);
+          ((h.position.x - ray.start.x) * RCL_UNITS_PER_SQUARE * rayDirXRecip)
+          / RECIP_SCALE; 
 #endif
       }
       else
@@ -862,13 +871,14 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         }
 
         RCL_Unit diff = h.position.y - ray.start.y;
-        h.position.x = ray.start.x + ((ray.direction.x * diff) /
-          RCL_nonZero(ray.direction.y)); 
+
+        h.position.x =
+          ray.start.x + ((ray.direction.x * diff) * rayDirYRecip) / RECIP_SCALE;
 
 #if RCL_RECTILINEAR
         h.distance =
-         ((h.position.y - ray.start.y) * RCL_UNITS_PER_SQUARE) /
-         RCL_nonZero(ray.direction.y);
+          ((h.position.y - ray.start.y) * RCL_UNITS_PER_SQUARE * rayDirYRecip)
+          / RECIP_SCALE;
 #endif
       }
 
