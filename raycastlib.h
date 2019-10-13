@@ -154,8 +154,8 @@
 
 #define RCL_min(a,b) ((a) < (b) ? (a) : (b))
 #define RCL_max(a,b) ((a) > (b) ? (a) : (b))
-#define RCL_nonZero(v) (v + (v == 0)) ///< To prevent zero divisions.
-#define RCL_zeroClamp(x) (x * (x >= 0))
+#define RCL_nonZero(v) ((v) + ((v) == 0)) ///< To prevent zero divisions.
+#define RCL_zeroClamp(x) ((x) * ((x) >= 0))
 #define RCL_likely(cond)    __builtin_expect(!!(cond),1) 
 #define RCL_unlikely(cond)  __builtin_expect(!!(cond),0) 
 

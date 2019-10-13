@@ -111,6 +111,19 @@ void SFG_init();
   #define SFG_MS_PER_FRAME 1
 #endif
 
+#define SFG_WEAPON_IMAGE_SCALE \
+  (SFG_GAME_RESOLUTION_X / (SFG_TEXTURE_SIZE * 5))
+
+#if SFG_WEAPON_IMAGE_SCALE == 0
+  #define SFG_WEAPON_IMAGE_SCALE 1
+#endif
+
+#define SFG_WEAPON_IMAGE_POSITION_X \
+  (SFG_GAME_RESOLUTION_X / 2 - (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE) / 2)
+
+#define SFG_WEAPON_IMAGE_POSITION_Y \
+  (SFG_GAME_RESOLUTION_Y - (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE))
+
 #define SFG_PLAYER_TURN_UNITS_PER_FRAME \
   ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
 
@@ -447,6 +460,96 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   {
     SFG_setGamePixel(screenX,pixel->position.y,color);
     screenX++;
+  }
+}
+
+/**
+  Draws image on screen, with transparency. This is faster than sprite drawing.
+  For performance sake drawing near screen edges is not pixel perfect.
+*/
+void SFG_blitImage(
+  const uint8_t *image,
+  int16_t posX,
+  int16_t posY,
+  uint8_t scale)
+{
+  if (scale == 0)
+    return;
+ 
+  uint16_t x0 = posX,
+           x1,
+           y0 = posY, 
+           y1;
+ 
+  uint8_t u0 = 0, v0 = 0;
+
+  if (posX < 0)
+  {
+    x0 = 0;
+    u0 = (-1 * posX) / scale;
+  }
+
+  posX += scale * SFG_TEXTURE_SIZE;
+
+  uint16_t limitX = SFG_GAME_RESOLUTION_X - scale;
+  uint16_t limitY = SFG_GAME_RESOLUTION_Y - scale;
+
+  x1 = posX >= 0 ?
+       (posX <= limitX ? posX : limitX)
+       : 0;
+
+  if (x1 >= SFG_GAME_RESOLUTION_X)
+    x1 = SFG_GAME_RESOLUTION_X - 1;
+
+  if (posY < 0)
+  {
+    y0 = 0;
+    v0 = (-1 * posY) / scale;
+  }
+
+  posY += scale * SFG_TEXTURE_SIZE;
+
+  y1 = posY >= 0 ?
+       (posY <= limitY ? posY : limitY)
+       : 0;
+
+  if (y1 >= SFG_GAME_RESOLUTION_Y)
+    y1 = SFG_GAME_RESOLUTION_Y - 1;
+
+  uint8_t u,v;
+
+  v = v0;
+
+  for (uint16_t y = y0; y < y1; y += scale)
+  {
+    u = u0;
+
+    for (uint16_t x = x0; x < x1; x += scale)
+    {
+      uint8_t color = SFG_getTexel(image,u,v);
+
+      if (color != SFG_TRANSPARENT_COLOR)
+      {
+        uint16_t sY = y;
+
+        for (uint8_t j = 0; j < scale; ++j)
+        {
+          uint16_t sX = x;
+
+          for (uint8_t i = 0; i < scale; ++i)
+          {
+            SFG_setGamePixel(sX,sY,color);
+            sX++;
+          }
+          
+          sY++;
+        }
+      }
+
+      u++;
+    }
+
+    v++;
   }
 }
 
@@ -1256,6 +1359,9 @@ SFG_drawText("ammo",
 
 SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + 1)
 ,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
+
+SFG_blitImage(SFG_weaponImages[0],
+SFG_WEAPON_IMAGE_POSITION_X,SFG_WEAPON_IMAGE_POSITION_Y ,SFG_WEAPON_IMAGE_SCALE);
 
   }
 }
