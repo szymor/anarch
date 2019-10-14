@@ -37,6 +37,9 @@
 #undef SFG_RAYCASTING_MAX_HITS
 #define SFG_RAYCASTING_MAX_HITS 6
 
+#undef SFG_RAYCASTING_SUBSAMPLE
+#define SFG_RAYCASTING_SUBSAMPLE 2
+
 #include "Pokitto.h"
 #include "palette.h"
 

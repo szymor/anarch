@@ -188,7 +188,10 @@ void SFG_init();
   #define SFG_FONT_SIZE_BIG 1
 #endif
 
-uint8_t SFG_zBuffer[SFG_GAME_RESOLUTION_X];
+#define SFG_Z_BUFFER_SIZE \
+  (SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE + 1)
+
+uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
 
 #define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
 
@@ -379,7 +382,8 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t shadow = 0;
 
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
-    SFG_zBuffer[pixel->position.x] = SFG_RCL_UNIT_TO_Z_BUFFER(pixel->depth);
+    SFG_zBuffer[pixel->position.x / SFG_RAYCASTING_SUBSAMPLE] =
+      SFG_RCL_UNIT_TO_Z_BUFFER(pixel->depth);
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
@@ -648,7 +652,7 @@ void SFG_drawScaledSprite(
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
-    if (SFG_zBuffer[x] > zDistance)
+    if (SFG_zBuffer[x / SFG_RAYCASTING_SUBSAMPLE] >= zDistance)
     {
       int8_t columnTransparent = 1;
 
@@ -671,7 +675,7 @@ void SFG_drawScaledSprite(
       }
 
       if (!columnTransparent)
-        SFG_zBuffer[x] = zDistance;
+        SFG_zBuffer[x / SFG_RAYCASTING_SUBSAMPLE] = zDistance;
     }
   }
 }
@@ -1302,7 +1306,7 @@ void SFG_draw()
   } 
   else
   { 
-    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+    for (uint16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
       SFG_zBuffer[i] = 255;
 
 int16_t weaponBobOffset;
@@ -1352,7 +1356,8 @@ int16_t weaponBobOffset;
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_sprites[0],p.position.x,p.position.y,
+          SFG_drawScaledSprite(SFG_sprites[0],
+            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
       }
