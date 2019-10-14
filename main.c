@@ -118,6 +118,9 @@ void SFG_init();
   #define SFG_WEAPON_IMAGE_SCALE 1
 #endif
 
+#define SFG_WEAPONBOB_OFFSET_PIXELS \
+  (SFG_WEAPONBOB_OFFSET * SFG_WEAPON_IMAGE_SCALE)
+
 #define SFG_WEAPON_IMAGE_POSITION_X \
   (SFG_GAME_RESOLUTION_X / 2 - (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE) / 2)
 
@@ -1302,10 +1305,17 @@ void SFG_draw()
     for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
       SFG_zBuffer[i] = 255;
 
+int16_t weaponBobOffset;
+
 #if SFG_HEADBOB_ENABLED
+    RCL_Unit bobSin = RCL_sinInt(SFG_player.headBobFrame);
+
     RCL_Unit headBobOffset =
-      (RCL_sinInt(SFG_player.headBobFrame) * SFG_HEADBOB_OFFSET) /
-      RCL_UNITS_PER_SQUARE;
+      (bobSin * SFG_HEADBOB_OFFSET) / RCL_UNITS_PER_SQUARE;
+
+    weaponBobOffset =
+      (bobSin * SFG_WEAPONBOB_OFFSET_PIXELS) / (RCL_UNITS_PER_SQUARE) + 
+      SFG_WEAPONBOB_OFFSET_PIXELS;
 
     // add head bob just for the rendering
     SFG_player.camera.height += headBobOffset;
@@ -1361,7 +1371,9 @@ SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM
 ,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
 
 SFG_blitImage(SFG_weaponImages[0],
-SFG_WEAPON_IMAGE_POSITION_X,SFG_WEAPON_IMAGE_POSITION_Y ,SFG_WEAPON_IMAGE_SCALE);
+SFG_WEAPON_IMAGE_POSITION_X,
+SFG_WEAPON_IMAGE_POSITION_Y + weaponBobOffset,
+SFG_WEAPON_IMAGE_SCALE);
 
   }
 }

@@ -109,6 +109,11 @@
 #define SFG_HEADBOB_OFFSET 200
 
 /**
+  Weapon bobbing offset in weapon image pixels.
+*/
+#define SFG_WEAPONBOB_OFFSET 5
+
+/**
   Camera shearing (looking up/down) speed, in vertical resolutions per second.
 */
 #define SFG_CAMERA_SHEAR_SPEED 3
