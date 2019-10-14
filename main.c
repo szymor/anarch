@@ -95,7 +95,7 @@ void SFG_init();
 #define RCL_TEXTURE_VERTICAL_STRETCH 0
 
 #define RCL_CAMERA_COLL_HEIGHT_BELOW 800
-#define RCL_CAMERA_COLL_HEIGHT_ABOVE 100
+#define RCL_CAMERA_COLL_HEIGHT_ABOVE 150
 
 #include "raycastlib.h" 
 
@@ -216,8 +216,8 @@ struct
                                   for determining whether player is in the
                                   air. */
   uint16_t headBobFrame;
+  uint8_t weapon;                 //< currently selected weapon
 } SFG_player;
-
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
   #define SFG_setGamePixel SFG_setPixel
@@ -274,6 +274,8 @@ void SFG_initPlayer()
   SFG_player.previousVerticalSpeed = 0;
 
   SFG_player.headBobFrame = 0;
+
+  SFG_player.weapon = 0;
 }
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -863,6 +865,12 @@ void SFG_init()
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
 
+void SFG_playerRotateWeapon(uint8_t next)
+{
+  SFG_player.weapon = (SFG_player.weapon + (next * 2 - 1));
+  SFG_player.weapon %= 2;
+}
+
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
@@ -903,22 +911,42 @@ void SFG_gameStep()
       shearing = 1;
     }
 
-    if (SFG_keyPressed(SFG_KEY_LEFT))
-      strafe = -1;
-    else if (SFG_keyPressed(SFG_KEY_RIGHT))
-      strafe = 1;
+    if (!SFG_keyPressed(SFG_KEY_C))
+    {
+      if (SFG_keyPressed(SFG_KEY_LEFT))
+        strafe = -1;
+      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+        strafe = 1;
+    }
+    else
+    {
+      if (SFG_keyPressed(SFG_KEY_LEFT))
+        SFG_playerRotateWeapon(0);
+      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+        SFG_playerRotateWeapon(1);
+    }
   }
   else
   {
-    if (SFG_keyPressed(SFG_KEY_LEFT))
+    if (!SFG_keyPressed(SFG_KEY_C))
     {
-      SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
-      recomputeDirection = 1;
+      if (SFG_keyPressed(SFG_KEY_LEFT))
+      {
+        SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
+        recomputeDirection = 1;
+      }
+      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+      {
+        SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
+        recomputeDirection = 1;
+      }
     }
-    else if (SFG_keyPressed(SFG_KEY_RIGHT))
+    else
     {
-      SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
-      recomputeDirection = 1;
+      if (SFG_keyPressed(SFG_KEY_LEFT))
+        SFG_playerRotateWeapon(0);
+      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+        SFG_playerRotateWeapon(1);
     }
 
     if (recomputeDirection)
@@ -1375,7 +1403,7 @@ SFG_drawText("ammo",
 SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + 1)
 ,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
 
-SFG_blitImage(SFG_weaponImages[0],
+SFG_blitImage(SFG_weaponImages[SFG_player.weapon],
 SFG_WEAPON_IMAGE_POSITION_X,
 SFG_WEAPON_IMAGE_POSITION_Y + weaponBobOffset,
 SFG_WEAPON_IMAGE_SCALE);
