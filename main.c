@@ -898,7 +898,7 @@ void SFG_init()
 void SFG_playerRotateWeapon(uint8_t next)
 {
   SFG_player.weapon = (SFG_player.weapon + (next * 2 - 1));
-  SFG_player.weapon %= 2;
+  SFG_player.weapon %= 3;
 }
 
 /**
