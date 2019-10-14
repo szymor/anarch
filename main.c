@@ -25,6 +25,7 @@
 #define SFG_KEY_A 4
 #define SFG_KEY_B 5
 #define SFG_KEY_C 6
+
 /*
   The following keys are optional for a platform to implement. They just make
   the controls more comfortable.
@@ -33,6 +34,14 @@
 #define SFG_KEY_STRAFE_LEFT 8
 #define SFG_KEY_STRAFE_RIGHT 9
 #define SFG_KEY_MAP 10
+
+#define SFG_KEY_COUNT 10 ///< Number of keys.
+
+/**
+  Pressed states of keys, LSB of each value means current pessed states, other
+  bits store states in previous frames.
+*/
+uint8_t SFG_keyStates[SFG_KEY_COUNT]; 
 
 /* ============================= PORTING =================================== */
 
@@ -205,6 +214,24 @@ uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
 
 int8_t SFG_backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
+// TODO: move globals to a gloabl struct?
+
+/**
+  Says whether given key is currently pressed (down). This should be preferred
+  to SFG_keyPressed().
+*/
+uint8_t SFG_keyIsDown(uint8_t key)
+{
+  return SFG_keyStates[key] & 0x01;
+}
+
+/**
+  Says whether given key has been pressed in the current frame.
+*/
+uint8_t SFG_keyJustPressed(uint8_t key)
+{
+  return (SFG_keyStates[key] & 0x03) == 1;
+}
 
 struct
 {
@@ -858,6 +885,9 @@ void SFG_init()
     SFG_backgroundScaleMap[i] =
       (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
 
+  for (uint8_t i = 0; i < SFG_KEY_DOWN; ++i)
+    SFG_keyStates[i] = 0;
+
   SFG_backgroundScroll = 0;
 
   SFG_setAndInitLevel(&SFG_level0);
@@ -877,6 +907,9 @@ void SFG_playerRotateWeapon(uint8_t next)
 */
 void SFG_gameStep()
 {
+  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
+    SFG_keyStates[i] = (SFG_keyStates[i] << 1) | SFG_keyPressed(i);
+
   int8_t recomputeDirection = 0;
 
   RCL_Vector2D moveOffset;
@@ -892,9 +925,9 @@ void SFG_gameStep()
 
   int8_t shearing = 0;
 
-  if (SFG_keyPressed(SFG_KEY_A))
+  if (SFG_keyIsDown(SFG_KEY_A))
   {
-    if (SFG_keyPressed(SFG_KEY_UP))
+    if (SFG_keyIsDown(SFG_KEY_UP))
     {
       SFG_player.camera.shear =
         RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
@@ -902,7 +935,7 @@ void SFG_gameStep()
 
       shearing = 1;
     }
-    else if (SFG_keyPressed(SFG_KEY_DOWN))
+    else if (SFG_keyIsDown(SFG_KEY_DOWN))
     {
       SFG_player.camera.shear =
         RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
@@ -911,31 +944,31 @@ void SFG_gameStep()
       shearing = 1;
     }
 
-    if (!SFG_keyPressed(SFG_KEY_C))
+    if (!SFG_keyIsDown(SFG_KEY_C))
     {
-      if (SFG_keyPressed(SFG_KEY_LEFT))
+      if (SFG_keyIsDown(SFG_KEY_LEFT))
         strafe = -1;
-      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyIsDown(SFG_KEY_RIGHT))
         strafe = 1;
     }
     else
     {
-      if (SFG_keyPressed(SFG_KEY_LEFT))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT))
         SFG_playerRotateWeapon(1);
     }
   }
   else
   {
-    if (!SFG_keyPressed(SFG_KEY_C))
+    if (!SFG_keyIsDown(SFG_KEY_C))
     {
-      if (SFG_keyPressed(SFG_KEY_LEFT))
+      if (SFG_keyIsDown(SFG_KEY_LEFT))
       {
         SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
         recomputeDirection = 1;
       }
-      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyIsDown(SFG_KEY_RIGHT))
       {
         SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
         recomputeDirection = 1;
@@ -943,16 +976,16 @@ void SFG_gameStep()
     }
     else
     {
-      if (SFG_keyPressed(SFG_KEY_LEFT))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT))
         SFG_playerRotateWeapon(1);
     }
 
     if (recomputeDirection)
       SFG_recompurePLayerDirection();
 
-    if (SFG_keyPressed(SFG_KEY_UP))
+    if (SFG_keyIsDown(SFG_KEY_UP))
     {
       moveOffset.x += SFG_player.direction.x;
       moveOffset.y += SFG_player.direction.y;
@@ -960,7 +993,7 @@ void SFG_gameStep()
       bobbing = 1;
 #endif
     }
-    else if (SFG_keyPressed(SFG_KEY_DOWN))
+    else if (SFG_keyIsDown(SFG_KEY_DOWN))
     {
       moveOffset.x -= SFG_player.direction.x;
       moveOffset.y -= SFG_player.direction.y;
@@ -970,21 +1003,21 @@ void SFG_gameStep()
     }
   }
 
-  if (SFG_keyPressed(SFG_KEY_STRAFE_LEFT))
+  if (SFG_keyIsDown(SFG_KEY_STRAFE_LEFT))
     strafe = -1;
-  else if (SFG_keyPressed(SFG_KEY_STRAFE_RIGHT))
+  else if (SFG_keyIsDown(SFG_KEY_STRAFE_RIGHT))
     strafe = 1;
 
   if (strafe != 0)
   {
-    moveOffset.x = strafe * SFG_player.direction.y;
-    moveOffset.y = -1 * strafe * SFG_player.direction.x;
+    moveOffset.x += strafe * SFG_player.direction.y;
+    moveOffset.y -= strafe * SFG_player.direction.x;
   }
 
 #if SFG_PREVIEW_MODE
-  if (SFG_keyPressed(SFG_KEY_B))
+  if (SFG_keyIsDown(SFG_KEY_B))
     SFG_player.verticalSpeed = SFG_PLAYER_MOVE_UNITS_PER_FRAME;
-  else if (SFG_keyPressed(SFG_KEY_C))
+  else if (SFG_keyIsDown(SFG_KEY_C))
     SFG_player.verticalSpeed = -1 * SFG_PLAYER_MOVE_UNITS_PER_FRAME;
   else
     SFG_player.verticalSpeed = 0;
@@ -992,8 +1025,8 @@ void SFG_gameStep()
   RCL_Unit verticalOffset = 
     (  
       (
-        SFG_keyPressed(SFG_KEY_JUMP) ||
-        (SFG_keyPressed(SFG_KEY_UP) && SFG_keyPressed(SFG_KEY_C))
+        SFG_keyIsDown(SFG_KEY_JUMP) ||
+        (SFG_keyIsDown(SFG_KEY_UP) && SFG_keyIsDown(SFG_KEY_C))
       ) &&
       (SFG_player.verticalSpeed == 0) &&
       (SFG_player.previousVerticalSpeed == 0)) ?
