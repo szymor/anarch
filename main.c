@@ -37,12 +37,6 @@
 
 #define SFG_KEY_COUNT 10 ///< Number of keys.
 
-/**
-  Pressed states of keys, LSB of each value means current pessed states, other
-  bits store states in previous frames.
-*/
-uint8_t SFG_keyStates[SFG_KEY_COUNT]; 
-
 /* ============================= PORTING =================================== */
 
 /* When porting, do the following:
@@ -107,6 +101,11 @@ void SFG_init();
 #define RCL_CAMERA_COLL_HEIGHT_ABOVE 150
 
 #include "raycastlib.h" 
+
+/*
+  CONSTANTS
+===============================================================================
+*/
 
 #define SFG_GAME_RESOLUTION_X \
   (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
@@ -200,8 +199,6 @@ void SFG_init();
 #define SFG_Z_BUFFER_SIZE \
   (SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE + 1)
 
-uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
-
 #define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
 
 /**
@@ -212,9 +209,152 @@ uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
 #define SFG_CEILING_MAX_HEIGHT\
   (16 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
 
+#define SFG_DOOR_DEFAULT_STATE 0x1f
+#define SFG_DOOR_UP_DOWN_MASK 0x20
+#define SFG_DOOR_VERTICAL_POSITION_MASK 0x1f
+#define SFG_DOOR_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 0x1f)
+#define SFG_DOOR_INCREMENT_PER_FRAME \
+  (SFG_DOOR_OPEN_SPEED / (SFG_DOOR_HEIGHT_STEP * SFG_FPS))
+
+#if SFG_DOOR_INCREMENT_PER_FRAME == 0
+  #define SFG_DOOR_INCREMENT_PER_FRAME 1
+#endif
+
+#define SFG_MAX_DOORS 32
+
+#define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
+
+#define SFG_MAX_LEVEL_ITEMS SFG_MAX_LEVEL_ELEMENTS
+
+#define SFG_MAX_SPRITE_SIZE SFG_GAME_RESOLUTION_X
+
+#define SFG_MAP_PIXEL_SIZE (SFG_GAME_RESOLUTION_Y / SFG_MAP_SIZE)
+
+#if SFG_MAP_PIXEL_SIZE == 0
+  #define SFG_MAP_SIZE 1
+#endif
+
+typedef struct
+{
+  uint8_t coords[2];
+  uint8_t state;     /**< door state in format:
+                          
+                          MSB  ccbaaaaa  LSB
+
+                          aaaaa: current door height (how much they're open)
+                          b:     whether currently going up (0) or down (1)
+                          cc:    by which keys the door is unlocked
+                     */
+} SFG_DoorRecord;
+
+/**
+  Holds information about one instance of a level item (a type of level element,
+  e.g. pickable items, decorations etc.). The format is following:
+
+  MSB  abbbbbbb  LSB
+
+  a:        active flag, 1 means the item is nearby to player and is active
+  bbbbbbb:  index to elements array of the current level, pointing to element
+            representing this item 
+*/
+typedef uint8_t SFG_ItemRecord;
+
+/*
+  GLOBAL VARIABLES
+===============================================================================
+*/
+
+struct
+{
+  RCL_Camera camera;
+  int8_t squarePosition[2];
+  RCL_Vector2D direction;
+  RCL_Unit verticalSpeed;
+  RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
+                                  for determining whether player is in the
+                                  air. */
+  uint16_t headBobFrame;
+  uint8_t weapon;                 //< currently selected weapon
+} SFG_player;
+
+RCL_RayConstraints SFG_rayConstraints;
+
+/**
+  Pressed states of keys, LSB of each value means current pessed states, other
+  bits store states in previous frames.
+*/
+uint8_t SFG_keyStates[SFG_KEY_COUNT]; 
+
+uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
+
 int8_t SFG_backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
-// TODO: move globals to a gloabl struct?
+
+uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
+uint32_t SFG_frameTime; ///< Keeps a constant time (in ms) during a frame
+uint32_t SFG_gameFrame;
+uint32_t SFG_lastFrameTimeMs;
+
+/**
+  Stores the current level and helper precomputed vaues for better performance.
+*/
+struct
+{
+  const SFG_Level *levelPointer;
+  const uint8_t* textures[7];
+
+  uint32_t timeStart;
+  uint32_t frameStart;
+
+  uint8_t floorColor;
+  uint8_t ceilingColor;
+
+  SFG_DoorRecord doorRecords[SFG_MAX_DOORS];
+  uint8_t doorRecordCount;
+  uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
+
+  SFG_ItemRecord itemRecords[SFG_MAX_LEVEL_ITEMS]; ///< Holds level items
+  uint8_t itemRecordCount;
+  uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
+
+} SFG_currentLevel;
+
+#if SFG_DITHERED_SHADOW
+SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
+{
+  0,0,0,0,
+  0,0,0,0,
+
+  0,0,0,0,
+  0,1,0,0,
+
+  0,0,0,0,
+  0,1,0,1,
+
+  1,0,1,0,
+  0,1,0,0,
+
+  1,0,1,0,
+  0,1,0,1,
+
+  1,0,1,0,
+  0,1,1,1,
+
+  1,1,1,1,
+  0,1,0,1,
+
+  1,1,1,1,
+  0,1,1,1,
+ 
+  1,1,1,1,
+  1,1,1,1
+};
+#endif
+
+/*
+  FUNCTIONS
+===============================================================================
+*/
 
 /**
   Says whether given key is currently pressed (down). This should be preferred
@@ -232,19 +372,6 @@ uint8_t SFG_keyJustPressed(uint8_t key)
 {
   return (SFG_keyStates[key] & 0x03) == 1;
 }
-
-struct
-{
-  RCL_Camera camera;
-  int8_t squarePosition[2];
-  RCL_Vector2D direction;
-  RCL_Unit verticalSpeed;
-  RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
-                                  for determining whether player is in the
-                                  air. */
-  uint16_t headBobFrame;
-  uint8_t weapon;                 //< currently selected weapon
-} SFG_player;
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
   #define SFG_setGamePixel SFG_setPixel
@@ -304,106 +431,6 @@ void SFG_initPlayer()
 
   SFG_player.weapon = 0;
 }
-
-RCL_RayConstraints SFG_rayConstraints;
-
-typedef struct
-{
-  uint8_t coords[2];
-  uint8_t state;     /**< door state in format:
-                          
-                          MSB  ccbaaaaa  LSB
-
-                          aaaaa: current door height (how much they're open)
-                          b:     whether currently going up (0) or down (1)
-                          cc:    by which keys the door is unlocked
-                     */
-} SFG_DoorRecord;
-
-#define SFG_DOOR_DEFAULT_STATE 0x1f
-#define SFG_DOOR_UP_DOWN_MASK 0x20
-#define SFG_DOOR_VERTICAL_POSITION_MASK 0x1f
-#define SFG_DOOR_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 0x1f)
-#define SFG_DOOR_INCREMENT_PER_FRAME \
-  (SFG_DOOR_OPEN_SPEED / (SFG_DOOR_HEIGHT_STEP * SFG_FPS))
-
-#if SFG_DOOR_INCREMENT_PER_FRAME == 0
-  #define SFG_DOOR_INCREMENT_PER_FRAME 1
-#endif
-
-#define SFG_MAX_DOORS 32
-
-/**
-  Holds information about one instance of a level item (a type of level element,
-  e.g. pickable items, decorations etc.). The format is following:
-
-  MSB  abbbbbbb  LSB
-
-  a:        active flag, 1 means the item is nearby to player and is active
-  bbbbbbb:  index to elements array of the current level, pointing to element
-            representing this item 
-*/
-typedef uint8_t SFG_ItemRecord;
-
-#define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
-
-#define SFG_MAX_LEVEL_ITEMS SFG_MAX_LEVEL_ELEMENTS
-
-/**
-  Stores the current level and helper precomputed vaues for better performance.
-*/
-struct
-{
-  const SFG_Level *levelPointer;
-  const uint8_t* textures[7];
-
-  uint32_t timeStart;
-  uint32_t frameStart;
-
-  uint8_t floorColor;
-  uint8_t ceilingColor;
-
-  SFG_DoorRecord doorRecords[SFG_MAX_DOORS];
-  uint8_t doorRecordCount;
-  uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
-
-  SFG_ItemRecord itemRecords[SFG_MAX_LEVEL_ITEMS]; ///< Holds level items
-  uint8_t itemRecordCount;
-  uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
-
-} SFG_currentLevel;
-
-#if SFG_DITHERED_SHADOW
-SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
-{
-  0,0,0,0,
-  0,0,0,0,
-
-  0,0,0,0,
-  0,1,0,0,
-
-  0,0,0,0,
-  0,1,0,1,
-
-  1,0,1,0,
-  0,1,0,0,
-
-  1,0,1,0,
-  0,1,0,1,
-
-  1,0,1,0,
-  0,1,1,1,
-
-  1,1,1,1,
-  0,1,0,1,
-
-  1,1,1,1,
-  0,1,1,1,
- 
-  1,1,1,1,
-  1,1,1,1
-};
-#endif
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
@@ -589,10 +616,6 @@ void SFG_blitImage(
   }
 }
 
-#define SFG_MAX_SPRITE_SIZE SFG_GAME_RESOLUTION_X
-
-uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
-
 void SFG_drawScaledSprite(
   const uint8_t *image,
   int16_t centerX,
@@ -736,8 +759,6 @@ RCL_Unit SFG_movingWallHeight
     low + halfHeight + (RCL_sinInt(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
 }
 
-uint32_t SFG_frameTime; ///< Keeps a constant time (in ms) during a frame
-
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 {
   uint8_t properties;
@@ -795,9 +816,6 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
          * SFG_WALL_HEIGHT_STEP,
       SFG_frameTime - SFG_currentLevel.timeStart);
 }
-
-uint32_t SFG_gameFrame;
-uint32_t SFG_lastFrameTimeMs;
 
 void SFG_setAndInitLevel(const SFG_Level *level)
 {
@@ -1183,12 +1201,6 @@ void SFG_clearScreen(uint8_t color)
       SFG_setGamePixel(i,j,color);
 }
 
-#define SFG_MAP_PIXEL_SIZE (SFG_GAME_RESOLUTION_Y / SFG_MAP_SIZE)
-
-#if SFG_MAP_PIXEL_SIZE == 0
-  #define SFG_MAP_SIZE 1
-#endif
-
 /**
   Draws fullscreen map of the current level.
 */
@@ -1370,7 +1382,7 @@ void SFG_draw()
     for (uint16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
       SFG_zBuffer[i] = 255;
 
-int16_t weaponBobOffset;
+    int16_t weaponBobOffset;
 
 #if SFG_HEADBOB_ENABLED
     RCL_Unit bobSin = RCL_sinInt(SFG_player.headBobFrame);
