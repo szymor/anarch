@@ -30,14 +30,14 @@
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_X 640
+#define SFG_SCREEN_RESOLUTION_X 800
 
 /**
   Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_Y 480
+#define SFG_SCREEN_RESOLUTION_Y 600
 
 /**
   How many times the screen resolution will be divided (how many times a game
@@ -111,7 +111,7 @@
 /**
   Weapon bobbing offset in weapon image pixels.
 */
-#define SFG_WEAPONBOB_OFFSET 5
+#define SFG_WEAPONBOB_OFFSET 4 
 
 /**
   Camera shearing (looking up/down) speed, in vertical resolutions per second.
