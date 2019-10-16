@@ -727,6 +727,13 @@ uint8_t SFG_weaponImages[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
   }
 };
 
+/* TODO: ENEMIES: create a functions that will take enemy ID and frame type
+(idle, attacking, ...) and will return pointer to sprite representing it --
+allows reusing sprites and saving memory (e.g. a fyling monster can have same
+frame for idle and walking, some enemies can share the same dead sprite etc.).
+Also: add flip option to sprite drawing function so that some frames can be
+reused flipped (good for walk anims). */
+
 uint8_t SFG_charToFontIndex(char c)
 {
   if (c >= 'a' && c <= 'z')

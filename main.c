@@ -1177,11 +1177,16 @@ void SFG_gameStep()
       SFG_currentLevel.levelPointer->elements[item];
 
     if (
-        (RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE)
+        RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
         &&
-        (RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE)
+        RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        &&
+        RCL_absVal(
+          SFG_player.camera.height -
+          SFG_floorHeightAt(e.coords[0],e.coords[1]))
+        <= (SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE * RCL_UNITS_PER_SQUARE)
       )
       item |= SFG_ITEM_RECORD_ACTIVE_MASK;
 
