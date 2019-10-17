@@ -458,7 +458,7 @@ void SFG_initPlayer()
 
   SFG_player.headBobFrame = 0;
 
-  SFG_player.weapon = 0;
+  SFG_player.weapon = 1;
 }
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
@@ -718,7 +718,7 @@ void SFG_drawScaledSprite(
 
   #define PRECOMP_SCALE 2048
 
-  int16_t precompStepScaled = (SFG_TEXTURE_SIZE * PRECOMP_SCALE) / size;
+  int16_t precompStepScaled = ((SFG_TEXTURE_SIZE - 1) * PRECOMP_SCALE) / size;
   int16_t precompPosScaled = precompFrom * precompStepScaled;
 
   for (int16_t i = precompFrom; i <= precompTo; ++i)
@@ -1533,7 +1533,7 @@ void SFG_draw()
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_monsterSprites[0],
+          SFG_drawScaledSprite(SFG_monsterSprites[ (SFG_gameFrame >> 5) & 0x01 ],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
