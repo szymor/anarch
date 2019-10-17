@@ -283,6 +283,13 @@ typedef struct
 
 #define SFG_MAX_MONSTERS 64
 
+#define SFG_AI_UPDATE_FRAME_INTERVAL \
+  (SFG_AI_UPDATE_INTERVAL / SFG_MS_PER_FRAME)
+
+#if SFG_AI_UPDATE_FRAME_INTERVAL == 0
+  #define SFG_AI_UPDATE_FRAME_INTERVAL 1
+#endif
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -971,6 +978,11 @@ void SFG_playerRotateWeapon(uint8_t next)
   SFG_player.weapon %= 3;
 }
 
+void SFG_monsterPerformAI(SFG_MonsterRecord *monster, int8_t recomputeState)
+{
+  // TODO
+}
+
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
@@ -1269,6 +1281,15 @@ void SFG_gameStep()
       SFG_currentLevel.monsterRecordCount)
       SFG_currentLevel.checkedMonsterIndex = 0;
   }
+
+  int8_t recomputeAIState = ((SFG_gameFrame - SFG_currentLevel.frameStart) %
+    SFG_AI_UPDATE_FRAME_INTERVAL) == 0;
+
+  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    if (SFG_currentLevel.monsterRecords[i].stateType !=
+        SFG_MONSTER_STATE_INACTIVE)
+      SFG_monsterPerformAI(
+        &(SFG_currentLevel.monsterRecords[i]),recomputeAIState);
 }
 
 void SFG_clearScreen(uint8_t color)

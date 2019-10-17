@@ -54,4 +54,10 @@
 */
 #define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 8
 
+/**
+  Time in ms after which AI will be recomputing its state (which also affects
+  how quickly death animation plays etc).
+*/
+#define SFG_AI_UPDATE_INTERVAL 500
+
 #endif // guard
