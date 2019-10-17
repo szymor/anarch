@@ -224,7 +224,7 @@ void SFG_init();
 
 #define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
 
-#define SFG_MAX_LEVEL_ITEMS SFG_MAX_LEVEL_ELEMENTS
+#define SFG_MAX_ITEMS SFG_MAX_LEVEL_ELEMENTS
 
 #define SFG_MAX_SPRITE_SIZE SFG_GAME_RESOLUTION_X
 
@@ -259,6 +259,30 @@ typedef struct
 */
 typedef uint8_t SFG_ItemRecord;
 
+typedef struct 
+{
+  uint8_t stateType;     /**< Holds state (lower 4 bits) and type of monster
+                              (upper 4 bits). */
+  uint8_t coords[2];
+  uint8_t health;
+} SFG_MonsterRecord;
+
+#define SFG_MONSTER_STATE_INACTIVE  0  ///< Not nearby, not actively updated.
+#define SFG_MONSTER_STATE_IDLE      1
+#define SFG_MONSTER_STATE_ATTACKING 2
+#define SFG_MONSTER_STATE_HURTING   3
+#define SFG_MONSTER_STATE_DYING     4
+#define SFG_MONSTER_STATE_GOING_N   5
+#define SFG_MONSTER_STATE_GOING_NE  6
+#define SFG_MONSTER_STATE_GOING_SW  7
+#define SFG_MONSTER_STATE_GOING_S   8
+#define SFG_MONSTER_STATE_GOING_SW  9
+#define SFG_MONSTER_STATE_GOING_W   10
+#define SFG_MONSTER_STATE_GOING_NW  11
+#define SFG_MONSTER_STATE_GOING_N   12
+
+#define SFG_MAX_MONSTERS 64
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -290,7 +314,9 @@ uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
 int8_t SFG_backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
 uint16_t SFG_backgroundScroll;
 
+/** Helper for precomputing sprite sampling positions for drawing. */
 uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
+
 uint32_t SFG_frameTime; ///< Keeps a constant time (in ms) during a frame
 uint32_t SFG_gameFrame;
 uint32_t SFG_lastFrameTimeMs;
@@ -313,10 +339,13 @@ struct
   uint8_t doorRecordCount;
   uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
 
-  SFG_ItemRecord itemRecords[SFG_MAX_LEVEL_ITEMS]; ///< Holds level items
+  SFG_ItemRecord itemRecords[SFG_MAX_ITEMS]; ///< Holds level items
   uint8_t itemRecordCount;
   uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
 
+  SFG_MonsterRecord monsterRecords[SFG_MAX_MONSTERS];
+  uint8_t monsterRecordCount;
+  uint8_t checkedMonsterIndex; 
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -866,19 +895,42 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_LOG("initializing level elements");
 
+  SFG_currentLevel.itemRecordCount = 0;
   SFG_currentLevel.checkedItemIndex = 0;
 
-  SFG_currentLevel.itemRecordCount = 0;
+  SFG_currentLevel.monsterRecordCount = 0;
+  SFG_currentLevel.checkedMonsterIndex = 0;
+
+  SFG_MonsterRecord *monster;
 
   for (uint8_t i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
   {
     const SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
 
-    if (e->elementType == SFG_LEVEL_ELEMENT_BARREL)
+    switch (e->elementType)
     {
-      SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
+      case SFG_LEVEL_ELEMENT_BARREL:
+        SFG_LOG("adding barrel");
+        SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
+        SFG_currentLevel.itemRecordCount++;
+        break;
 
-      SFG_currentLevel.itemRecordCount++;
+      case SFG_LEVEL_ELEMENT_MONSTER1:
+        SFG_LOG("adding monster1");
+
+        monster =
+        &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
+
+        monster->stateType = 0;
+        monster->health = 255;
+        monster->coords[0] = e->coords[0] * 4;
+        monster->coords[1] = e->coords[1] * 4;
+
+        SFG_currentLevel.monsterRecordCount++;
+        break;
+
+      default:
+        break;
     }
   } 
 
@@ -1182,11 +1234,6 @@ void SFG_gameStep()
         &&
         RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
         <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-        &&
-        RCL_absVal(
-          SFG_player.camera.height -
-          SFG_floorHeightAt(e.coords[0],e.coords[1]))
-        <= (SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE * RCL_UNITS_PER_SQUARE)
       )
       item |= SFG_ITEM_RECORD_ACTIVE_MASK;
 
@@ -1196,6 +1243,31 @@ void SFG_gameStep()
 
     if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
       SFG_currentLevel.checkedItemIndex = 0;
+  }
+
+  // similarly handle monsters:
+
+  if (SFG_currentLevel.monsterRecordCount > 0) // has to be here
+  {
+    SFG_MonsterRecord *monster =
+      &(SFG_currentLevel.monsterRecords[SFG_currentLevel.checkedMonsterIndex]);
+
+    if (
+        RCL_absVal(SFG_player.squarePosition[0] - monster->coords[0] / 4)
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        &&
+        RCL_absVal(SFG_player.squarePosition[1] - monster->coords[1] / 4)
+        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+      )
+      monster->stateType = SFG_MONSTER_STATE_IDLE;
+    else
+      monster->stateType = SFG_MONSTER_STATE_INACTIVE;
+
+    SFG_currentLevel.checkedMonsterIndex++;
+
+    if (SFG_currentLevel.checkedMonsterIndex >=
+      SFG_currentLevel.monsterRecordCount)
+      SFG_currentLevel.checkedMonsterIndex = 0;
   }
 }
 
@@ -1412,6 +1484,7 @@ void SFG_draw()
  
     // draw sprites:
 
+    // item sprites:
     for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
       if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
       {
@@ -1440,12 +1513,37 @@ void SFG_draw()
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
       }
 
+    // monster sprites:
+    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    {
+      SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
+
+      if (m.stateType != SFG_MONSTER_STATE_INACTIVE)
+      {
+        RCL_Vector2D worldPosition;
+
+        worldPosition.x = m.coords[0] * RCL_UNITS_PER_SQUARE / 4;
+        worldPosition.y = m.coords[1] * RCL_UNITS_PER_SQUARE / 4;
+
+        RCL_PixelInfo p =
+          RCL_mapToScreen(
+            worldPosition,
+            SFG_floorHeightAt(m.coords[0] / 4,
+                              m.coords[1] / 4) + RCL_UNITS_PER_SQUARE / 2,
+            SFG_player.camera);
+
+        if (p.depth > 0)
+          SFG_drawScaledSprite(SFG_monsterSprites[0],
+            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+      }
+    }
+
 #if SFG_HEADBOB_ENABLED
     // substract head bob after rendering
     SFG_player.camera.height -= headBobOffset;
 #endif
-
-
 
 SFG_drawText("124",10,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
 SFG_drawText("ammo",

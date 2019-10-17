@@ -80,7 +80,7 @@ int main()
 {
   pokitto.begin(); 
 
-  pokitto.setFrameRate(SFG_FPS);
+  pokitto.setFrameRate(255);
   pokitto.display.setFont(fontTiny);
   pokitto.display.persistence = 1;
   pokitto.display.setInvisibleColor(-1);

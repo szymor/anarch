@@ -735,7 +735,7 @@ Also: add flip option to sprite drawing function so that some frames can be
 reused flipped (good for walk anims). */
 
 SFG_PROGRAM_MEMORY uint8_t
-  SFG_enemySprites[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
+  SFG_monsterSprites[][SFG_TEXTURE_SIZE * SFG_TEXTURE_SIZE] =
 {
   { // 0, idle
 175,175,175,0,0,0,0,175,175,175,175,175,175,175,175,175,175,175,175,175,175,175,
