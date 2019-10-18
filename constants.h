@@ -55,9 +55,14 @@
 #define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 8
 
 /**
-  Time in ms after which AI will be recomputing its state (which also affects
-  how quickly death animation plays etc).
+  Time interval in ms after which AI will be updating (which also affects
+  speed of monster animation etc).
 */
-#define SFG_AI_UPDATE_INTERVAL 500
+#define SFG_AI_UPDATE_INTERVAL 300
+
+/**
+  Normal movement speed of monsters, in squares per second.
+*/
+#define SFG_MONSTER_MOVEMENT_SPEED 2
 
 #endif // guard

@@ -290,6 +290,13 @@ typedef struct
   #define SFG_AI_UPDATE_FRAME_INTERVAL 1
 #endif
 
+#define SFG_MONSTER_MOVE_UNITS_PER_FRAME \
+  (((SFG_MONSTER_MOVEMENT_SPEED * SFG_AI_UPDATE_FRAME_INTERVAL * 4) / SFG_FPS))
+
+#if SFG_MONSTER_MOVE_UNITS_PER_FRAME == 0
+  #define SFG_MONSTER_MOVE_UNITS_PER_FRAME 1
+#endif
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -644,10 +651,8 @@ void SFG_blitImage(
           sY++;
         }
       }
-
       u++;
     }
-
     v++;
   }
 }
@@ -978,9 +983,9 @@ void SFG_playerRotateWeapon(uint8_t next)
   SFG_player.weapon %= 3;
 }
 
-void SFG_monsterPerformAI(SFG_MonsterRecord *monster, int8_t recomputeState)
+void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
-  // TODO
+  monster->coords[0] += SFG_MONSTER_MOVE_UNITS_PER_FRAME;
 }
 
 /**
@@ -1282,14 +1287,13 @@ void SFG_gameStep()
       SFG_currentLevel.checkedMonsterIndex = 0;
   }
 
-  int8_t recomputeAIState = ((SFG_gameFrame - SFG_currentLevel.frameStart) %
-    SFG_AI_UPDATE_FRAME_INTERVAL) == 0;
-
-  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-    if (SFG_currentLevel.monsterRecords[i].stateType !=
-        SFG_MONSTER_STATE_INACTIVE)
-      SFG_monsterPerformAI(
-        &(SFG_currentLevel.monsterRecords[i]),recomputeAIState);
+  if (((SFG_gameFrame - SFG_currentLevel.frameStart) %
+    SFG_AI_UPDATE_FRAME_INTERVAL) == 0)
+    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+      if (SFG_currentLevel.monsterRecords[i].stateType !=
+          SFG_MONSTER_STATE_INACTIVE)
+        SFG_monsterPerformAI(
+          &(SFG_currentLevel.monsterRecords[i]));
 }
 
 void SFG_clearScreen(uint8_t color)
