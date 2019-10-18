@@ -267,6 +267,9 @@ typedef struct
   uint8_t health;
 } SFG_MonsterRecord;
 
+#define SFG_MONSTER_MASK_STATE 0x0f
+#define SFG_MONSTER_MASK_TYPE  0xf0
+
 #define SFG_MONSTER_STATE_INACTIVE  0  ///< Not nearby, not actively updated.
 #define SFG_MONSTER_STATE_IDLE      1
 #define SFG_MONSTER_STATE_ATTACKING 2
@@ -274,12 +277,13 @@ typedef struct
 #define SFG_MONSTER_STATE_DYING     4
 #define SFG_MONSTER_STATE_GOING_N   5
 #define SFG_MONSTER_STATE_GOING_NE  6
-#define SFG_MONSTER_STATE_GOING_SW  7
-#define SFG_MONSTER_STATE_GOING_S   8
-#define SFG_MONSTER_STATE_GOING_SW  9
-#define SFG_MONSTER_STATE_GOING_W   10
-#define SFG_MONSTER_STATE_GOING_NW  11
-#define SFG_MONSTER_STATE_GOING_N   12
+#define SFG_MONSTER_STATE_GOING_E   7
+#define SFG_MONSTER_STATE_GOING_SW  8
+#define SFG_MONSTER_STATE_GOING_S   9
+#define SFG_MONSTER_STATE_GOING_SW  10
+#define SFG_MONSTER_STATE_GOING_W   11
+#define SFG_MONSTER_STATE_GOING_NW  12
+#define SFG_MONSTER_STATE_GOING_N   13
 
 #define SFG_MAX_MONSTERS 64
 
@@ -985,7 +989,43 @@ void SFG_playerRotateWeapon(uint8_t next)
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
-  monster->coords[0] += SFG_MONSTER_MOVE_UNITS_PER_FRAME;
+  uint8_t state = monster->stateType & SFG_MONSTER_MASK_STATE;
+  uint8_t type = monster->stateType & SFG_MONSTER_MASK_TYPE;
+
+  int8_t coordAdd[2];
+
+  coordAdd[0] = 0;
+  coordAdd[1] = 0;
+
+  if (state == SFG_MONSTER_STATE_IDLE)
+  {
+    state = SFG_MONSTER_STATE_GOING_E;
+  }
+  else
+  {
+    switch (state)
+     {
+      case SFG_MONSTER_STATE_GOING_E:
+        coordAdd[0] = SFG_MONSTER_MOVE_UNITS_PER_FRAME;
+        state = SFG_MONSTER_STATE_GOING_W;
+        break;
+
+      case SFG_MONSTER_STATE_GOING_W:
+        coordAdd[0] = -1 * SFG_MONSTER_MOVE_UNITS_PER_FRAME;
+        state = SFG_MONSTER_STATE_GOING_E;
+        break;
+
+      default:
+        break;
+    }
+  }
+
+
+  monster->stateType = state | type;
+
+
+  monster->coords[0] += coordAdd[0];
+  monster->coords[1] += coordAdd[1];
 }
 
 /**
@@ -1271,14 +1311,18 @@ void SFG_gameStep()
 
     if (
         RCL_absVal(SFG_player.squarePosition[0] - monster->coords[0] / 4)
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-        &&
+        > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        ||
         RCL_absVal(SFG_player.squarePosition[1] - monster->coords[1] / 4)
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
       )
-      monster->stateType = SFG_MONSTER_STATE_IDLE;
-    else
+    {
       monster->stateType = SFG_MONSTER_STATE_INACTIVE;
+    }
+    else if (monster->stateType == SFG_MONSTER_STATE_INACTIVE)
+    {
+      monster->stateType = SFG_MONSTER_STATE_IDLE;
+    }
 
     SFG_currentLevel.checkedMonsterIndex++;
 
