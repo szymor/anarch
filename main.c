@@ -1145,9 +1145,9 @@ void SFG_gameStep()
     }
     else
     {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT) | SFG_keyJustPressed(SFG_KEY_A))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) | SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
     }
   }
@@ -1168,9 +1168,9 @@ void SFG_gameStep()
     }
     else
     {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT) | SFG_keyJustPressed(SFG_KEY_A))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) | SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
     }
 
