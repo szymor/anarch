@@ -415,7 +415,7 @@ static inline uint8_t SFG_RCL_unitToZBuffer(RCL_Unit x)
   uint8_t okay = x < 255;
 
   return okay * (x + 1) - 1;
-};
+}
 
 /**
   Says whether given key is currently pressed (down). This should be preferred
@@ -947,13 +947,13 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         SFG_currentLevel.itemRecordCount++;
         break;
 
-      case SFG_LEVEL_ELEMENT_MONSTER1:
-        SFG_LOG("adding monster1");
+      case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
+        SFG_LOG("adding monster: spider");
 
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
-        monster->stateType = 0;
+        monster->stateType = e->elementType | 0;
         monster->health = 255;
         monster->coords[0] = e->coords[0] * 4;
         monster->coords[1] = e->coords[1] * 4;

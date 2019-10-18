@@ -86,9 +86,12 @@ typedef struct
   unused because that will be used by the game engine, so the values must be
   lower than 128.
 */
-#define SFG_LEVEL_ELEMENT_NONE 0
-#define SFG_LEVEL_ELEMENT_BARREL 1
-#define SFG_LEVEL_ELEMENT_MONSTER1 2
+#define SFG_LEVEL_ELEMENT_NONE 255
+#define SFG_LEVEL_ELEMENT_BARREL 0x01
+  /* Monsters have lower 4 bits zero and are only distinguished by the 4 upper
+     bits, as this is convenient for the code.
+  */
+#define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x00
 
 typedef struct
 {
@@ -237,8 +240,8 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
     {SFG_LEVEL_ELEMENT_BARREL, {12, 4}},  {SFG_LEVEL_ELEMENT_BARREL, {15, 4}},
     {SFG_LEVEL_ELEMENT_BARREL, {24, 10}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_BARREL, {13, 4}},     {SFG_LEVEL_ELEMENT_BARREL, {12, 6}},
-    {SFG_LEVEL_ELEMENT_MONSTER1, {15, 7}},   {SFG_LEVEL_ELEMENT_MONSTER1, {16, 8}},
-    {SFG_LEVEL_ELEMENT_MONSTER1, {16, 7}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
+    {SFG_LEVEL_ELEMENT_MONSTER_SPIDER, {15, 7}},   {SFG_LEVEL_ELEMENT_MONSTER_SPIDER, {16, 8}},
+    {SFG_LEVEL_ELEMENT_MONSTER_SPIDER, {16, 7}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
