@@ -199,8 +199,6 @@ void SFG_init();
 #define SFG_Z_BUFFER_SIZE \
   (SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE + 1)
 
-#define SFG_RCL_UNIT_TO_Z_BUFFER(x) (x / RCL_UNITS_PER_SQUARE)
-
 /**
   Step in which walls get higher, in raycastlib units.
 */
@@ -410,6 +408,15 @@ uint8_t SFG_random()
   return SFG_currentRandom;
 }
 
+static inline uint8_t SFG_RCL_unitToZBuffer(RCL_Unit x)
+{
+  x /= RCL_UNITS_PER_SQUARE;
+
+  uint8_t okay = x < 255;
+
+  return okay * (x + 1) - 1;
+};
+
 /**
   Says whether given key is currently pressed (down). This should be preferred
   to SFG_keyPressed().
@@ -493,7 +500,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
     SFG_zBuffer[pixel->position.x / SFG_RAYCASTING_SUBSAMPLE] =
-      SFG_RCL_UNIT_TO_Z_BUFFER(pixel->depth);
+      SFG_RCL_unitToZBuffer(pixel->depth);
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
@@ -752,7 +759,7 @@ void SFG_drawScaledSprite(
 
   #undef PRECOMP_SCALE
 
-  uint8_t zDistance = SFG_RCL_UNIT_TO_Z_BUFFER(distance);
+  uint8_t zDistance = SFG_RCL_unitToZBuffer(distance);
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
@@ -1607,6 +1614,33 @@ void SFG_draw()
  
     // draw sprites:
 
+    // monster sprites:
+    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    {
+      SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
+
+      if (m.stateType != SFG_MONSTER_STATE_INACTIVE)
+      {
+        RCL_Vector2D worldPosition;
+
+        worldPosition.x = m.coords[0] * RCL_UNITS_PER_SQUARE / 4;
+        worldPosition.y = m.coords[1] * RCL_UNITS_PER_SQUARE / 4;
+
+        RCL_PixelInfo p =
+          RCL_mapToScreen(
+            worldPosition,
+            SFG_floorHeightAt(m.coords[0] / 4,
+                              m.coords[1] / 4) + RCL_UNITS_PER_SQUARE / 2,
+            SFG_player.camera);
+
+        if (p.depth > 0)
+          SFG_drawScaledSprite(SFG_monsterSprites[ (SFG_gameFrame >> 5) & 0x01 ],
+            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+      }
+    }
+
     // item sprites:
     for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
       if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
@@ -1635,33 +1669,6 @@ void SFG_draw()
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
       }
-
-    // monster sprites:
-    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-    {
-      SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
-
-      if (m.stateType != SFG_MONSTER_STATE_INACTIVE)
-      {
-        RCL_Vector2D worldPosition;
-
-        worldPosition.x = m.coords[0] * RCL_UNITS_PER_SQUARE / 4;
-        worldPosition.y = m.coords[1] * RCL_UNITS_PER_SQUARE / 4;
-
-        RCL_PixelInfo p =
-          RCL_mapToScreen(
-            worldPosition,
-            SFG_floorHeightAt(m.coords[0] / 4,
-                              m.coords[1] / 4) + RCL_UNITS_PER_SQUARE / 2,
-            SFG_player.camera);
-
-        if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_monsterSprites[ (SFG_gameFrame >> 5) & 0x01 ],
-            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
-      }
-    }
 
 #if SFG_HEADBOB_ENABLED
     // substract head bob after rendering
