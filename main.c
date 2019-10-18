@@ -1010,7 +1010,12 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
   if (state == SFG_MONSTER_STATE_IDLE)
   {
-    state = SFG_MONSTER_STATE_GOING_E;
+    switch (SFG_random() % 2)
+    {
+      case 0: state = SFG_MONSTER_STATE_GOING_E; break;
+      case 1: state = SFG_MONSTER_STATE_GOING_W; break;
+      default: break;
+    }
   }
   else
   {
@@ -1018,12 +1023,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
      {
       case SFG_MONSTER_STATE_GOING_E:
         coordAdd[0] = 1;
-        state = SFG_MONSTER_STATE_GOING_W;
         break;
 
       case SFG_MONSTER_STATE_GOING_W:
         coordAdd[0] = -1;
-        state = SFG_MONSTER_STATE_GOING_E;
         break;
 
       default:
@@ -1031,16 +1034,41 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     }
   }
 
-  
+  int16_t newPos[2];
 
+  newPos[0] = monster->coords[0] + coordAdd[0];
+  newPos[1] = monster->coords[1] + coordAdd[1];
+
+  int8_t collision = 0;
+
+  if (newPos[0] < 0 || newPos[0] >= 256 || newPos[1] < 0 || newPos[1] >= 256)
+  {
+    collision = 1;
+  }
+  else
+  {
+    RCL_Unit currentHeight =
+      SFG_floorHeightAt(monster->coords[0] / 4,monster->coords[1] / 4);
+
+    RCL_Unit newHeight =
+      SFG_floorHeightAt(newPos[0] / 4,newPos[1] / 4);
+
+    collision =
+      RCL_absVal(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
+  }
+
+  if (collision)
+  {
+    state = SFG_MONSTER_STATE_IDLE;
+    // ^ will force the monster to choose random direction in next update
+ 
+    newPos[0] = monster->coords[0];
+    newPos[1] = monster->coords[1];
+  }
 
   monster->stateType = state | type;
-
-
-
-
-  monster->coords[0] += coordAdd[0];
-  monster->coords[1] += coordAdd[1];
+  monster->coords[0] = newPos[0];
+  monster->coords[1] = newPos[1];;
 }
 
 /**
