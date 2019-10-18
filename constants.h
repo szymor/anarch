@@ -58,6 +58,12 @@
   Rate at which AI will be updated, which also affects how fast enemies will
   appear.
 */
-#define SFG_AI_FPS 5
+#define SFG_AI_FPS 2
+
+/**
+  Says a probability (0 - 255) of the AI changing its state during one update
+  step.
+*/
+#define SFG_AI_RANDOM_CHANGE_PROBABILITY 20
 
 #endif // guard

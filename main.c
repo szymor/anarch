@@ -1015,6 +1015,11 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   coordAdd[0] = 0;
   coordAdd[1] = 0;
 
+  if (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY)
+  { 
+    // sometimes randomly change state
+    state = SFG_MONSTER_STATE_IDLE;
+  }
   if (state == SFG_MONSTER_STATE_IDLE)
   {
     switch (SFG_random() % 8)
