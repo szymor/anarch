@@ -1010,28 +1010,38 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
   if (state == SFG_MONSTER_STATE_IDLE)
   {
-    switch (SFG_random() % 2)
+    switch (SFG_random() % 8)
     {
       case 0: state = SFG_MONSTER_STATE_GOING_E; break;
       case 1: state = SFG_MONSTER_STATE_GOING_W; break;
+      case 2: state = SFG_MONSTER_STATE_GOING_N; break;
+      case 3: state = SFG_MONSTER_STATE_GOING_S; break;
+      case 4: state = SFG_MONSTER_STATE_GOING_NE; break;
+      case 5: state = SFG_MONSTER_STATE_GOING_NW; break;
+      case 6: state = SFG_MONSTER_STATE_GOING_SE; break;
+      case 7: state = SFG_MONSTER_STATE_GOING_SW; break;
       default: break;
     }
   }
   else
   {
-    switch (state)
-     {
-      case SFG_MONSTER_STATE_GOING_E:
-        coordAdd[0] = 1;
-        break;
+    if (state == SFG_MONSTER_STATE_GOING_E ||
+        state == SFG_MONSTER_STATE_GOING_NE ||
+        state == SFG_MONSTER_STATE_GOING_SE)
+      coordAdd[0] = 1;
+    else if (state == SFG_MONSTER_STATE_GOING_W ||
+        state == SFG_MONSTER_STATE_GOING_SW ||
+        state == SFG_MONSTER_STATE_GOING_NW)
+      coordAdd[0] = -1;
 
-      case SFG_MONSTER_STATE_GOING_W:
-        coordAdd[0] = -1;
-        break;
-
-      default:
-        break;
-    }
+    if (state == SFG_MONSTER_STATE_GOING_N ||
+        state == SFG_MONSTER_STATE_GOING_NE ||
+        state == SFG_MONSTER_STATE_GOING_NW)
+      coordAdd[1] = -1;
+    else if (state == SFG_MONSTER_STATE_GOING_S ||
+        state == SFG_MONSTER_STATE_GOING_SE ||
+        state == SFG_MONSTER_STATE_GOING_SW)
+      coordAdd[1] = 1;
   }
 
   int16_t newPos[2];
