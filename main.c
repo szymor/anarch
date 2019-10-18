@@ -278,33 +278,27 @@ typedef struct
 #define SFG_MONSTER_STATE_GOING_N   5
 #define SFG_MONSTER_STATE_GOING_NE  6
 #define SFG_MONSTER_STATE_GOING_E   7
-#define SFG_MONSTER_STATE_GOING_SW  8
+#define SFG_MONSTER_STATE_GOING_SE  8
 #define SFG_MONSTER_STATE_GOING_S   9
 #define SFG_MONSTER_STATE_GOING_SW  10
 #define SFG_MONSTER_STATE_GOING_W   11
 #define SFG_MONSTER_STATE_GOING_NW  12
-#define SFG_MONSTER_STATE_GOING_N   13
 
 #define SFG_MAX_MONSTERS 64
 
 #define SFG_AI_UPDATE_FRAME_INTERVAL \
-  (SFG_AI_UPDATE_INTERVAL / SFG_MS_PER_FRAME)
+  (SFG_FPS / SFG_AI_FPS)
 
 #if SFG_AI_UPDATE_FRAME_INTERVAL == 0
   #define SFG_AI_UPDATE_FRAME_INTERVAL 1
-#endif
-
-#define SFG_MONSTER_MOVE_UNITS_PER_FRAME \
-  (((SFG_MONSTER_MOVEMENT_SPEED * SFG_AI_UPDATE_FRAME_INTERVAL * 4) / SFG_FPS))
-
-#if SFG_MONSTER_MOVE_UNITS_PER_FRAME == 0
-  #define SFG_MONSTER_MOVE_UNITS_PER_FRAME 1
 #endif
 
 /*
   GLOBAL VARIABLES
 ===============================================================================
 */
+
+uint8_t SFG_currentRandom;
 
 struct
 {
@@ -402,6 +396,19 @@ SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
   FUNCTIONS
 ===============================================================================
 */
+
+/**
+  Returns a pseudorandom byte. This is a congrent generator, its parameters
+  have been chosen so that each number (0-255) is included in the output
+  exactly once!
+*/
+uint8_t SFG_random()
+{
+  SFG_currentRandom *= 13;
+  SFG_currentRandom += 7;
+  
+  return SFG_currentRandom;
+}
 
 /**
   Says whether given key is currently pressed (down). This should be preferred
@@ -866,6 +873,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 {
   SFG_LOG("setting and initializing level");
 
+  SFG_currentRandom = 0;
+
   SFG_currentLevel.levelPointer = level;
 
   SFG_currentLevel.floorColor = level->floorColor;
@@ -962,6 +971,8 @@ void SFG_init()
 
   SFG_gameFrame = 0;
 
+  SFG_currentRandom = 0;
+
   RCL_initRayConstraints(&SFG_rayConstraints);
 
   SFG_rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
@@ -1006,12 +1017,12 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     switch (state)
      {
       case SFG_MONSTER_STATE_GOING_E:
-        coordAdd[0] = SFG_MONSTER_MOVE_UNITS_PER_FRAME;
+        coordAdd[0] = 1;
         state = SFG_MONSTER_STATE_GOING_W;
         break;
 
       case SFG_MONSTER_STATE_GOING_W:
-        coordAdd[0] = -1 * SFG_MONSTER_MOVE_UNITS_PER_FRAME;
+        coordAdd[0] = -1;
         state = SFG_MONSTER_STATE_GOING_E;
         break;
 
@@ -1020,8 +1031,12 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     }
   }
 
+  
+
 
   monster->stateType = state | type;
+
+
 
 
   monster->coords[0] += coordAdd[0];
@@ -1331,8 +1346,9 @@ void SFG_gameStep()
       SFG_currentLevel.checkedMonsterIndex = 0;
   }
 
-  if (((SFG_gameFrame - SFG_currentLevel.frameStart) %
-    SFG_AI_UPDATE_FRAME_INTERVAL) == 0)
+
+  if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
+      SFG_AI_UPDATE_FRAME_INTERVAL == 0)
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
       if (SFG_currentLevel.monsterRecords[i].stateType !=
           SFG_MONSTER_STATE_INACTIVE)

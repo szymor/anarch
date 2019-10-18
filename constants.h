@@ -55,14 +55,9 @@
 #define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 8
 
 /**
-  Time interval in ms after which AI will be updating (which also affects
-  speed of monster animation etc).
+  Rate at which AI will be updated, which also affects how fast enemies will
+  appear.
 */
-#define SFG_AI_UPDATE_INTERVAL 300
-
-/**
-  Normal movement speed of monsters, in squares per second.
-*/
-#define SFG_MONSTER_MOVEMENT_SPEED 2
+#define SFG_AI_FPS 5
 
 #endif // guard
