@@ -291,6 +291,16 @@ typedef struct
   #define SFG_AI_UPDATE_FRAME_INTERVAL 1
 #endif
 
+typedef struct
+{
+  uint8_t  type;
+  int8_t   framesToLive;
+  uint16_t position[3]; /**< Current position, stored as u16 to save space, as
+                             that is exactly enough to store position on 64x64
+                             map. */
+  int16_t direction[3]; /**< Added to position each game step. */
+} SFG_projectileRecord;
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
