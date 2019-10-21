@@ -1428,6 +1428,7 @@ SFG_createProjectile(p);
 
     if (p->doubleFramesToLive == 0)
     {
+      SFG_LOG("projectile times out");
       collides = 1;
     }
     else if (SFG_floorHeightAt(
@@ -1441,6 +1442,9 @@ SFG_createProjectile(p);
     {
       SFG_LOG("projectile collides");
 
+      if (p->type == SFG_PROJECTILE_FIREBALL)
+        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
+
       // remove the projectile
 
       for (uint8_t j = i; j < SFG_currentLevel.projectileRecordCount - 1; ++j)
@@ -1450,9 +1454,6 @@ SFG_createProjectile(p);
       SFG_currentLevel.projectileRecordCount--;
 
       i--;
-
-      if (p->type == SFG_PROJECTILE_FIREBALL)
-        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
     }
     else
     {
@@ -1856,7 +1857,7 @@ void SFG_draw()
        
       const uint8_t *s =
         SFG_effects[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
- 
+
       int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 2;
 
       if (proj->type == SFG_PROJECTILE_EXPLOSION)
