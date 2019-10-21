@@ -303,7 +303,9 @@ typedef struct
 typedef struct
 {
   uint8_t  type;
-  uint8_t  framesToLive;
+  uint8_t  doubleFramesToLive; /**< This number times two (because 256 could be
+                                    too little at high FPS) says after how many
+                                    frames the projectile is destroyed. */
   uint16_t position[3]; /**< Current position, stored as u16 to save space, as
                              that is exactly enough to store position on 64x64
                              map. */
@@ -311,6 +313,16 @@ typedef struct
 } SFG_ProjectileRecord;
 
 #define SFG_MAX_PROJECTILES 12
+
+#define SFG_PROJECTILE_EXPLOSION 0
+#define SFG_PROJECTILE_FIREBALL 1
+
+#define SFG_EXPLOSION_DURATION_DOUBLE_FRAMES \
+  (SFG_EXPLOSION_DURATION / SFG_MS_PER_FRAME)
+
+#if SFG_EXPLOSION_DURATION_DOUBLE_FRAMES == 0
+  #define SFG_EXPLOSION_DURATION_FRAMES 1
+#endif
 
 /*
   GLOBAL VARIABLES
@@ -1136,6 +1148,27 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
   return 1;
 }
 
+void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  SFG_LOG("creating explostion");
+
+  SFG_ProjectileRecord explostion;
+
+  explostion.type = SFG_PROJECTILE_EXPLOSION;
+
+  explostion.position[0] = x;
+  explostion.position[1] = y;
+  explostion.position[2] = z;
+
+  explostion.direction[0] = 0;
+  explostion.direction[1] = 0;
+  explostion.direction[2] = 0;
+
+  explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+
+  SFG_createProjectile(explostion);
+}
+
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
@@ -1166,12 +1199,11 @@ void SFG_gameStep()
 
 SFG_ProjectileRecord p;
 
-p.type = 0;
-p.framesToLive = 255;
+p.type = SFG_PROJECTILE_FIREBALL;
+p.doubleFramesToLive = 255;
 p.position[0] = SFG_player.camera.position.x;
 p.position[1] = SFG_player.camera.position.y;
-p.position[2] = SFG_player.camera.height;
-
+p.position[2] = SFG_player.camera.height - 256;
 
 RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
 
@@ -1179,7 +1211,8 @@ p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUAR
 p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 p.direction[2] = 0;
 
-printf("%d\n",SFG_createProjectile(p));
+SFG_createProjectile(p);
+
   }
 
   if (SFG_keyIsDown(SFG_KEY_A))
@@ -1367,6 +1400,10 @@ printf("%d\n",SFG_createProjectile(p));
 
   // update projectiles:
 
+  uint8_t substractFrames =
+    (SFG_gameFrame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
+    // ^ only substract frames to live every other frame
+
   for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
   {
     SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
@@ -1389,6 +1426,17 @@ printf("%d\n",SFG_createProjectile(p));
       }
     }
 
+    if (p->doubleFramesToLive == 0)
+    {
+      collides = 1;
+    }
+    else if (SFG_floorHeightAt(
+         pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / RCL_UNITS_PER_SQUARE)
+         >= pos[2])
+    {
+      collides = 1;
+    }
+
     if (collides)
     {
       SFG_LOG("projectile collides");
@@ -1402,6 +1450,9 @@ printf("%d\n",SFG_createProjectile(p));
       SFG_currentLevel.projectileRecordCount--;
 
       i--;
+
+      if (p->type == SFG_PROJECTILE_FIREBALL)
+        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
     }
     else
     {
@@ -1409,6 +1460,8 @@ printf("%d\n",SFG_createProjectile(p));
       p->position[1] = pos[1];
       p->position[2] = pos[2];
     }
+
+    p->doubleFramesToLive -= substractFrames;
   }
 
   // handle door:
@@ -1731,28 +1784,6 @@ void SFG_draw()
  
     // draw sprites:
 
-
-    // projecile sprites:
-
-    for (uint8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
-    {
-      SFG_ProjectileRecord *proj = &(SFG_currentLevel.projectileRecords[i]);
-
-      RCL_Vector2D worldPosition;
-
-      worldPosition.x = proj->position[0];
-      worldPosition.y = proj->position[1];
-
-      RCL_PixelInfo p =
-        RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
-        
-      if (p.depth > 0)
-        SFG_drawScaledSprite(SFG_effects[0],
-            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
-    }
-
     // monster sprites:
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
@@ -1808,6 +1839,39 @@ void SFG_draw()
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
       }
+
+    // projecile sprites:
+
+    for (uint8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
+    {
+      SFG_ProjectileRecord *proj = &(SFG_currentLevel.projectileRecords[i]);
+
+      RCL_Vector2D worldPosition;
+
+      worldPosition.x = proj->position[0];
+      worldPosition.y = proj->position[1];
+
+      RCL_PixelInfo p =
+        RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
+       
+      const uint8_t *s =
+        SFG_effects[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
+ 
+      int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 2;
+
+      if (proj->type == SFG_PROJECTILE_EXPLOSION)
+      {
+        spriteSize =
+          (SFG_GAME_RESOLUTION_Y * (SFG_EXPLOSION_DURATION_DOUBLE_FRAMES - proj->doubleFramesToLive) ) / 
+          SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+      }
+
+      if (p.depth > 0)
+        SFG_drawScaledSprite(s,
+            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+            RCL_perspectiveScale(spriteSize,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
+    }
 
 #if SFG_HEADBOB_ENABLED
     // substract head bob after rendering

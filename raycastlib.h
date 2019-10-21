@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.90
+  version: 0.901
 */
 
 #include <stdint.h>
@@ -855,8 +855,11 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         divided by leg B (length along the same axis). */
 
         h.distance =
-          ((h.position.x - ray.start.x) * RCL_UNITS_PER_SQUARE * rayDirXRecip)
-          / RECIP_SCALE; 
+          (((h.position.x - ray.start.x) / 4) *
+          RCL_UNITS_PER_SQUARE * rayDirXRecip)
+          / (RECIP_SCALE / 4);
+
+          // ^ / 4 is here to prevent overflow
 #endif
       }
       else
@@ -877,8 +880,11 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 #if RCL_RECTILINEAR
         h.distance =
-          ((h.position.y - ray.start.y) * RCL_UNITS_PER_SQUARE * rayDirYRecip)
-          / RECIP_SCALE;
+          (((h.position.y - ray.start.y) / 4) *
+          RCL_UNITS_PER_SQUARE * rayDirYRecip)
+          / (RECIP_SCALE / 4);
+
+          // ^ / 4 is here to prevent overflow
 #endif
       }
 

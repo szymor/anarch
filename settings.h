@@ -32,14 +32,14 @@
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_X 800
+#define SFG_SCREEN_RESOLUTION_X 1024
 
 /**
   Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_Y 600
+#define SFG_SCREEN_RESOLUTION_Y 768
 
 /**
   How many times the screen resolution will be divided (how many times a game
@@ -124,5 +124,10 @@
   Maximum camera shear (vertical angle). 1024 means 1.0 * vertical resolution.
 */
 #define SFG_CAMERA_MAX_SHEAR 1024
+
+/**
+  Duration in ms of the explosion animation.
+*/
+#define SFG_EXPLOSION_DURATION 70
 
 #endif // guard
