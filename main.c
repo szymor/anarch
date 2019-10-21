@@ -149,6 +149,14 @@ void SFG_init();
   #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
 #endif
 
+
+#define SFG_ROCKER_MOVE_UNITS_PER_FRAME \
+  ((SFG_ROCKET_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
+
+#if SFG_ROCKER_MOVE_UNITS_PER_FRAME == 0
+  #define SFG_ROCKER_MOVE_UNITS_PER_FRAME 1
+#endif
+
 #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME \
   ((SFG_GRAVITY_ACCELERATION * RCL_UNITS_PER_SQUARE) / (SFG_FPS * SFG_FPS))
 
@@ -1164,8 +1172,11 @@ p.position[0] = SFG_player.camera.position.x;
 p.position[1] = SFG_player.camera.position.y;
 p.position[2] = SFG_player.camera.height;
 
-p.direction[0] = 1;
-p.direction[1] = 0;
+
+RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
+
+p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 p.direction[2] = 0;
 
 printf("%d\n",SFG_createProjectile(p));
@@ -1353,6 +1364,52 @@ printf("%d\n",SFG_createProjectile(p));
 
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
+
+  // update projectiles:
+
+  for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
+  {
+    SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
+
+    RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
+
+    uint8_t collides = 0;
+
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+      pos[i] = p->position[i];
+      pos[i] += p->direction[i];
+
+      if (
+        (pos[i] < 0) ||
+        (pos[i] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
+      {
+        collides = 1;
+        break;
+      }
+    }
+
+    if (collides)
+    {
+      SFG_LOG("projectile collides");
+
+      // remove the projectile
+
+      for (uint8_t j = i; j < SFG_currentLevel.projectileRecordCount - 1; ++j)
+        SFG_currentLevel.projectileRecords[j] =
+          SFG_currentLevel.projectileRecords[j + 1];
+
+      SFG_currentLevel.projectileRecordCount--;
+
+      i--;
+    }
+    else
+    {
+      p->position[0] = pos[0];
+      p->position[1] = pos[1];
+      p->position[2] = pos[2];
+    }
+  }
 
   // handle door:
 

@@ -66,4 +66,9 @@
 */
 #define SFG_AI_RANDOM_CHANGE_PROBABILITY 20
 
+/**
+  Speed of rocket projectile, in squares per second.
+*/
+#define SFG_ROCKET_SPEED 16
+
 #endif // guard
