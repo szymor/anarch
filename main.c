@@ -1162,10 +1162,13 @@ RCL_Vector2D SFG_pushAway(
   fromCenter.x = pos[0] - center.x;
   fromCenter.y = pos[1] - center.y;
 
-  if (fromCenter.x == 0 && fromCenter.y == 0)
-    fromCenter = RCL_angleToDirection(preferredDirection);
-
   RCL_Unit l = RCL_len(fromCenter);
+
+  if (l < 128)
+  {
+    fromCenter = RCL_angleToDirection(preferredDirection);
+    l = RCL_UNITS_PER_SQUARE;
+  }
 
   if (l >= distance)
     return;
@@ -1193,8 +1196,6 @@ RCL_Vector2D SFG_pushAway(
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
-  SFG_LOG("creating explostion");
-
   SFG_ProjectileRecord explostion;
 
   explostion.type = SFG_PROJECTILE_EXPLOSION;
@@ -1493,7 +1494,6 @@ SFG_createProjectile(p);
 
     if (p->doubleFramesToLive == 0)
     {
-      SFG_LOG("projectile times out");
       collides = 1;
     }
     else if (SFG_floorHeightAt(
@@ -1505,8 +1505,6 @@ SFG_createProjectile(p);
 
     if (collides)
     {
-      SFG_LOG("projectile collides");
-
       if (p->type == SFG_PROJECTILE_FIREBALL)
         SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
 
