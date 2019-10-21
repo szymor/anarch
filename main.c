@@ -204,8 +204,7 @@ void SFG_init();
   #define SFG_FONT_SIZE_BIG 1
 #endif
 
-#define SFG_Z_BUFFER_SIZE \
-  (SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE + 1)
+#define SFG_Z_BUFFER_SIZE SFG_GAME_RESOLUTION_X
 
 /**
   Step in which walls get higher, in raycastlib units.
@@ -537,8 +536,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t shadow = 0;
 
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
-    SFG_zBuffer[pixel->position.x / SFG_RAYCASTING_SUBSAMPLE] =
-      SFG_RCL_unitToZBuffer(pixel->depth);
+    for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
+      SFG_zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] =
+        SFG_RCL_unitToZBuffer(pixel->depth);
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
