@@ -1148,6 +1148,49 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
   return 1;
 }
 
+/**
+  Pushes a given position away from a center by given distance, with collisions.
+*/
+RCL_Vector2D SFG_pushAway(
+  RCL_Unit pos[3],
+  RCL_Vector2D center,
+  RCL_Unit preferredDirection,
+  RCL_Unit distance)
+{
+  RCL_Vector2D fromCenter;
+
+  fromCenter.x = pos[0] - center.x;
+  fromCenter.y = pos[1] - center.y;
+
+  if (fromCenter.x == 0 && fromCenter.y == 0)
+    fromCenter = RCL_angleToDirection(preferredDirection);
+
+  RCL_Unit l = RCL_len(fromCenter);
+
+  if (l >= distance)
+    return;
+
+  RCL_Vector2D offset;
+
+  offset.x = (fromCenter.x * distance) / l; 
+  offset.y = (fromCenter.y * distance) / l; 
+
+  RCL_Camera c;
+
+  RCL_initCamera(&c);
+
+  c.position.x = pos[0];
+  c.position.y = pos[1];
+  c.height = pos[2];
+
+  RCL_moveCameraWithCollision(&c,offset,0,SFG_floorHeightAt,
+    SFG_ceilingHeightAt,1,1);
+
+  pos[0] = c.position.x;
+  pos[1] = c.position.y;
+  pos[2] = c.height;
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_LOG("creating explostion");
@@ -1167,6 +1210,24 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
 
   SFG_createProjectile(explostion);
+
+RCL_Unit p[3];
+
+p[0] = SFG_player.camera.position.x; 
+p[1] = SFG_player.camera.position.y; 
+p[2] = SFG_player.camera.height; 
+
+RCL_Vector2D center;
+
+center.x = x;
+center.y = y;
+
+SFG_pushAway(p,center,
+  SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2, 2 * RCL_UNITS_PER_SQUARE);
+
+SFG_player.camera.position.x = p[0]; 
+SFG_player.camera.position.y = p[1]; 
+SFG_player.camera.height = p[2]; 
 }
 
 /**
