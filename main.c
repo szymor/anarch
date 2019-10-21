@@ -283,6 +283,7 @@ typedef struct
 #define SFG_MONSTER_STATE_GOING_NW  12
 
 #define SFG_MAX_MONSTERS 64
+// TODO: ^ move these MAX constants to constants.h?
 
 #define SFG_AI_UPDATE_FRAME_INTERVAL \
   (SFG_FPS / SFG_AI_FPS)
@@ -294,12 +295,14 @@ typedef struct
 typedef struct
 {
   uint8_t  type;
-  int8_t   framesToLive;
+  uint8_t  framesToLive;
   uint16_t position[3]; /**< Current position, stored as u16 to save space, as
                              that is exactly enough to store position on 64x64
                              map. */
   int16_t direction[3]; /**< Added to position each game step. */
-} SFG_projectileRecord;
+} SFG_ProjectileRecord;
+
+#define SFG_MAX_PROJECTILES 12
 
 /*
   GLOBAL VARIABLES
@@ -366,6 +369,9 @@ struct
   SFG_MonsterRecord monsterRecords[SFG_MAX_MONSTERS];
   uint8_t monsterRecordCount;
   uint8_t checkedMonsterIndex; 
+
+  SFG_ProjectileRecord projectileRecords[SFG_MAX_PROJECTILES];
+  uint8_t projectileRecordCount;
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -907,6 +913,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_currentLevel.doorRecordCount = 0;
 
+  SFG_currentLevel.projectileRecordCount = 0;
+
   for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
   {
     for (uint8_t i = 0; i < SFG_MAP_SIZE; ++i)
@@ -1104,6 +1112,23 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 }
 
 /**
+  Adds new projectile to the current level, return 1 if added, 0 if not (max
+  count reached).
+*/
+uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
+{
+  if (SFG_currentLevel.projectileRecordCount >= SFG_MAX_PROJECTILES)
+    return 0; 
+
+  SFG_currentLevel.projectileRecords[SFG_currentLevel.projectileRecordCount] =
+    projectile;
+  
+  SFG_currentLevel.projectileRecordCount++;
+
+  return 1;
+}
+
+/**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
 */
@@ -1126,6 +1151,25 @@ void SFG_gameStep()
 #endif
 
   int8_t shearing = 0;
+
+  if (SFG_keyJustPressed(SFG_KEY_B))
+  {
+    // fire
+
+SFG_ProjectileRecord p;
+
+p.type = 0;
+p.framesToLive = 255;
+p.position[0] = SFG_player.camera.position.x;
+p.position[1] = SFG_player.camera.position.y;
+p.position[2] = SFG_player.camera.height;
+
+p.direction[0] = 1;
+p.direction[1] = 0;
+p.direction[2] = 0;
+
+printf("%d\n",SFG_createProjectile(p));
+  }
 
   if (SFG_keyIsDown(SFG_KEY_A))
   {
@@ -1406,6 +1450,7 @@ void SFG_gameStep()
       SFG_currentLevel.checkedMonsterIndex = 0;
   }
 
+  // update AI
 
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
@@ -1628,6 +1673,28 @@ void SFG_draw()
       SFG_rayConstraints);
  
     // draw sprites:
+
+
+    // projecile sprites:
+
+    for (uint8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
+    {
+      SFG_ProjectileRecord *proj = &(SFG_currentLevel.projectileRecords[i]);
+
+      RCL_Vector2D worldPosition;
+
+      worldPosition.x = proj->position[0];
+      worldPosition.y = proj->position[1];
+
+      RCL_PixelInfo p =
+        RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
+        
+      if (p.depth > 0)
+        SFG_drawScaledSprite(SFG_effects[0],
+            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
+    }
 
     // monster sprites:
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
