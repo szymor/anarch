@@ -273,6 +273,7 @@ typedef struct
 } SFG_MonsterRecord;
 
 #define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
+#define SFG_MONSTER_COORD_TO_SQUARES(c) (c / 4)
 
 #define SFG_MONSTER_MASK_STATE 0x0f
 #define SFG_MONSTER_MASK_TYPE  0xf0
@@ -443,6 +444,12 @@ uint8_t SFG_random()
   SFG_currentRandom += 7;
   
   return SFG_currentRandom;
+}
+
+static inline RCL_Unit
+  SFG_taxicabDistance(RCL_Unit x0, RCL_Unit y0, RCL_Unit x1, RCL_Unit y1)
+{
+  return RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1);
 }
 
 static inline uint8_t SFG_RCL_unitToZBuffer(RCL_Unit x)
@@ -1155,14 +1162,15 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
 */
 void SFG_pushAway(
   RCL_Unit pos[3],
-  RCL_Vector2D center,
+  RCL_Unit centerX,
+  RCL_Unit centerY,
   RCL_Unit preferredDirection,
   RCL_Unit distance)
 {
   RCL_Vector2D fromCenter;
 
-  fromCenter.x = pos[0] - center.x;
-  fromCenter.y = pos[1] - center.y;
+  fromCenter.x = pos[0] - centerX;
+  fromCenter.y = pos[1] - centerY;
 
   RCL_Unit l = RCL_len(fromCenter);
 
@@ -1197,6 +1205,23 @@ void SFG_pushAway(
   pos[2] = c.height;
 }
 
+void SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
+{
+  RCL_Unit p[3];
+
+  p[0] = SFG_player.camera.position.x; 
+  p[1] = SFG_player.camera.position.y; 
+  p[2] = SFG_player.camera.height; 
+
+  SFG_pushAway(p,centerX,centerY,
+    SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2,
+    distance);
+
+  SFG_player.camera.position.x = p[0]; 
+  SFG_player.camera.position.y = p[1]; 
+  SFG_player.camera.height = p[2];
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explostion;
@@ -1215,23 +1240,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   SFG_createProjectile(explostion);
 
-RCL_Unit p[3];
-
-p[0] = SFG_player.camera.position.x; 
-p[1] = SFG_player.camera.position.y; 
-p[2] = SFG_player.camera.height; 
-
-RCL_Vector2D center;
-
-center.x = x;
-center.y = y;
-
-SFG_pushAway(p,center,
-  SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2, 2 * RCL_UNITS_PER_SQUARE);
-
-SFG_player.camera.position.x = p[0]; 
-SFG_player.camera.position.y = p[1]; 
-SFG_player.camera.height = p[2]; 
+  SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE);
 }
 
 /**
@@ -1467,6 +1476,31 @@ SFG_createProjectile(p);
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
 
+  // handle player collision with level elements:
+
+  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  {
+    SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+
+    if (
+      ((m->stateType & SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE) &&
+        (
+        SFG_taxicabDistance(
+          SFG_player.camera.position.x,
+          SFG_player.camera.position.y,
+          SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+          SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]))
+        <= SFG_ELEMENT_COLLISION_DISTANCE
+        )
+      )
+    {
+      SFG_pushPlayerAway(   
+        SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+        SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
+        SFG_ELEMENT_COLLISION_DISTANCE);
+    }
+  }
+
   // update projectiles:
 
   uint8_t substractFrames =
@@ -1516,10 +1550,11 @@ SFG_createProjectile(p);
           SFG_MONSTER_STATE_INACTIVE)
         {
           RCL_Unit distance =
-            RCL_absVal(
-              p->position[0] - SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0])) +
-            RCL_absVal(
-              p->position[1] - SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]));
+            SFG_taxicabDistance(
+              p->position[0],
+              p->position[1],
+              SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+              SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]));
 
           if (distance <= SFG_ELEMENT_COLLISION_DISTANCE)
           {
@@ -1541,10 +1576,10 @@ SFG_createProjectile(p);
               SFG_currentLevel.levelPointer->elements[
               item & ~SFG_ITEM_RECORD_ACTIVE_MASK];
 
-            if (
-              (RCL_absVal(p->position[0] - e.coords[0] * RCL_UNITS_PER_SQUARE) +
-               RCL_absVal(p->position[1] - e.coords[1] * RCL_UNITS_PER_SQUARE))
-              <= SFG_ELEMENT_COLLISION_DISTANCE)
+            if (SFG_taxicabDistance(p->position[0],p->position[1],
+                e.coords[0] * RCL_UNITS_PER_SQUARE,
+                e.coords[1] * RCL_UNITS_PER_SQUARE)
+                <= SFG_ELEMENT_COLLISION_DISTANCE)
             {
               eliminate = 1;
               break;

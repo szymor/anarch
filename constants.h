@@ -75,6 +75,12 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_DISTANCE 700
+#define SFG_ELEMENT_COLLISION_DISTANCE 800
+
+/**
+  Distance at which explosion does damage and throws away the player and
+  monsters, in RCL_Units.
+*/
+#define SFG_EXPLOSION_DISTANCE 2048
 
 #endif // guard
