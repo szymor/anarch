@@ -71,4 +71,10 @@
 */
 #define SFG_ROCKET_SPEED 20
 
+/**
+  Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
+  square).
+*/
+#define SFG_ELEMENT_COLLISION_DISTANCE 700
+
 #endif // guard

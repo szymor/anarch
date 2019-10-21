@@ -269,9 +269,11 @@ typedef struct
 {
   uint8_t stateType;     /**< Holds state (lower 4 bits) and type of monster
                               (upper 4 bits). */
-  uint8_t coords[2];
+  uint8_t coords[2];     /**< Monster position, in 1/4s of a square */
   uint8_t health;
 } SFG_MonsterRecord;
+
+#define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
 
 #define SFG_MONSTER_MASK_STATE 0x0f
 #define SFG_MONSTER_MASK_TYPE  0xf0
@@ -1493,10 +1495,36 @@ SFG_createProjectile(p);
       }
     }
 
-    if (p->doubleFramesToLive == 0 || (SFG_floorHeightAt(
-         pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
-         RCL_UNITS_PER_SQUARE) >= pos[2]))
+    if (p->doubleFramesToLive == 0)
+    {
       eliminate = 1;
+    }
+    else if (p->type != SFG_PROJECTILE_EXPLOSION)
+    {
+      if (SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
+          RCL_UNITS_PER_SQUARE) >= pos[2])
+        eliminate = 1;
+        
+      for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+      {
+        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+        if ((m->stateType & SFG_MONSTER_MASK_STATE) != 
+          SFG_MONSTER_STATE_INACTIVE)
+        {
+          RCL_Unit distance =
+            RCL_absVal(
+              p->position[0] - SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0])) +
+            RCL_absVal(
+              p->position[1] - SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]));
+
+          if (distance <= SFG_ELEMENT_COLLISION_DISTANCE)
+          {
+            eliminate = 1;
+            break;
+          }
+        }
+      }
+    }
 
     if (eliminate)
     {
