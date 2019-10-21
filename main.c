@@ -1151,7 +1151,7 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
 /**
   Pushes a given position away from a center by given distance, with collisions.
 */
-RCL_Vector2D SFG_pushAway(
+void SFG_pushAway(
   RCL_Unit pos[3],
   RCL_Vector2D center,
   RCL_Unit preferredDirection,
@@ -1169,9 +1169,10 @@ RCL_Vector2D SFG_pushAway(
     fromCenter = RCL_angleToDirection(preferredDirection);
     l = RCL_UNITS_PER_SQUARE;
   }
-
-  if (l >= distance)
+  else if (l >= distance)
+  {
     return;
+  }
 
   RCL_Vector2D offset;
 
@@ -1476,7 +1477,7 @@ SFG_createProjectile(p);
 
     RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
 
-    uint8_t collides = 0;
+    uint8_t eliminate = 0;
 
     for (uint8_t i = 0; i < 3; ++i)
     {
@@ -1487,23 +1488,17 @@ SFG_createProjectile(p);
         (pos[i] < 0) ||
         (pos[i] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
       {
-        collides = 1;
+        eliminate = 1;
         break;
       }
     }
 
-    if (p->doubleFramesToLive == 0)
-    {
-      collides = 1;
-    }
-    else if (SFG_floorHeightAt(
-         pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / RCL_UNITS_PER_SQUARE)
-         >= pos[2])
-    {
-      collides = 1;
-    }
+    if (p->doubleFramesToLive == 0 || (SFG_floorHeightAt(
+         pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
+         RCL_UNITS_PER_SQUARE) >= pos[2]))
+      eliminate = 1;
 
-    if (collides)
+    if (eliminate)
     {
       if (p->type == SFG_PROJECTILE_FIREBALL)
         SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
