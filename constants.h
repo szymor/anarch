@@ -69,6 +69,6 @@
 /**
   Speed of rocket projectile, in squares per second.
 */
-#define SFG_ROCKET_SPEED 16
+#define SFG_ROCKET_SPEED 20
 
 #endif // guard

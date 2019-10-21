@@ -1209,7 +1209,11 @@ RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
 
 p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-p.direction[2] = 0;
+p.direction[2] = 
+  (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
+  SFG_CAMERA_MAX_SHEAR_PIXELS;
+
+
 
 SFG_createProjectile(p);
 
