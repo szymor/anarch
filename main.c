@@ -1501,9 +1501,13 @@ SFG_createProjectile(p);
     }
     else if (p->type != SFG_PROJECTILE_EXPLOSION)
     {
+      // check collision with the map
+
       if (SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
           RCL_UNITS_PER_SQUARE) >= pos[2])
         eliminate = 1;
+
+      // check collision with active level elements
         
       for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
       {
@@ -1524,6 +1528,29 @@ SFG_createProjectile(p);
           }
         }
       }
+
+      if (!eliminate)
+        for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+        {
+          SFG_ItemRecord item =
+            SFG_currentLevel.itemRecords[i];
+
+          if (item & SFG_ITEM_RECORD_ACTIVE_MASK)
+          {
+            SFG_LevelElement e =
+              SFG_currentLevel.levelPointer->elements[
+              item & ~SFG_ITEM_RECORD_ACTIVE_MASK];
+
+            if (
+              (RCL_absVal(p->position[0] - e.coords[0] * RCL_UNITS_PER_SQUARE) +
+               RCL_absVal(p->position[1] - e.coords[1] * RCL_UNITS_PER_SQUARE))
+              <= SFG_ELEMENT_COLLISION_DISTANCE)
+            {
+              eliminate = 1;
+              break;
+            }
+          }
+        }
     }
 
     if (eliminate)
