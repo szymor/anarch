@@ -78,6 +78,12 @@
 #define SFG_ELEMENT_COLLISION_DISTANCE 800
 
 /**
+  Height, in RCL_Units, at which collisions happen with level elements
+  (sprites).
+*/
+#define SFG_ELEMENT_COLLISION_HEIGHT 1024
+
+/**
   Distance at which explosion does damage and throws away the player and
   monsters, in RCL_Units.
 */

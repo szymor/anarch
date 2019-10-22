@@ -1291,6 +1291,29 @@ static inline const SFG_LevelElement *SFG_getActiveItemElement(uint8_t index)
            ~SFG_ITEM_RECORD_ACTIVE_MASK]);
 }
 
+static inline uint8_t SFG_elementCollides(
+  RCL_Unit pointX,
+  RCL_Unit pointY,
+  RCL_Unit pointZ,
+  RCL_Unit elementX,
+  RCL_Unit elementY,
+  RCL_Unit elementHeight,
+  RCL_Unit heightMargin,
+  RCL_Unit widthMargin
+)
+{
+  return
+    (
+      SFG_taxicabDistance(pointX,pointY,elementX,elementY)
+      <= (SFG_ELEMENT_COLLISION_DISTANCE + widthMargin)
+    )
+    &&
+    (
+      (pointZ - heightMargin - elementHeight)
+      <= SFG_ELEMENT_COLLISION_HEIGHT
+    );
+}
+
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
@@ -1507,15 +1530,19 @@ SFG_createProjectile(p);
     mPos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]);
 
     if (
-      ((m->stateType & SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE) &&
-        (
-        SFG_taxicabDistance(
-          SFG_player.camera.position.x,
-          SFG_player.camera.position.y,
-          mPos.x,mPos.y)
-        <= SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
-        )
-      )
+         SFG_elementCollides(
+           SFG_player.camera.position.x,
+           SFG_player.camera.position.y,
+           SFG_player.camera.height,
+           mPos.x,
+           mPos.y,
+           SFG_floorHeightAt(
+               SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+               SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
+           RCL_CAMERA_COLL_RADIUS / 2,
+           RCL_CAMERA_COLL_HEIGHT_BELOW
+         )
+       )
     {
       moveOffset = SFG_resolveCollisionWithElement(
         SFG_player.camera.position,moveOffset,mPos);
@@ -1533,11 +1560,18 @@ SFG_createProjectile(p);
       ePos.x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
       ePos.y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
 
-      if (SFG_taxicabDistance(
-          SFG_player.camera.position.x,
-          SFG_player.camera.position.y,
-          ePos.x,ePos.y)
-          <= (SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS))
+      if (
+           SFG_elementCollides(
+             SFG_player.camera.position.x,
+             SFG_player.camera.position.y,
+             SFG_player.camera.height,
+             ePos.x,
+             ePos.y,
+             SFG_floorHeightAt(e->coords[0],e->coords[1]),
+             RCL_CAMERA_COLL_RADIUS / 2,
+             RCL_CAMERA_COLL_HEIGHT_BELOW
+           )
+         )
       {
         moveOffset = SFG_resolveCollisionWithElement(
           SFG_player.camera.position,moveOffset,ePos);
@@ -1622,14 +1656,19 @@ SFG_createProjectile(p);
         if ((m->stateType & SFG_MONSTER_MASK_STATE) != 
           SFG_MONSTER_STATE_INACTIVE)
         {
-          RCL_Unit distance =
-            SFG_taxicabDistance(
-              p->position[0],
-              p->position[1],
-              SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-              SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]));
-
-          if (distance <= SFG_ELEMENT_COLLISION_DISTANCE)
+          if (
+             SFG_elementCollides(
+               p->position[0],
+               p->position[1],
+               p->position[2],
+               SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+               SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
+               SFG_floorHeightAt(
+                   SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+                   SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
+               0,
+               0)
+             )
           {
             eliminate = 1;
             break;
@@ -1644,10 +1683,17 @@ SFG_createProjectile(p);
 
           if (e != 0)
           {
-            if (SFG_taxicabDistance(p->position[0],p->position[1],
-                e->coords[0] * RCL_UNITS_PER_SQUARE,
-                e->coords[1] * RCL_UNITS_PER_SQUARE)
-                <= SFG_ELEMENT_COLLISION_DISTANCE)
+            if (
+               SFG_elementCollides(
+                 p->position[0],
+                 p->position[1],
+                 p->position[2],
+                 SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]),
+                 SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]),
+                 SFG_floorHeightAt(e->coords[0],e->coords[1]),
+                 0,
+                 0)
+               )
             {
               eliminate = 1;
               break;

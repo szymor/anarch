@@ -236,7 +236,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
   10,                      // floorColor
   32,                      // ceilingColor
   {                        // elements
-    {SFG_LEVEL_ELEMENT_BARREL, {9, 1}},  {SFG_LEVEL_ELEMENT_BARREL, {13, 3}},
+    {SFG_LEVEL_ELEMENT_BARREL, {9, 1}},  {SFG_LEVEL_ELEMENT_BARREL, {9, 13}},
     {SFG_LEVEL_ELEMENT_BARREL, {12, 4}},  {SFG_LEVEL_ELEMENT_BARREL, {15, 4}},
     {SFG_LEVEL_ELEMENT_BARREL, {24, 10}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_BARREL, {13, 4}},     {SFG_LEVEL_ELEMENT_BARREL, {12, 6}},
