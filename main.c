@@ -1713,7 +1713,19 @@ void SFG_gameStep()
       }
     }
 
-    if (p->doubleFramesToLive == 0)
+    if (
+         (p->doubleFramesToLive == 0) ||
+         SFG_elementCollides(
+           SFG_player.camera.position.x,
+           SFG_player.camera.position.y,
+           SFG_player.camera.height,
+           p->position[0],
+           p->position[1],
+           p->position[2],
+           0,
+           0
+         )
+       )
     {
       eliminate = 1;
     }
@@ -1735,14 +1747,14 @@ void SFG_gameStep()
         {
           if (
              SFG_elementCollides(
-               p->position[0],
-               p->position[1],
-               p->position[2],
                SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
                SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
                SFG_floorHeightAt(
                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
+               p->position[0],
+               p->position[1],
+               p->position[2],
                0,
                0)
              )
