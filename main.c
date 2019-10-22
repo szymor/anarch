@@ -1244,6 +1244,21 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 }
 
 /**
+  Helper function, returns a pointer to level element representing item with
+  given index, but only if the item is active (otherwise 0 is returned).
+*/
+static inline const SFG_LevelElement *SFG_getActiveItemElement(uint8_t index)
+{
+  SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
+
+  if ((item & SFG_ITEM_RECORD_ACTIVE_MASK) == 0)
+    return 0;
+
+  return &(SFG_currentLevel.levelPointer->elements[item &
+           ~SFG_ITEM_RECORD_ACTIVE_MASK]);
+}
+
+/**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
 */
@@ -1501,6 +1516,28 @@ SFG_createProjectile(p);
     }
   }
 
+  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+  {
+    const SFG_LevelElement *e = SFG_getActiveItemElement(i);
+
+    if (e != 0)
+    {
+      if (SFG_taxicabDistance(
+          SFG_player.camera.position.x,
+          SFG_player.camera.position.y,
+          e->coords[0] * RCL_UNITS_PER_SQUARE,
+          e->coords[1] * RCL_UNITS_PER_SQUARE)
+          <= SFG_ELEMENT_COLLISION_DISTANCE)
+      {
+        SFG_pushPlayerAway(   
+          e->coords[0] * RCL_UNITS_PER_SQUARE,
+          e->coords[1] * RCL_UNITS_PER_SQUARE,
+          SFG_ELEMENT_COLLISION_DISTANCE);
+      }
+    }
+    
+  }
+
   // update projectiles:
 
   uint8_t substractFrames =
@@ -1567,18 +1604,13 @@ SFG_createProjectile(p);
       if (!eliminate)
         for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
         {
-          SFG_ItemRecord item =
-            SFG_currentLevel.itemRecords[i];
+          const SFG_LevelElement *e = SFG_getActiveItemElement(i);
 
-          if (item & SFG_ITEM_RECORD_ACTIVE_MASK)
+          if (e != 0)
           {
-            SFG_LevelElement e =
-              SFG_currentLevel.levelPointer->elements[
-              item & ~SFG_ITEM_RECORD_ACTIVE_MASK];
-
             if (SFG_taxicabDistance(p->position[0],p->position[1],
-                e.coords[0] * RCL_UNITS_PER_SQUARE,
-                e.coords[1] * RCL_UNITS_PER_SQUARE)
+                e->coords[0] * RCL_UNITS_PER_SQUARE,
+                e->coords[1] * RCL_UNITS_PER_SQUARE)
                 <= SFG_ELEMENT_COLLISION_DISTANCE)
             {
               eliminate = 1;
