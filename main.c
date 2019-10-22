@@ -1161,7 +1161,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
            ) + RCL_UNITS_PER_SQUARE / 2,
         dir,
         0,
-        SFG_ELEMENT_COLLISION_DISTANCE + 1
+        SFG_ELEMENT_COLLISION_DISTANCE
       );
     }
     else
@@ -1437,7 +1437,7 @@ void SFG_gameStep()
       RCL_angleToDirection(SFG_player.camera.direction),
       (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
         SFG_CAMERA_MAX_SHEAR_PIXELS,
-      SFG_ELEMENT_COLLISION_DISTANCE + 1
+      SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
       );
   }
 
