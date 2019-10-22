@@ -130,4 +130,9 @@
 */
 #define SFG_EXPLOSION_DURATION 70
 
+/**
+  Specifies how quick some sprite animations are, in frames per second.
+*/
+#define SFG_SPRITE_ANIMATION_SPEED 4
+
 #endif // guard

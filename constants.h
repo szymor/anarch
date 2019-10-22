@@ -58,13 +58,13 @@
   Rate at which AI will be updated, which also affects how fast enemies will
   appear.
 */
-#define SFG_AI_FPS 2
+#define SFG_AI_FPS 4
 
 /**
   Says a probability (0 - 255) of the AI changing its state during one update
   step.
 */
-#define SFG_AI_RANDOM_CHANGE_PROBABILITY 20
+#define SFG_AI_RANDOM_CHANGE_PROBABILITY 40
 
 /**
   Speed of rocket projectile, in squares per second.

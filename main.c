@@ -329,12 +329,21 @@ typedef struct
   #define SFG_EXPLOSION_DURATION_FRAMES 1
 #endif
 
+#define SFG_SPRITE_ANIMATION_FRAME_DURATION \
+  (SFG_FPS / SFG_SPRITE_ANIMATION_SPEED)
+
+#if SFG_SPRITE_ANIMATION_FRAME_DURATION == 0
+  #define SFG_SPRITE_ANIMATION_FRAME_DURATION 1
+#endif
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
 */
 
 uint8_t SFG_currentRandom;
+
+uint8_t SFG_spriteAnimationFrame;
 
 struct
 {
@@ -1018,6 +1027,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
   SFG_currentLevel.frameStart = SFG_gameFrame;
+
+  SFG_spriteAnimationFrame = 0;
  
   SFG_initPlayer();
 }
@@ -1068,9 +1079,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   if (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY)
   { 
     // sometimes randomly change state
-    state = SFG_MONSTER_STATE_IDLE;
+    state = (SFG_random() % 4 == 0) ?
+      SFG_MONSTER_STATE_IDLE : SFG_MONSTER_STATE_ATTACKING;
   }
-  if (state == SFG_MONSTER_STATE_IDLE)
+  else if (state == SFG_MONSTER_STATE_IDLE)
   {
     switch (SFG_random() % 8)
     {
@@ -1084,6 +1096,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       case 7: state = SFG_MONSTER_STATE_GOING_SW; break;
       default: break;
     }
+  }
+  else if (state == SFG_MONSTER_STATE_ATTACKING)
+  {
+    state = SFG_MONSTER_STATE_IDLE;
   }
   else
   {
@@ -1322,6 +1338,10 @@ void SFG_gameStep()
 {
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     SFG_keyStates[i] = (SFG_keyStates[i] << 1) | SFG_keyPressed(i);
+
+  if ((SFG_currentLevel.frameStart - SFG_gameFrame) %
+      SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
+    SFG_spriteAnimationFrame++;
 
   int8_t recomputeDirection = 0;
 
@@ -2052,7 +2072,9 @@ void SFG_draw()
     {
       SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
 
-      if (m.stateType != SFG_MONSTER_STATE_INACTIVE)
+      uint8_t state = m.stateType & SFG_MONSTER_MASK_STATE;
+
+      if (state != SFG_MONSTER_STATE_INACTIVE)
       {
         RCL_Vector2D worldPosition;
 
@@ -2069,10 +2091,21 @@ void SFG_draw()
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_monsterSprites[ (SFG_gameFrame >> 5) & 0x01 ],
+        {
+          const uint8_t *s;
+
+          if (state == SFG_MONSTER_STATE_IDLE)
+            s = SFG_monsterSprites[0];
+          else if (state == SFG_MONSTER_STATE_ATTACKING)
+            s = SFG_monsterSprites[1];
+          else
+            s = SFG_monsterSprites[SFG_spriteAnimationFrame & 0x01 ? 0 : 2];
+
+          SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+        }
       }
     }
 
