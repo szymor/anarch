@@ -551,7 +551,7 @@ void SFG_initPlayer()
 
   SFG_player.headBobFrame = 0;
 
-  SFG_player.weapon = 1;
+  SFG_player.weapon = 2;
 
   SFG_player.lastShotFrame = SFG_gameFrame;
 }
@@ -827,7 +827,7 @@ void SFG_drawScaledSprite(
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
-    if (SFG_zBuffer[x / SFG_RAYCASTING_SUBSAMPLE] >= zDistance)
+    if (SFG_zBuffer[x] >= zDistance)
     {
       int8_t columnTransparent = 1;
 
@@ -850,7 +850,7 @@ void SFG_drawScaledSprite(
       }
 
       if (!columnTransparent)
-        SFG_zBuffer[x / SFG_RAYCASTING_SUBSAMPLE] = zDistance;
+        SFG_zBuffer[x] = zDistance;
     }
   }
 }
