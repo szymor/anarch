@@ -275,6 +275,9 @@ typedef struct
 #define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
 #define SFG_MONSTER_COORD_TO_SQUARES(c) (c / 4)
 
+#define SFG_ELEMENT_COORD_TO_RCL_UNITS(c) \
+  (c * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2)
+
 #define SFG_MONSTER_MASK_STATE 0x0f
 #define SFG_MONSTER_MASK_TYPE  0xf0
 
@@ -1222,6 +1225,45 @@ void SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
   SFG_player.camera.height = p[2];
 }
 
+/**
+  Helper function to resolve collision with level element. The function supposes
+  the collision already does happen and only resolves it. Returns adjusted move
+  offset.
+*/
+RCL_Vector2D SFG_resolveCollisionWithElement(
+  RCL_Vector2D position, RCL_Vector2D moveOffset, RCL_Vector2D elementPos)
+{
+  RCL_Unit dx = RCL_absVal(elementPos.x - position.x);
+  RCL_Unit dy = RCL_absVal(elementPos.y - position.y);
+
+RCL_logV2D(position);
+RCL_logV2D(moveOffset);
+RCL_logV2D(elementPos);
+
+printf("%d %d\n",dx,dy);
+
+  if (dx > dy)
+  {
+    // colliding from left/right
+
+printf("x\n");
+
+    if ((moveOffset.x > 0) == (position.x < elementPos.x))
+      moveOffset.x = 0;
+      // ^ if heading towards element,
+  }
+  else
+  {
+printf("y\n");
+    // colliding from up/down
+
+    if ((moveOffset.y > 0) == (position.y < elementPos.y))
+    moveOffset.y = 0;
+  }
+
+  return moveOffset;  
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explostion;
@@ -1462,6 +1504,56 @@ SFG_createProjectile(p);
 
   RCL_Unit previousHeight = SFG_player.camera.height;
 
+  // handle player collision with level elements:
+
+  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  {
+    SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+
+    RCL_Vector2D mPos;
+
+    mPos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]);
+    mPos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]);
+
+    if (
+      ((m->stateType & SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE) &&
+        (
+        SFG_taxicabDistance(
+          SFG_player.camera.position.x,
+          SFG_player.camera.position.y,
+          mPos.x,mPos.y)
+        <= SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
+        )
+      )
+    {
+      moveOffset = SFG_resolveCollisionWithElement(
+        SFG_player.camera.position,moveOffset,mPos);
+    }
+  }
+
+  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+  {
+    const SFG_LevelElement *e = SFG_getActiveItemElement(i);
+
+    if (e != 0)
+    {
+      RCL_Vector2D ePos;
+
+      ePos.x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
+      ePos.y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
+
+      if (SFG_taxicabDistance(
+          SFG_player.camera.position.x,
+          SFG_player.camera.position.y,
+          ePos.x,ePos.y)
+          <= (SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS))
+      {
+        moveOffset = SFG_resolveCollisionWithElement(
+          SFG_player.camera.position,moveOffset,ePos);
+      }
+    }    
+  }
+
 #if SFG_PREVIEW_MODE
   SFG_player.camera.position.x +=
     SFG_PREVIEW_MODE_SPEED_MULTIPLIER * moveOffset.x;
@@ -1490,53 +1582,6 @@ SFG_createProjectile(p);
 
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
-
-  // handle player collision with level elements:
-
-  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-  {
-    SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
-
-    if (
-      ((m->stateType & SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE) &&
-        (
-        SFG_taxicabDistance(
-          SFG_player.camera.position.x,
-          SFG_player.camera.position.y,
-          SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-          SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]))
-        <= SFG_ELEMENT_COLLISION_DISTANCE
-        )
-      )
-    {
-      SFG_pushPlayerAway(   
-        SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-        SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
-        SFG_ELEMENT_COLLISION_DISTANCE);
-    }
-  }
-
-  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
-  {
-    const SFG_LevelElement *e = SFG_getActiveItemElement(i);
-
-    if (e != 0)
-    {
-      if (SFG_taxicabDistance(
-          SFG_player.camera.position.x,
-          SFG_player.camera.position.y,
-          e->coords[0] * RCL_UNITS_PER_SQUARE,
-          e->coords[1] * RCL_UNITS_PER_SQUARE)
-          <= SFG_ELEMENT_COLLISION_DISTANCE)
-      {
-        SFG_pushPlayerAway(   
-          e->coords[0] * RCL_UNITS_PER_SQUARE,
-          e->coords[1] * RCL_UNITS_PER_SQUARE,
-          SFG_ELEMENT_COLLISION_DISTANCE);
-      }
-    }
-    
-  }
 
   // update projectiles:
 
@@ -1974,14 +2019,16 @@ void SFG_draw()
       {
         RCL_Vector2D worldPosition;
 
-        worldPosition.x = m.coords[0] * RCL_UNITS_PER_SQUARE / 4;
-        worldPosition.y = m.coords[1] * RCL_UNITS_PER_SQUARE / 4;
+        worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
+        worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
 
         RCL_PixelInfo p =
           RCL_mapToScreen(
             worldPosition,
-            SFG_floorHeightAt(m.coords[0] / 4,
-                              m.coords[1] / 4) + RCL_UNITS_PER_SQUARE / 2,
+            SFG_floorHeightAt(
+              SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
+              SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
+              + RCL_UNITS_PER_SQUARE / 2,
             SFG_player.camera);
 
         if (p.depth > 0)
@@ -2003,10 +2050,10 @@ void SFG_draw()
             SFG_currentLevel.itemRecords[i] & ~SFG_ITEM_RECORD_ACTIVE_MASK];
 
         worldPosition.x =
-          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+          SFG_ELEMENT_COORD_TO_RCL_UNITS(e.coords[0]);
 
         worldPosition.y =
-          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+          SFG_ELEMENT_COORD_TO_RCL_UNITS(e.coords[1]);
 
         RCL_PixelInfo p =
           RCL_mapToScreen(
