@@ -1083,6 +1083,44 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
   return 1;
 }
 
+/**
+  Launches projectile of given type from given position in given direction
+  (has to be normalized), with given offset (so as to not collide with the
+  shooting entity). Returns the same value as SFG_createProjectile.
+*/
+uint8_t SFG_launchProjectile(
+  uint8_t type,   
+  RCL_Vector2D shootFrom,
+  RCL_Unit shootFromHeight,
+  RCL_Vector2D direction,
+  RCL_Unit verticalSpeed,
+  RCL_Unit offsetDistance
+  )
+{
+  SFG_ProjectileRecord p;
+
+  p.type = type;
+  p.doubleFramesToLive = 255;
+  
+  p.position[0] =
+    shootFrom.x + (direction.x * offsetDistance) / RCL_UNITS_PER_SQUARE;
+
+  p.position[1] = 
+    shootFrom.y + (direction.y * offsetDistance) / RCL_UNITS_PER_SQUARE; 
+
+  p.position[2] = shootFromHeight;
+
+  p.direction[0] = 
+    (direction.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+
+  p.direction[1] =
+    (direction.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+
+  p.direction[2] = verticalSpeed;
+
+  return SFG_createProjectile(p);
+}
+
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = monster->stateType & SFG_MONSTER_MASK_STATE;
@@ -1103,36 +1141,28 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
  
       state = SFG_MONSTER_STATE_ATTACKING;
 
-      SFG_ProjectileRecord p;
+      RCL_Vector2D pos;
+      RCL_Vector2D dir;
 
-      p.type = SFG_PROJECTILE_FIREBALL;
-      p.doubleFramesToLive = 255;
-      p.position[0] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
-      p.position[1] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
-      p.position[2] =
+      pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+      pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
+
+      dir.x = SFG_player.camera.position.x - pos.x;
+      dir.y = SFG_player.camera.position.y - pos.y;
+
+      dir = RCL_normalize(dir);
+
+      SFG_launchProjectile(
+        SFG_PROJECTILE_FIREBALL,
+        pos,
         SFG_floorHeightAt(
-          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
-        ) + RCL_UNITS_PER_SQUARE / 2;
-
-//RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
-
-RCL_Vector2D dir;
-
-dir.x = SFG_player.camera.position.x - p.position[0];
-dir.y = SFG_player.camera.position.y - p.position[1];
-
-dir = RCL_normalize(dir);
-
-p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-p.direction[2] = 0;
-
-
-
-SFG_createProjectile(p);
-
-      
+           SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+           SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
+           ) + RCL_UNITS_PER_SQUARE / 2,
+        dir,
+        0,
+        SFG_ELEMENT_COLLISION_DISTANCE + 1
+      );
     }
     else
       state = SFG_MONSTER_STATE_IDLE;
@@ -1399,27 +1429,16 @@ void SFG_gameStep()
   if (SFG_keyJustPressed(SFG_KEY_B))
   {
     // fire
-
-SFG_ProjectileRecord p;
-
-p.type = SFG_PROJECTILE_FIREBALL;
-p.doubleFramesToLive = 255;
-p.position[0] = SFG_player.camera.position.x;
-p.position[1] = SFG_player.camera.position.y;
-p.position[2] = SFG_player.camera.height - 256;
-
-RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
-
-p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
-p.direction[2] = 
-  (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
-  SFG_CAMERA_MAX_SHEAR_PIXELS;
-
-
-
-SFG_createProjectile(p);
-
+  
+    SFG_launchProjectile(
+      SFG_PROJECTILE_FIREBALL,
+      SFG_player.camera.position,
+      SFG_player.camera.height,
+      RCL_angleToDirection(SFG_player.camera.direction),
+      (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
+        SFG_CAMERA_MAX_SHEAR_PIXELS,
+      SFG_ELEMENT_COLLISION_DISTANCE + 1
+      );
   }
 
   if (SFG_keyIsDown(SFG_KEY_A))
@@ -1728,7 +1747,7 @@ SFG_createProjectile(p);
                0)
              )
           {
-    //        eliminate = 1;
+            eliminate = 1;
             break;
           }
         }
