@@ -128,7 +128,7 @@
 /**
   Duration in ms of the explosion animation.
 */
-#define SFG_EXPLOSION_DURATION 100
+#define SFG_EXPLOSION_DURATION 120
 
 /**
   Specifies how quick some sprite animations are, in frames per second.

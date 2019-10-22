@@ -2263,9 +2263,13 @@ void SFG_draw()
       {
         // grow the explosion sprite as an animation
         spriteSize =
-          (SFG_GAME_RESOLUTION_Y *
-          (SFG_EXPLOSION_DURATION_DOUBLE_FRAMES - proj->doubleFramesToLive)) / 
-          SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+          (
+            SFG_GAME_RESOLUTION_Y *
+            RCL_sinInt(          
+              ((SFG_EXPLOSION_DURATION_DOUBLE_FRAMES -
+               proj->doubleFramesToLive) * RCL_UNITS_PER_SQUARE / 4)
+               / SFG_EXPLOSION_DURATION_DOUBLE_FRAMES) 
+          ) / RCL_UNITS_PER_SQUARE;
       }
 
       if (p.depth > 0)
