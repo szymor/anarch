@@ -1236,29 +1236,20 @@ RCL_Vector2D SFG_resolveCollisionWithElement(
   RCL_Unit dx = RCL_absVal(elementPos.x - position.x);
   RCL_Unit dy = RCL_absVal(elementPos.y - position.y);
 
-RCL_logV2D(position);
-RCL_logV2D(moveOffset);
-RCL_logV2D(elementPos);
-
-printf("%d %d\n",dx,dy);
-
   if (dx > dy)
   {
     // colliding from left/right
 
-printf("x\n");
-
     if ((moveOffset.x > 0) == (position.x < elementPos.x))
       moveOffset.x = 0;
-      // ^ if heading towards element,
+      // ^ only stop if heading towards element, to avoid getting stuck
   }
   else
   {
-printf("y\n");
     // colliding from up/down
 
     if ((moveOffset.y > 0) == (position.y < elementPos.y))
-    moveOffset.y = 0;
+      moveOffset.y = 0;
   }
 
   return moveOffset;  
