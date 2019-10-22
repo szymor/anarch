@@ -1066,6 +1066,23 @@ void SFG_playerRotateWeapon(uint8_t next)
   SFG_player.weapon %= 3;
 }
 
+/**
+  Adds new projectile to the current level, return 1 if added, 0 if not (max
+  count reached).
+*/
+uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
+{
+  if (SFG_currentLevel.projectileRecordCount >= SFG_MAX_PROJECTILES)
+    return 0; 
+
+  SFG_currentLevel.projectileRecords[SFG_currentLevel.projectileRecordCount] =
+    projectile;
+  
+  SFG_currentLevel.projectileRecordCount++;
+
+  return 1;
+}
+
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = monster->stateType & SFG_MONSTER_MASK_STATE;
@@ -1079,8 +1096,46 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   if (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY)
   { 
     // sometimes randomly change state
-    state = (SFG_random() % 4 == 0) ?
-      SFG_MONSTER_STATE_IDLE : SFG_MONSTER_STATE_ATTACKING;
+
+    if (SFG_random() % 4 != 0)
+    {
+      // attack
+ 
+      state = SFG_MONSTER_STATE_ATTACKING;
+
+      SFG_ProjectileRecord p;
+
+      p.type = SFG_PROJECTILE_FIREBALL;
+      p.doubleFramesToLive = 255;
+      p.position[0] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+      p.position[1] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
+      p.position[2] =
+        SFG_floorHeightAt(
+          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
+        ) + RCL_UNITS_PER_SQUARE / 2;
+
+//RCL_Vector2D dir = RCL_angleToDirection(SFG_player.camera.direction);
+
+RCL_Vector2D dir;
+
+dir.x = SFG_player.camera.position.x - p.position[0];
+dir.y = SFG_player.camera.position.y - p.position[1];
+
+dir = RCL_normalize(dir);
+
+p.direction[0] = (dir.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+p.direction[1] = (dir.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+p.direction[2] = 0;
+
+
+
+SFG_createProjectile(p);
+
+      
+    }
+    else
+      state = SFG_MONSTER_STATE_IDLE;
   }
   else if (state == SFG_MONSTER_STATE_IDLE)
   {
@@ -1157,23 +1212,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   monster->stateType = state | type;
   monster->coords[0] = newPos[0];
   monster->coords[1] = newPos[1];;
-}
-
-/**
-  Adds new projectile to the current level, return 1 if added, 0 if not (max
-  count reached).
-*/
-uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
-{
-  if (SFG_currentLevel.projectileRecordCount >= SFG_MAX_PROJECTILES)
-    return 0; 
-
-  SFG_currentLevel.projectileRecords[SFG_currentLevel.projectileRecordCount] =
-    projectile;
-  
-  SFG_currentLevel.projectileRecordCount++;
-
-  return 1;
 }
 
 /**
@@ -1690,7 +1728,7 @@ SFG_createProjectile(p);
                0)
              )
           {
-            eliminate = 1;
+    //        eliminate = 1;
             break;
           }
         }
