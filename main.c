@@ -149,7 +149,6 @@ void SFG_init();
   #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
 #endif
 
-
 #define SFG_ROCKER_MOVE_UNITS_PER_FRAME \
   ((SFG_ROCKET_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
@@ -469,7 +468,7 @@ static inline RCL_Unit
   return RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1);
 }
 
-static inline uint8_t SFG_RCL_unitToZBuffer(RCL_Unit x)
+static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 {
   x /= RCL_UNITS_PER_SQUARE;
 
@@ -564,7 +563,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
     for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
       SFG_zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] =
-        SFG_RCL_unitToZBuffer(pixel->depth);
+        SFG_RCLUnitToZBuffer(pixel->depth);
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
@@ -823,7 +822,7 @@ void SFG_drawScaledSprite(
 
   #undef PRECOMP_SCALE
 
-  uint8_t zDistance = SFG_RCL_unitToZBuffer(distance);
+  uint8_t zDistance = SFG_RCLUnitToZBuffer(distance);
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
@@ -841,8 +840,7 @@ void SFG_drawScaledSprite(
         {
 #if SFG_DIMINISH_SPRITES
           color = palette_minusValue(color,minusValue);
-#endif
- 
+#endif 
           columnTransparent = 0;
 
           SFG_setGamePixel(x,y,color);
@@ -2275,8 +2273,7 @@ void SFG_draw()
       if (p.depth > 0)
         SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(spriteSize,p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
+            RCL_perspectiveScale(spriteSize,p.depth),0,p.depth);  
     }
 
 #if SFG_HEADBOB_ENABLED
