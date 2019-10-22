@@ -477,6 +477,26 @@ static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
   return okay * (x + 1) - 1;
 }
 
+const uint8_t *SFG_getMonsterSprite(
+  uint8_t monsterType, uint8_t state, uint8_t frame)
+{
+  switch (monsterType)
+  {
+    case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
+      switch (state)
+      {
+        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[1]; break;
+        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[0]; break;
+        default: return SFG_monsterSprites[frame ? 0 : 2]; break;
+      }
+      break;
+
+    default:
+      return SFG_monsterSprites[0];
+      break;
+  }
+}
+
 /**
   Says whether given key is currently pressed (down). This should be preferred
   to SFG_keyPressed().
@@ -2193,14 +2213,11 @@ void SFG_draw()
 
         if (p.depth > 0)
         {
-          const uint8_t *s;
-
-          if (state == SFG_MONSTER_STATE_IDLE)
-            s = SFG_monsterSprites[0];
-          else if (state == SFG_MONSTER_STATE_ATTACKING)
-            s = SFG_monsterSprites[1];
-          else
-            s = SFG_monsterSprites[SFG_spriteAnimationFrame & 0x01 ? 0 : 2];
+          const uint8_t *s =
+            SFG_getMonsterSprite(
+              m.stateType & SFG_MONSTER_MASK_TYPE,
+              state,
+              SFG_spriteAnimationFrame & 0x01);
 
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
