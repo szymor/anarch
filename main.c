@@ -336,6 +336,9 @@ typedef struct
   #define SFG_SPRITE_ANIMATION_FRAME_DURATION 1
 #endif
 
+#define SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES \
+  (SFG_WEAPON_SHOTGUN_COOLDOWN / SFG_MS_PER_FRAME)
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -355,7 +358,9 @@ struct
                                   for determining whether player is in the
                                   air. */
   uint16_t headBobFrame;
-  uint8_t weapon;                 //< currently selected weapon
+  uint8_t weapon;                 ///< currently selected weapon
+
+  uint32_t lastShotFrame;         ///< frame at which last shot was fired
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -547,6 +552,8 @@ void SFG_initPlayer()
   SFG_player.headBobFrame = 0;
 
   SFG_player.weapon = 1;
+
+  SFG_player.lastShotFrame = SFG_gameFrame;
 }
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
@@ -1439,6 +1446,8 @@ void SFG_gameStep()
         SFG_CAMERA_MAX_SHEAR_PIXELS,
       SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
       );
+
+    SFG_player.lastShotFrame = SFG_gameFrame;
   }
 
   if (SFG_keyIsDown(SFG_KEY_A))
@@ -2100,6 +2109,31 @@ uint8_t SFG_drawNumber(
   return 5 - position;
 }
 
+void SFG_drawWeapon(int16_t bobOffset)
+{
+  uint32_t shotAnimationFrame = SFG_gameFrame - SFG_player.lastShotFrame;
+
+  uint32_t animationLength = SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES;
+
+  if (shotAnimationFrame < animationLength)
+  {
+    bobOffset +=  
+        ((animationLength - shotAnimationFrame) * SFG_WEAPON_IMAGE_SCALE * 20)
+        / animationLength;
+  
+    if (shotAnimationFrame < animationLength / 2)
+      SFG_blitImage(SFG_effects[0],
+        SFG_WEAPON_IMAGE_POSITION_X,
+        SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
+        SFG_WEAPON_IMAGE_SCALE);
+  }
+
+  SFG_blitImage(SFG_weaponImages[SFG_player.weapon],
+  SFG_WEAPON_IMAGE_POSITION_X,
+  SFG_WEAPON_IMAGE_POSITION_Y + bobOffset,
+  SFG_WEAPON_IMAGE_SCALE);
+}
+
 void SFG_draw()
 {
   if (SFG_keyPressed(SFG_KEY_MAP))
@@ -2208,7 +2242,6 @@ void SFG_draw()
       }
 
     // projecile sprites:
-
     for (uint8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
     {
       SFG_ProjectileRecord *proj = &(SFG_currentLevel.projectileRecords[i]);
@@ -2224,12 +2257,14 @@ void SFG_draw()
       const uint8_t *s =
         SFG_effects[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
 
-      int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 2;
+      int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 3;
 
       if (proj->type == SFG_PROJECTILE_EXPLOSION)
       {
+        // grow the explosion sprite as an animation
         spriteSize =
-          (SFG_GAME_RESOLUTION_Y * (SFG_EXPLOSION_DURATION_DOUBLE_FRAMES - proj->doubleFramesToLive) ) / 
+          (SFG_GAME_RESOLUTION_Y *
+          (SFG_EXPLOSION_DURATION_DOUBLE_FRAMES - proj->doubleFramesToLive)) / 
           SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
       }
 
@@ -2251,11 +2286,7 @@ SFG_drawText("ammo",
 SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + 1)
 ,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
 
-SFG_blitImage(SFG_weaponImages[SFG_player.weapon],
-SFG_WEAPON_IMAGE_POSITION_X,
-SFG_WEAPON_IMAGE_POSITION_Y + weaponBobOffset,
-SFG_WEAPON_IMAGE_SCALE);
-
+    SFG_drawWeapon(weaponBobOffset);
   }
 }
 
