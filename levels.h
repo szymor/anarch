@@ -88,9 +88,11 @@ typedef struct
 */
 #define SFG_LEVEL_ELEMENT_NONE 255
 #define SFG_LEVEL_ELEMENT_BARREL 0x01
-  /* Monsters have lower 4 bits zero and are only distinguished by the 4 upper
-     bits, as this is convenient for the code.
-  */
+#define SFG_LEVEL_ELEMENT_HEALTH 0x02
+
+/* Monsters have lower 4 bits zero and are only distinguished by the 4 upper
+   bits, as this is convenient for the code.
+*/
 #define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x00
 
 typedef struct
@@ -237,7 +239,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
   32,                      // ceilingColor
   {                        // elements
     {SFG_LEVEL_ELEMENT_BARREL, {9, 1}},  {SFG_LEVEL_ELEMENT_BARREL, {9, 13}},
-    {SFG_LEVEL_ELEMENT_BARREL, {12, 4}},  {SFG_LEVEL_ELEMENT_BARREL, {15, 4}},
+    {SFG_LEVEL_ELEMENT_HEALTH, {12, 4}},  {SFG_LEVEL_ELEMENT_HEALTH, {15, 4}},
     {SFG_LEVEL_ELEMENT_BARREL, {24, 10}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_BARREL, {13, 4}},     {SFG_LEVEL_ELEMENT_BARREL, {12, 6}},
     {SFG_LEVEL_ELEMENT_MONSTER_SPIDER, {15, 7}},   {SFG_LEVEL_ELEMENT_MONSTER_SPIDER, {16, 8}},

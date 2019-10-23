@@ -1026,7 +1026,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
     switch (e->elementType)
     {
       case SFG_LEVEL_ELEMENT_BARREL:
-        SFG_LOG("adding barrel");
+      case SFG_LEVEL_ELEMENT_HEALTH:
+        SFG_LOG("adding item");
         SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
         SFG_currentLevel.itemRecordCount++;
         break;
@@ -2246,11 +2247,12 @@ void SFG_draw()
         RCL_PixelInfo p =
           RCL_mapToScreen(
             worldPosition,
-            SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2,
+            SFG_floorHeightAt(e.coords[0],e.coords[1])
+              + RCL_UNITS_PER_SQUARE / 2,
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_itemSprites[0],
+          SFG_drawScaledSprite(SFG_itemSprites[e.elementType - 1],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
