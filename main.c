@@ -107,6 +107,10 @@ void SFG_init();
 ===============================================================================
 */
 
+#define SFG_WEAPON_KNIFE 0
+#define SFG_WEAPON_SHOTGUN 1
+#define SFG_WEAPON_ROCKER_LAUNCHER 2
+
 #define SFG_GAME_RESOLUTION_X \
   (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
 
@@ -1457,19 +1461,23 @@ void SFG_gameStep()
 
   int8_t shearing = 0;
 
-  if (SFG_keyJustPressed(SFG_KEY_B))
+  if (
+    SFG_keyIsDown(SFG_KEY_B) &&
+    (SFG_gameFrame - SFG_player.lastShotFrame >
+       SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES))
   {
     // fire
-  
-    SFG_launchProjectile(
-      SFG_PROJECTILE_FIREBALL,
-      SFG_player.camera.position,
-      SFG_player.camera.height,
-      RCL_angleToDirection(SFG_player.camera.direction),
-      (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
-        SFG_CAMERA_MAX_SHEAR_PIXELS,
-      SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
-      );
+ 
+    if (SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER)
+      SFG_launchProjectile(
+        SFG_PROJECTILE_FIREBALL,
+        SFG_player.camera.position,
+        SFG_player.camera.height,
+        RCL_angleToDirection(SFG_player.camera.direction),
+        (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
+          SFG_CAMERA_MAX_SHEAR_PIXELS,
+        SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
+        );
 
     SFG_player.lastShotFrame = SFG_gameFrame;
   }
@@ -2133,6 +2141,9 @@ uint8_t SFG_drawNumber(
   return 5 - position;
 }
 
+/**
+  Draws the player weapon, handling the shooting animation.
+*/
 void SFG_drawWeapon(int16_t bobOffset)
 {
   uint32_t shotAnimationFrame = SFG_gameFrame - SFG_player.lastShotFrame;
@@ -2141,15 +2152,23 @@ void SFG_drawWeapon(int16_t bobOffset)
 
   if (shotAnimationFrame < animationLength)
   {
-    bobOffset +=  
-        ((animationLength - shotAnimationFrame) * SFG_WEAPON_IMAGE_SCALE * 20)
-        / animationLength;
-  
-    if (shotAnimationFrame < animationLength / 2)
-      SFG_blitImage(SFG_effectSprites[0],
-        SFG_WEAPON_IMAGE_POSITION_X,
-        SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
-        SFG_WEAPON_IMAGE_SCALE);
+    if (SFG_player.weapon == SFG_WEAPON_KNIFE)
+    {
+      bobOffset = shotAnimationFrame < animationLength / 2 ? 0 :
+        2 * SFG_WEAPONBOB_OFFSET_PIXELS     ;
+    }
+    else
+    {
+      bobOffset +=  
+          ((animationLength - shotAnimationFrame) * SFG_WEAPON_IMAGE_SCALE * 20)
+          / animationLength;
+    
+      if (shotAnimationFrame < animationLength / 2)
+        SFG_blitImage(SFG_effectSprites[0],
+          SFG_WEAPON_IMAGE_POSITION_X,
+          SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
+          SFG_WEAPON_IMAGE_SCALE);
+    }
   }
 
   SFG_blitImage(SFG_weaponImages[SFG_player.weapon],
