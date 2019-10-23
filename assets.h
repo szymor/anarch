@@ -43,7 +43,7 @@ static inline uint8_t SFG_getTexel(const uint8_t *texture, uint8_t x, uint8_t y)
     (texture[16 + (x * SFG_TEXTURE_SIZE + y) / 2] >> (4 * (y % 2 == 0))) & 0x0f];
 }
 
-SFG_PROGRAM_MEMORY uint8_t SFG_texturesWall[][SFG_TEXTURE_STORE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t SFG_wallTextures[][SFG_TEXTURE_STORE_SIZE] =
 {
   { // 0: white wooden planks
 4,21,5,3,20,0,2,26,6,18,57,65,1,16,17,49,0,1,0,3,32,1,33,0,161,64,1,16,64,3,3,
@@ -320,7 +320,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_texturesWall[][SFG_TEXTURE_STORE_SIZE] =
   }
 };
 
-SFG_PROGRAM_MEMORY uint8_t SFG_sprites[][SFG_TEXTURE_STORE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t SFG_itemSprites[][SFG_TEXTURE_STORE_SIZE] =
 {
   { // 0: barrel
 175,6,84,15,11,19,13,7,176,22,2,0,5,20,83,93,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -347,7 +347,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_sprites[][SFG_TEXTURE_STORE_SIZE] =
   }
 };
 
-SFG_PROGRAM_MEMORY uint8_t SFG_backgrounds[][SFG_TEXTURE_STORE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t SFG_backgroundImages[][SFG_TEXTURE_STORE_SIZE] =
 {
   { // 0, city
 64,73,10,168,19,12,14,13,80,101,0,100,136,57,59,63,34,34,34,68,87,119,119,119,
@@ -441,7 +441,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponImages[][SFG_TEXTURE_STORE_SIZE] =
   }
 };
 
-SFG_PROGRAM_MEMORY uint8_t SFG_effects[][SFG_TEXTURE_STORE_SIZE] =
+SFG_PROGRAM_MEMORY uint8_t SFG_effectSprites[][SFG_TEXTURE_STORE_SIZE] =
 {
   { // 0, explostion
 175,183,174,15,103,111,191,7,31,95,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,48,48,0,0,0,

@@ -615,7 +615,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       (SFG_getTexel(
         textureIndex != 255 ?
           SFG_currentLevel.textures[textureIndex]:
-          SFG_texturesWall[SFG_currentLevel.levelPointer->doorTextureIndex],
+          SFG_wallTextures[SFG_currentLevel.levelPointer->doorTextureIndex],
         pixel->texCoords.x / 32,
         textureV / 32)
       ) :
@@ -655,7 +655,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
   else
   {
-    color = SFG_getTexel(SFG_backgrounds[0],
+    color = SFG_getTexel(SFG_backgroundImages[0],
     SFG_backgroundScaleMap[(pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_GAME_RESOLUTION_Y],
                                                                    // ^ TODO: get rid of mod?
     SFG_backgroundScaleMap[pixel->position.y]);
@@ -971,7 +971,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =
-      SFG_texturesWall[level->textureIndices[i]];
+      SFG_wallTextures[level->textureIndices[i]];
 
   SFG_LOG("initializing doors");
 
@@ -2140,7 +2140,7 @@ void SFG_drawWeapon(int16_t bobOffset)
         / animationLength;
   
     if (shotAnimationFrame < animationLength / 2)
-      SFG_blitImage(SFG_effects[0],
+      SFG_blitImage(SFG_effectSprites[0],
         SFG_WEAPON_IMAGE_POSITION_X,
         SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
         SFG_WEAPON_IMAGE_SCALE);
@@ -2250,7 +2250,7 @@ void SFG_draw()
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_sprites[0],
+          SFG_drawScaledSprite(SFG_itemSprites[0],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
@@ -2270,7 +2270,7 @@ void SFG_draw()
         RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
        
       const uint8_t *s =
-        SFG_effects[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
+        SFG_effectSprites[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
 
       int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 3;
 
