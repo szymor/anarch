@@ -89,10 +89,14 @@
 */
 #define SFG_EXPLOSION_DISTANCE 2048
 
-
 /**
   Time, in ms, after which shotgun can be fired again.
 */
 #define SFG_WEAPON_SHOTGUN_COOLDOWN 500
+
+/**
+  Maximum player health.
+*/
+#define SFG_PLAYER_MAX_HEALTH 100
 
 #endif // guard

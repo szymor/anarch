@@ -338,6 +338,8 @@ typedef struct
 #define SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES \
   (SFG_WEAPON_SHOTGUN_COOLDOWN / SFG_MS_PER_FRAME)
 
+#define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 20)
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -360,6 +362,7 @@ struct
   uint8_t weapon;                 ///< currently selected weapon
 
   uint32_t lastShotFrame;         ///< frame at which last shot was fired
+  uint8_t health;
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -565,7 +568,7 @@ void SFG_initPlayer()
   SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE * 8;
 
   SFG_recompurePLayerDirection();
-  SFG_player.verticalSpeed = 0;
+  
   SFG_player.previousVerticalSpeed = 0;
 
   SFG_player.headBobFrame = 0;
@@ -573,6 +576,8 @@ void SFG_initPlayer()
   SFG_player.weapon = 2;
 
   SFG_player.lastShotFrame = SFG_gameFrame;
+
+  SFG_player.health = SFG_PLAYER_MAX_HEALTH;
 }
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
@@ -2300,11 +2305,24 @@ void SFG_draw()
     SFG_player.camera.height -= headBobOffset;
 #endif
 
-SFG_drawText("124",10,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
-SFG_drawText("ammo",
+    // draw the HUD:
 
-SFG_GAME_RESOLUTION_X - 10 - 4 * (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + 1)
-,SFG_GAME_RESOLUTION_Y - 10 - SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7);
+    SFG_drawNumber(
+      SFG_player.health,
+      SFG_HUD_MARGIN,
+      SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
+        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
+      SFG_FONT_SIZE_MEDIUM,
+      7);
+
+    SFG_drawNumber(
+      20,
+      SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
+        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
+      SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
+        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
+      SFG_FONT_SIZE_MEDIUM,
+      7);
 
     SFG_drawWeapon(weaponBobOffset);
   }
