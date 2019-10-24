@@ -109,7 +109,10 @@ void SFG_init();
 
 #define SFG_WEAPON_KNIFE 0
 #define SFG_WEAPON_SHOTGUN 1
-#define SFG_WEAPON_ROCKER_LAUNCHER 2
+#define SFG_WEAPON_MACHINE_GUN 2
+#define SFG_WEAPON_ROCKER_LAUNCHER 3
+
+#define SFG_WEAPONS_TOTAL 4
 
 #define SFG_GAME_RESOLUTION_X \
   (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
@@ -1097,8 +1100,8 @@ void SFG_init()
 
 void SFG_playerRotateWeapon(uint8_t next)
 {
-  SFG_player.weapon = (SFG_player.weapon + (next * 2 - 1));
-  SFG_player.weapon %= 3;
+  SFG_player.weapon += next ? 1 : -1;
+  SFG_player.weapon %= SFG_WEAPONS_TOTAL;
 }
 
 /**
