@@ -501,6 +501,15 @@ const uint8_t *SFG_getMonsterSprite(
       }
       break;
 
+    case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
+      switch (state)
+      {
+        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[4]; break;
+        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[3]; break;
+        default: return SFG_monsterSprites[frame ? 3 : 5]; break;
+      }
+      break;
+
     default:
       return SFG_monsterSprites[0];
       break;
@@ -1045,7 +1054,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         break;
 
       case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
-        SFG_LOG("adding monster: spider");
+      case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
+        SFG_LOG("adding monster");
 
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
@@ -1942,11 +1952,15 @@ void SFG_gameStep()
         > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
       )
     {
-      monster->stateType = SFG_MONSTER_STATE_INACTIVE;
+      monster->stateType = 
+         (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+         SFG_MONSTER_STATE_INACTIVE;
     }
     else if (monster->stateType == SFG_MONSTER_STATE_INACTIVE)
     {
-      monster->stateType = SFG_MONSTER_STATE_IDLE;
+      monster->stateType = 
+        (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+        SFG_MONSTER_STATE_IDLE;
     }
 
     SFG_currentLevel.checkedMonsterIndex++;
