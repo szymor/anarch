@@ -501,6 +501,12 @@ const uint8_t *SFG_getMonsterSprite(
       }
       break;
 
+    case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
+      return state != SFG_MONSTER_STATE_ATTACKING ?
+        SFG_monsterSprites[6] : SFG_monsterSprites[7];
+
+      break;
+
     case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
       switch (state)
       {
@@ -1055,6 +1061,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
       case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
       case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
+      case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
         SFG_LOG("adding monster");
 
         monster =
@@ -1179,55 +1186,98 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   coordAdd[0] = 0;
   coordAdd[1] = 0;
 
+  uint8_t melee = type == SFG_LEVEL_ELEMENT_MONSTER_WARRIOR;
+
   if (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY)
   { 
     // sometimes randomly change state
 
-    if (SFG_random() % 4 != 0)
+    if (!melee && (SFG_random() % 4 != 0))
     {
       // attack
  
       state = SFG_MONSTER_STATE_ATTACKING;
 
-      RCL_Vector2D pos;
-      RCL_Vector2D dir;
+      if (type != SFG_LEVEL_ELEMENT_MONSTER_WARRIOR)
+      {
+        RCL_Vector2D pos;
+        RCL_Vector2D dir;
 
-      pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
-      pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
+        pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+        pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
 
-      dir.x = SFG_player.camera.position.x - pos.x;
-      dir.y = SFG_player.camera.position.y - pos.y;
+        dir.x = SFG_player.camera.position.x - pos.x;
+        dir.y = SFG_player.camera.position.y - pos.y;
 
-      dir = RCL_normalize(dir);
+        dir = RCL_normalize(dir);
 
-      SFG_launchProjectile(
-        SFG_PROJECTILE_FIREBALL,
-        pos,
-        SFG_floorHeightAt(
-           SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-           SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
-           ) + RCL_UNITS_PER_SQUARE / 2,
-        dir,
-        0,
-        SFG_ELEMENT_COLLISION_DISTANCE
-      );
+        SFG_launchProjectile(
+          SFG_PROJECTILE_FIREBALL,
+          pos,
+          SFG_floorHeightAt(
+             SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+             SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
+             ) + RCL_UNITS_PER_SQUARE / 2,
+          dir,
+          0,
+          SFG_ELEMENT_COLLISION_DISTANCE
+        );
+      }
     }
     else
       state = SFG_MONSTER_STATE_IDLE;
   }
   else if (state == SFG_MONSTER_STATE_IDLE)
   {
-    switch (SFG_random() % 8)
+    if (melee)
     {
-      case 0: state = SFG_MONSTER_STATE_GOING_E; break;
-      case 1: state = SFG_MONSTER_STATE_GOING_W; break;
-      case 2: state = SFG_MONSTER_STATE_GOING_N; break;
-      case 3: state = SFG_MONSTER_STATE_GOING_S; break;
-      case 4: state = SFG_MONSTER_STATE_GOING_NE; break;
-      case 5: state = SFG_MONSTER_STATE_GOING_NW; break;
-      case 6: state = SFG_MONSTER_STATE_GOING_SE; break;
-      case 7: state = SFG_MONSTER_STATE_GOING_SW; break;
-      default: break;
+      // melee monsters walk towards player
+
+      uint8_t mX = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
+      uint8_t mY = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
+      
+      if (mX > SFG_player.squarePosition[0])
+      {
+        if (mY > SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_NW;
+        else if (mY < SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_SW;
+        else
+          state = SFG_MONSTER_STATE_GOING_W;
+      }
+      else if (mX < SFG_player.squarePosition[0])
+      {
+        if (mY > SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_NE;
+        else if (mY < SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_SE;
+        else
+          state = SFG_MONSTER_STATE_GOING_E;
+      }
+      else
+      {
+        if (mY > SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_N;
+        else if (mY < SFG_player.squarePosition[1])
+          state = SFG_MONSTER_STATE_GOING_S;
+      }
+    }
+    else
+    {
+      // ranged monsters choose direction randomly
+
+      switch (SFG_random() % 8)
+      {
+        case 0: state = SFG_MONSTER_STATE_GOING_E; break;
+        case 1: state = SFG_MONSTER_STATE_GOING_W; break;
+        case 2: state = SFG_MONSTER_STATE_GOING_N; break;
+        case 3: state = SFG_MONSTER_STATE_GOING_S; break;
+        case 4: state = SFG_MONSTER_STATE_GOING_NE; break;
+        case 5: state = SFG_MONSTER_STATE_GOING_NW; break;
+        case 6: state = SFG_MONSTER_STATE_GOING_SE; break;
+        case 7: state = SFG_MONSTER_STATE_GOING_SW; break;
+        default: break;
+      }
     }
   }
   else if (state == SFG_MONSTER_STATE_ATTACKING)
