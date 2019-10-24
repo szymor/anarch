@@ -1387,6 +1387,21 @@ RCL_Vector2D SFG_resolveCollisionWithElement(
   return moveOffset;  
 }
 
+/**
+  Adds or substracts player's health, which either hurts him (negative value)
+  or heals him (positive value).
+*/
+void SFG_playerChangeHealth(int8_t healthAdd)
+{
+  int16_t health = SFG_player.health;
+
+  health += healthAdd;
+
+  health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
+
+  SFG_player.health = health;
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explostion;
@@ -1404,6 +1419,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
 
   SFG_createProjectile(explostion);
+
+  SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
 
   SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE);
 }
@@ -2343,15 +2360,15 @@ void SFG_draw()
 
     // draw the HUD:
 
-    SFG_drawNumber(
+    SFG_drawNumber(       // health
       SFG_player.health,
       SFG_HUD_MARGIN,
       SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
       SFG_FONT_SIZE_MEDIUM,
-      7);
+      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 7 : 175);
 
-    SFG_drawNumber(
+    SFG_drawNumber(       // ammo
       20,
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
