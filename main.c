@@ -347,6 +347,16 @@ typedef struct
 
 #define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 20)
 
+#define SFG_HUD_HURT_INDICATOR_WIDTH_PIXELS \
+  (SFG_GAME_RESOLUTION_Y /  SFG_HUD_HURT_INDICATOR_WIDTH)
+
+#define SFG_HUD_HURT_INDICATOR_DURATION_FRAMES \
+  (SFG_HUD_HURT_INDICATOR_DURATION / SFG_MS_PER_FRAME)
+
+#if SFG_HUD_HURT_INDICATOR_DURATION_FRAMES == 0
+  #define SFG_HUD_HURT_INDICATOR_DURATION_FRAMES 1
+#endif
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -368,8 +378,10 @@ struct
   uint16_t headBobFrame;
   uint8_t weapon;                 ///< currently selected weapon
 
-  uint32_t lastShotFrame;         ///< frame at which last shot was fired
   uint8_t health;
+
+  uint32_t lastShotFrame;         ///< frame at which last shot was fired
+  uint32_t lastHurtFrame;
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -598,6 +610,7 @@ void SFG_initPlayer()
   SFG_player.weapon = 2;
 
   SFG_player.lastShotFrame = SFG_gameFrame;
+  SFG_player.lastHurtFrame = SFG_gameFrame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
 }
@@ -1344,8 +1357,9 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
 /**
   Pushes a given position away from a center by given distance, with collisions.
+  Returns 1 if push away happened, otherwise 0.
 */
-void SFG_pushAway(
+uint8_t SFG_pushAway(
   RCL_Unit pos[3],
   RCL_Unit centerX,
   RCL_Unit centerY,
@@ -1366,7 +1380,7 @@ void SFG_pushAway(
   }
   else if (l >= distance)
   {
-    return;
+    return 0;
   }
 
   RCL_Vector2D offset;
@@ -1388,9 +1402,11 @@ void SFG_pushAway(
   pos[0] = c.position.x;
   pos[1] = c.position.y;
   pos[2] = c.height;
+
+  return 1;
 }
 
-void SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
+uint8_t SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
 {
   RCL_Unit p[3];
 
@@ -1398,13 +1414,15 @@ void SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
   p[1] = SFG_player.camera.position.y; 
   p[2] = SFG_player.camera.height; 
 
-  SFG_pushAway(p,centerX,centerY,
+  uint8_t result = SFG_pushAway(p,centerX,centerY,
     SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2,
     distance);
 
   SFG_player.camera.position.x = p[0]; 
   SFG_player.camera.position.y = p[1]; 
   SFG_player.camera.height = p[2];
+
+  return result;
 }
 
 /**
@@ -1450,6 +1468,9 @@ void SFG_playerChangeHealth(int8_t healthAdd)
   health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
 
   SFG_player.health = health;
+
+  if (healthAdd < 0)
+    SFG_player.lastHurtFrame = SFG_gameFrame;
 }
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -1470,9 +1491,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   SFG_createProjectile(explostion);
 
-  SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
-
-  SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE);
+  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
+    SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
 }
 
 /**
@@ -2225,6 +2245,31 @@ uint8_t SFG_drawNumber(
   return 5 - position;
 }
 
+void SFG_drawHurtIndicator(uint16_t width)
+{
+  for (uint16_t j = 0; j < width; ++j)
+  {
+    uint16_t j2 = SFG_GAME_RESOLUTION_Y - 1 - j;
+
+    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+    {
+      SFG_setGamePixel(i,j,175);
+      SFG_setGamePixel(i,j2,175);
+    }
+  }
+
+  for (uint16_t i = 0; i < width; ++i)
+  {
+    uint16_t i2 = SFG_GAME_RESOLUTION_X - 1 - i;
+
+    for (uint16_t j = width; j < SFG_GAME_RESOLUTION_Y - width; ++j)
+    {
+      SFG_setGamePixel(i,j,175);
+      SFG_setGamePixel(i2,j,175);
+    }
+  }
+}
+
 /**
   Draws the player weapon, handling the shooting animation.
 */
@@ -2428,6 +2473,10 @@ void SFG_draw()
       7);
 
     SFG_drawWeapon(weaponBobOffset);
+
+    if (SFG_gameFrame - SFG_player.lastHurtFrame
+      <= SFG_HUD_HURT_INDICATOR_DURATION_FRAMES)
+      SFG_drawHurtIndicator(SFG_HUD_HURT_INDICATOR_WIDTH_PIXELS);
   }
 }
 

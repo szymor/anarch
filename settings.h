@@ -135,4 +135,15 @@
 */
 #define SFG_SPRITE_ANIMATION_SPEED 4
 
+/**
+  How wide the hurting indicator (red screen border) is, in fractions of
+  screen width.
+*/
+#define SFG_HUD_HURT_INDICATOR_WIDTH 32
+
+/**
+  For how long hurt indicator stays shown, in ms.
+*/
+#define SFG_HUD_HURT_INDICATOR_DURATION 500
+
 #endif // guard
