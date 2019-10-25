@@ -347,14 +347,14 @@ typedef struct
 
 #define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 20)
 
-#define SFG_HUD_HURT_INDICATOR_WIDTH_PIXELS \
-  (SFG_GAME_RESOLUTION_Y /  SFG_HUD_HURT_INDICATOR_WIDTH)
+#define SFG_HUD_HEALTH_INDICATOR_WIDTH_PIXELS \
+  (SFG_GAME_RESOLUTION_Y /  SFG_HUD_HEALTH_INDICATOR_WIDTH)
 
-#define SFG_HUD_HURT_INDICATOR_DURATION_FRAMES \
-  (SFG_HUD_HURT_INDICATOR_DURATION / SFG_MS_PER_FRAME)
+#define SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES \
+  (SFG_HUD_HEALTH_INDICATOR_DURATION / SFG_MS_PER_FRAME)
 
-#if SFG_HUD_HURT_INDICATOR_DURATION_FRAMES == 0
-  #define SFG_HUD_HURT_INDICATOR_DURATION_FRAMES 1
+#if SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES == 0
+  #define SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES 1
 #endif
 
 /*
@@ -1833,21 +1833,21 @@ void SFG_gameStep()
     // ^ only substract frames to live every other frame
 
   for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
-  {
+  { // ^ has to be signed
     SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
 
     RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
 
     uint8_t eliminate = 0;
 
-    for (uint8_t i = 0; i < 3; ++i)
+    for (uint8_t j = 0; j < 3; ++j)
     {
-      pos[i] = p->position[i];
-      pos[i] += p->direction[i];
+      pos[j] = p->position[j];
+      pos[j] += p->direction[j];
 
       if (
-        (pos[i] < 0) ||
-        (pos[i] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
+        (pos[j] < 0) ||
+        (pos[j] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
       {
         eliminate = 1;
         break;
@@ -1880,9 +1880,9 @@ void SFG_gameStep()
 
       // check collision with active level elements
         
-      for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+      for (uint8_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
       {
-        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
         if ((m->stateType & SFG_MONSTER_MASK_STATE) != 
           SFG_MONSTER_STATE_INACTIVE)
         {
@@ -1907,9 +1907,9 @@ void SFG_gameStep()
       }
 
       if (!eliminate)
-        for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+        for (uint8_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
         {
-          const SFG_LevelElement *e = SFG_getActiveItemElement(i);
+          const SFG_LevelElement *e = SFG_getActiveItemElement(j);
 
           if (e != 0)
           {
@@ -2245,7 +2245,7 @@ uint8_t SFG_drawNumber(
   return 5 - position;
 }
 
-void SFG_drawHurtIndicator(uint16_t width)
+void SFG_drawHealthChangeBorder(uint16_t width, uint8_t color)
 {
   for (uint16_t j = 0; j < width; ++j)
   {
@@ -2255,8 +2255,8 @@ void SFG_drawHurtIndicator(uint16_t width)
     {
       if ((i & 0x01) == (j & 0x01))
       {
-        SFG_setGamePixel(i,j,175);
-        SFG_setGamePixel(i,j2,175);
+        SFG_setGamePixel(i,j,color);
+        SFG_setGamePixel(i,j2,color);
       }
     }
   }
@@ -2269,8 +2269,8 @@ void SFG_drawHurtIndicator(uint16_t width)
     {
       if ((i & 0x01) == (j & 0x01))
       {
-        SFG_setGamePixel(i,j,175);
-        SFG_setGamePixel(i2,j,175);
+        SFG_setGamePixel(i,j,color);
+        SFG_setGamePixel(i2,j,color);
       }
     }
   }
@@ -2481,8 +2481,8 @@ void SFG_draw()
     SFG_drawWeapon(weaponBobOffset);
 
     if (SFG_gameFrame - SFG_player.lastHurtFrame
-      <= SFG_HUD_HURT_INDICATOR_DURATION_FRAMES)
-      SFG_drawHurtIndicator(SFG_HUD_HURT_INDICATOR_WIDTH_PIXELS);
+      <= SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES)
+      SFG_drawHealthChangeBorder(SFG_HUD_HEALTH_INDICATOR_WIDTH_PIXELS,175);
   }
 }
 
