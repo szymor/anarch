@@ -1063,7 +1063,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   {
     const SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
 
-    switch (e->elementType)
+    switch (e->type)
     {
       case SFG_LEVEL_ELEMENT_BARREL:
       case SFG_LEVEL_ELEMENT_HEALTH:
@@ -1080,7 +1080,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
-        monster->stateType = e->elementType | 0;
+        monster->stateType = e->type | 0;
         monster->health = 255;
         monster->coords[0] = e->coords[0] * 4;
         monster->coords[1] = e->coords[1] * 4;
@@ -1738,6 +1738,7 @@ void SFG_gameStep()
 
   // handle player collision with level elements:
 
+  // monsters:
   for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
     SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
@@ -1767,7 +1768,9 @@ void SFG_gameStep()
     }
   }
 
-  for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+  // items:
+  for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+    // ^ has to be int16_t (signed)
   {
     const SFG_LevelElement *e = SFG_getActiveItemElement(i);
 
@@ -1791,8 +1794,23 @@ void SFG_gameStep()
            )
          )
       {
-        moveOffset = SFG_resolveCollisionWithElement(
-          SFG_player.camera.position,moveOffset,ePos);
+        if (e->type == SFG_LEVEL_ELEMENT_HEALTH)
+        {
+          SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+
+          // take, eliminate the item
+
+          for (uint8_t j = i; j < SFG_currentLevel.itemRecordCount - 1; ++j)
+            SFG_currentLevel.itemRecords[j] =
+              SFG_currentLevel.itemRecords[j + 1];
+
+          SFG_currentLevel.itemRecordCount--;
+
+          i--;
+        }
+        else // collide
+          moveOffset = SFG_resolveCollisionWithElement(
+            SFG_player.camera.position,moveOffset,ePos);
       }
     }    
   }
@@ -1925,6 +1943,8 @@ void SFG_gameStep()
                  0)
                )
             {
+
+
               eliminate = 1;
               break;
             }
@@ -2411,10 +2431,12 @@ void SFG_draw()
             SFG_player.camera);
 
         if (p.depth > 0)
-          SFG_drawScaledSprite(SFG_itemSprites[e.elementType - 1],
+        {
+          SFG_drawScaledSprite(SFG_itemSprites[e.type - 1],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+        }
       }
 
     // projecile sprites:

@@ -75,7 +75,7 @@ typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
 */
 typedef struct
 {
-  uint8_t elementType;
+  uint8_t type;
   uint8_t coords[2];
 } SFG_LevelElement;
 

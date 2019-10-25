@@ -109,4 +109,9 @@
 */
 #define SFG_PLAYER_HEALTH_WARNING_LEVEL 20
 
+/**
+  Amount of health that is increased by taking a health kit.
+*/
+#define SFG_HEALTH_KIT_VALUE 20
+
 #endif // guard
