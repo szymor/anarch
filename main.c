@@ -2253,8 +2253,11 @@ void SFG_drawHurtIndicator(uint16_t width)
 
     for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
     {
-      SFG_setGamePixel(i,j,175);
-      SFG_setGamePixel(i,j2,175);
+      if ((i & 0x01) == (j & 0x01))
+      {
+        SFG_setGamePixel(i,j,175);
+        SFG_setGamePixel(i,j2,175);
+      }
     }
   }
 
@@ -2264,8 +2267,11 @@ void SFG_drawHurtIndicator(uint16_t width)
 
     for (uint16_t j = width; j < SFG_GAME_RESOLUTION_Y - width; ++j)
     {
-      SFG_setGamePixel(i,j,175);
-      SFG_setGamePixel(i2,j,175);
+      if ((i & 0x01) == (j & 0x01))
+      {
+        SFG_setGamePixel(i,j,175);
+        SFG_setGamePixel(i2,j,175);
+      }
     }
   }
 }
