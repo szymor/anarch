@@ -1743,6 +1743,9 @@ void SFG_gameStep()
   {
     SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
 
+    if ((m->stateType & SFG_MONSTER_MASK_STATE) == SFG_MONSTER_STATE_INACTIVE)
+      continue;
+
     RCL_Vector2D mPos;
 
     mPos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]);
@@ -1772,6 +1775,9 @@ void SFG_gameStep()
   for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
     // ^ has to be int16_t (signed)
   {
+    if (!(SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK))
+      continue;
+
     const SFG_LevelElement *e = SFG_getActiveItemElement(i);
 
     if (e != 0)
