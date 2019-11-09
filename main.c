@@ -110,7 +110,7 @@ void SFG_init();
 #define SFG_WEAPON_KNIFE 0
 #define SFG_WEAPON_SHOTGUN 1
 #define SFG_WEAPON_MACHINE_GUN 2
-#define SFG_WEAPON_ROCKER_LAUNCHER 3
+#define SFG_WEAPON_ROCKET_LAUNCHER 3
 #define SFG_WEAPON_PLASMAGUN 4
 
 #define SFG_WEAPONS_TOTAL 5
@@ -157,11 +157,11 @@ void SFG_init();
   #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
 #endif
 
-#define SFG_ROCKER_MOVE_UNITS_PER_FRAME \
-  ((SFG_ROCKET_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
+#define SFG_FIREBALL_MOVE_UNITS_PER_FRAME \
+  ((SFG_FIREBALL_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
-#if SFG_ROCKER_MOVE_UNITS_PER_FRAME == 0
-  #define SFG_ROCKER_MOVE_UNITS_PER_FRAME 1
+#if SFG_FIREBALL_MOVE_UNITS_PER_FRAME == 0
+  #define SFG_FIREBALL_MOVE_UNITS_PER_FRAME 1
 #endif
 
 #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME \
@@ -1188,10 +1188,10 @@ uint8_t SFG_launchProjectile(
   p.position[2] = shootFromHeight;
 
   p.direction[0] = 
-    (direction.x * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+    (direction.x * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 
   p.direction[1] =
-    (direction.y * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+    (direction.y * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
 
   p.direction[2] = verticalSpeed;
 
@@ -1234,7 +1234,8 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         dir = RCL_normalize(dir);
 
         SFG_launchProjectile(
-          SFG_PROJECTILE_FIREBALL,
+          type != SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT ?
+          SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA,
           pos,
           SFG_floorHeightAt(
              SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
@@ -1577,15 +1578,15 @@ void SFG_gameStep()
   {
     // fire
  
-    if (SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER ||
+    if (SFG_player.weapon == SFG_WEAPON_ROCKET_LAUNCHER ||
         SFG_player.weapon == SFG_WEAPON_PLASMAGUN)
       SFG_launchProjectile(
-        SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER ?
+        SFG_player.weapon == SFG_WEAPON_ROCKET_LAUNCHER ?
            SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA,
         SFG_player.camera.position,
         SFG_player.camera.height,
         RCL_angleToDirection(SFG_player.camera.direction),
-        (SFG_player.camera.shear * SFG_ROCKER_MOVE_UNITS_PER_FRAME) / 
+        (SFG_player.camera.shear * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / 
           SFG_CAMERA_MAX_SHEAR_PIXELS,
         SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
         );

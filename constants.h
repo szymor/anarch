@@ -69,7 +69,7 @@
 /**
   Speed of rocket projectile, in squares per second.
 */
-#define SFG_ROCKET_SPEED 15
+#define SFG_FIREBALL_SPEED 15
 
 /**
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
