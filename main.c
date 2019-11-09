@@ -328,6 +328,7 @@ typedef struct
 
 #define SFG_PROJECTILE_EXPLOSION 0
 #define SFG_PROJECTILE_FIREBALL 1
+#define SFG_PROJECTILE_PLASMA 2
 
 #define SFG_EXPLOSION_DURATION_DOUBLE_FRAMES \
   (SFG_EXPLOSION_DURATION / SFG_MS_PER_FRAME)
@@ -1569,9 +1570,11 @@ void SFG_gameStep()
   {
     // fire
  
-    if (SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER)
+    if (SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER ||
+        SFG_player.weapon == SFG_WEAPON_PLASMAGUN)
       SFG_launchProjectile(
-        SFG_PROJECTILE_FIREBALL,
+        SFG_player.weapon == SFG_WEAPON_ROCKER_LAUNCHER ?
+           SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA,
         SFG_player.camera.position,
         SFG_player.camera.height,
         RCL_angleToDirection(SFG_player.camera.direction),
@@ -2324,8 +2327,11 @@ void SFG_drawWeapon(int16_t bobOffset)
       bobOffset +=  
           ((animationLength - shotAnimationFrame) * SFG_WEAPON_IMAGE_SCALE * 20)
           / animationLength;
-    
-      if (shotAnimationFrame < animationLength / 2)
+   
+      if (
+        SFG_player.weapon != SFG_WEAPON_KNIFE &&
+        SFG_player.weapon != SFG_WEAPON_PLASMAGUN &&
+        shotAnimationFrame < animationLength / 2)
         SFG_blitImage(SFG_effectSprites[0],
           SFG_WEAPON_IMAGE_POSITION_X,
           SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
@@ -2460,7 +2466,7 @@ void SFG_draw()
         RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
        
       const uint8_t *s =
-        SFG_effectSprites[proj->type == SFG_PROJECTILE_FIREBALL ? 1 : 0];
+        SFG_effectSprites[proj->type];
 
       int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 3;
 
