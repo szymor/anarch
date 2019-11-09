@@ -347,7 +347,7 @@ typedef struct
 #define SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES \
   (SFG_WEAPON_SHOTGUN_COOLDOWN / SFG_MS_PER_FRAME)
 
-#define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 20)
+#define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 40)
 
 #define SFG_HUD_HEALTH_INDICATOR_WIDTH_PIXELS \
   (SFG_GAME_RESOLUTION_Y /  SFG_HUD_HEALTH_INDICATOR_WIDTH)
@@ -358,6 +358,9 @@ typedef struct
 #if SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES == 0
   #define SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES 1
 #endif
+
+#define SFG_HUD_BAR_HEIGHT \
+  (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)
 
 /*
   GLOBAL VARIABLES
@@ -603,7 +606,7 @@ void SFG_initPlayer()
   SFG_player.camera.resolution.x =
     SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
 
-  SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y;
+  SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
 
   SFG_player.camera.height = RCL_UNITS_PER_SQUARE * 12;
   SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE * 15;
@@ -2323,6 +2326,8 @@ void SFG_drawWeapon(int16_t bobOffset)
 
   uint32_t animationLength = SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES;
 
+  bobOffset -= SFG_HUD_BAR_HEIGHT;
+
   if (shotAnimationFrame < animationLength)
   {
     if (SFG_player.weapon == SFG_WEAPON_KNIFE)
@@ -2502,7 +2507,22 @@ void SFG_draw()
     SFG_player.camera.height -= headBobOffset;
 #endif
 
+    SFG_drawWeapon(weaponBobOffset);
+
     // draw the HUD:
+
+    // bar
+
+    uint8_t color = 5;
+
+    for (uint16_t j = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
+      j < SFG_GAME_RESOLUTION_Y; ++j)
+    {
+      for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+        SFG_setGamePixel(i,j,color);
+
+      color = 2;
+    }
 
     SFG_drawNumber(       // health
       SFG_player.health,
@@ -2510,7 +2530,7 @@ void SFG_draw()
       SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
       SFG_FONT_SIZE_MEDIUM,
-      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 7 : 175);
+      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
 
     SFG_drawNumber(       // ammo
       20,
@@ -2519,9 +2539,7 @@ void SFG_draw()
       SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
       SFG_FONT_SIZE_MEDIUM,
-      7);
-
-    SFG_drawWeapon(weaponBobOffset);
+      4);
 
     if (SFG_gameFrame - SFG_player.lastHurtFrame
       <= SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES)
