@@ -1,3 +1,4 @@
+- try to remove the debug flag (-g1) from compiler and see if it decreases size
 - try to compress images: store images as 4 bits per pixel + 16 color palette
   (subset of the 256 color palette), check if performance stays ok
 - port to GB Meta
