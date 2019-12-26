@@ -1,6 +1,31 @@
 # WIP -- suckless FPS game
 
-This is going to likely be by far the best game in the universe.
+## This is going to likely be by far the best game in the universe.
+
+Why?
+
+- Like Doom but much better because of the following.
+- Extemely low HW demands (no GPU, no FPU, just kilobytes of RAM and storage).
+- Extremely portable (much more than Doom).
+- Has completely NO dependencies, not even rendering or IO, that is left to each platform's frontend, but every frontend is extremely simple (~100 LOC).
+- Fits into less than 256 kb (including all content, textures etc.).
+- Uses no build system, can typically be compiled with a single run of compiler.
+- Doesn't need any file IO, i.e. can work without config files, save files, all content is part of source code.
+- Doesn't use ANY floating point, everything is integer math (good for platforms without FPU).
+- Pure C99, also a subset of C++ (i.e. runs as C++ as well, good for systems that are hard C++ based).
+- Completely public domain for the benefit of all people on Earth, no conoditions on use whatsoever. All art is original work and licensed CC0 (as well as code).
+- Suckless, minimal.
+- Well documented and commented code, written with tinkering in mind.
+
+early previews:
+
+Pokitto:
+
+![](https://talk.pokitto.com/uploads/default/original/2X/2/29c0e4f44688f801013ed5b8463e97772d4b203e.gif)
+
+SDL:
+
+![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
 ## usage rights
 
