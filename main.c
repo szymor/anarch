@@ -1214,6 +1214,7 @@ uint8_t SFG_launchProjectile(
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = monster->stateType & SFG_MONSTER_MASK_STATE;
+
   uint8_t type = monster->stateType & SFG_MONSTER_MASK_TYPE;
 
   int8_t coordAdd[2];
@@ -2013,24 +2014,31 @@ void SFG_gameStep()
   if (SFG_currentLevel.doorRecordCount > 0) // has to be here
   {
     /* Check one door on whether a player is standing nearby. For performance
-       reasons we only check one door and move to another in the next frame. */
+       reasons we only check a few doors and move to others in the next
+       frame. */
 
-    SFG_DoorRecord *door =
-      &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.doorRecordCount);
+         ++i) 
+    {
+      SFG_DoorRecord *door =
+        &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
 
-    door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
-      (
-        ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-         (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-         (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-         (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
-         SFG_DOOR_UP_DOWN_MASK : 0x00 
-      );
+      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
+        (
+          ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+           (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+           (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+           (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
+           SFG_DOOR_UP_DOWN_MASK : 0x00 
+        );
 
-    SFG_currentLevel.checkedDoorIndex++;
+      SFG_currentLevel.checkedDoorIndex++;
 
-    if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
-      SFG_currentLevel.checkedDoorIndex = 0;
+      if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
+        SFG_currentLevel.checkedDoorIndex = 0;
+    }
 
     for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
     {
@@ -2050,62 +2058,79 @@ void SFG_gameStep()
 
   if (SFG_currentLevel.itemRecordCount > 0) // has to be here
   {
-    SFG_ItemRecord item =
-      SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex];
+    // check item distances:
 
-    item &= ~SFG_ITEM_RECORD_ACTIVE_MASK;
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.itemRecordCount);
+         ++i) 
+    {
+      SFG_ItemRecord item =
+        SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex];
 
-    SFG_LevelElement e =
-      SFG_currentLevel.levelPointer->elements[item];
+      item &= ~SFG_ITEM_RECORD_ACTIVE_MASK;
 
-    if (
-        RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-        &&
-        RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
-        <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-      )
-      item |= SFG_ITEM_RECORD_ACTIVE_MASK;
+      SFG_LevelElement e =
+        SFG_currentLevel.levelPointer->elements[item];
 
-    SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
+      if (
+          RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
+          <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+          &&
+          RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
+          <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        )
+        item |= SFG_ITEM_RECORD_ACTIVE_MASK;
 
-    SFG_currentLevel.checkedItemIndex++;
+      SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
 
-    if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
-      SFG_currentLevel.checkedItemIndex = 0;
+      SFG_currentLevel.checkedItemIndex++;
+
+      if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
+        SFG_currentLevel.checkedItemIndex = 0;
+    }
   }
 
   // similarly handle monsters:
 
   if (SFG_currentLevel.monsterRecordCount > 0) // has to be here
   {
-    SFG_MonsterRecord *monster =
+    // check monster distances:
+
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.monsterRecordCount);
+         ++i) 
+    {
+      SFG_MonsterRecord *monster =
       &(SFG_currentLevel.monsterRecords[SFG_currentLevel.checkedMonsterIndex]);
 
-    if (
-        RCL_absVal(SFG_player.squarePosition[0] - monster->coords[0] / 4)
-        > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-        ||
-        RCL_absVal(SFG_player.squarePosition[1] - monster->coords[1] / 4)
-        > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-      )
-    {
-      monster->stateType = 
-         (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-         SFG_MONSTER_STATE_INACTIVE;
-    }
-    else if (monster->stateType == SFG_MONSTER_STATE_INACTIVE)
-    {
-      monster->stateType = 
-        (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-        SFG_MONSTER_STATE_IDLE;
-    }
+      if ( // far away from the player?
+          RCL_absVal(SFG_player.squarePosition[0] - monster->coords[0] / 4)
+          > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+          ||
+          RCL_absVal(SFG_player.squarePosition[1] - monster->coords[1] / 4)
+          > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        )
+      {
+        monster->stateType = 
+           (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+           SFG_MONSTER_STATE_INACTIVE;
+      }
+      else if ((monster->stateType & SFG_MONSTER_MASK_STATE) ==
+                SFG_MONSTER_STATE_INACTIVE)
+      {
+        monster->stateType = 
+          (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+          SFG_MONSTER_STATE_IDLE;
+      }
 
-    SFG_currentLevel.checkedMonsterIndex++;
+      SFG_currentLevel.checkedMonsterIndex++;
 
-    if (SFG_currentLevel.checkedMonsterIndex >=
-      SFG_currentLevel.monsterRecordCount)
-      SFG_currentLevel.checkedMonsterIndex = 0;
+      if (SFG_currentLevel.checkedMonsterIndex >=
+        SFG_currentLevel.monsterRecordCount)
+        SFG_currentLevel.checkedMonsterIndex = 0;
+    }
   }
 
   // update AI
@@ -2113,8 +2138,8 @@ void SFG_gameStep()
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-      if (SFG_currentLevel.monsterRecords[i].stateType !=
-          SFG_MONSTER_STATE_INACTIVE)
+      if ((SFG_currentLevel.monsterRecords[i].stateType &
+          SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE)
         SFG_monsterPerformAI(
           &(SFG_currentLevel.monsterRecords[i]));
 }
