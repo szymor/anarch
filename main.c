@@ -279,6 +279,9 @@ typedef struct
   uint8_t health;
 } SFG_MonsterRecord;
 
+#define SFG_MR_STATE(mr) ((mr).stateType & SFG_MONSTER_MASK_STATE)
+#define SFG_MR_TYPE(mr) ((mr).stateType & SFG_MONSTER_MASK_TYPE)
+
 #define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
 #define SFG_MONSTER_COORD_TO_SQUARES(c) (c / 4)
 
@@ -1213,9 +1216,8 @@ uint8_t SFG_launchProjectile(
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
-  uint8_t state = monster->stateType & SFG_MONSTER_MASK_STATE;
-
-  uint8_t type = monster->stateType & SFG_MONSTER_MASK_TYPE;
+  uint8_t state = SFG_MR_STATE(*monster);
+  uint8_t type = SFG_MR_TYPE(*monster);
 
   int8_t coordAdd[2];
 
@@ -1769,7 +1771,7 @@ void SFG_gameStep()
   {
     SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
 
-    if ((m->stateType & SFG_MONSTER_MASK_STATE) == SFG_MONSTER_STATE_INACTIVE)
+    if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
       continue;
 
     RCL_Vector2D mPos;
@@ -1933,8 +1935,8 @@ void SFG_gameStep()
       for (uint8_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
       {
         SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
-        if ((m->stateType & SFG_MONSTER_MASK_STATE) != 
-          SFG_MONSTER_STATE_INACTIVE)
+
+        if (SFG_MR_TYPE(*m) != SFG_MONSTER_STATE_INACTIVE)
         {
           if (
              SFG_elementCollides(
@@ -2117,8 +2119,7 @@ void SFG_gameStep()
            (monster->stateType & SFG_MONSTER_MASK_TYPE) |
            SFG_MONSTER_STATE_INACTIVE;
       }
-      else if ((monster->stateType & SFG_MONSTER_MASK_STATE) ==
-                SFG_MONSTER_STATE_INACTIVE)
+      else if (SFG_MR_STATE(*monster) == SFG_MONSTER_STATE_INACTIVE)
       {
         monster->stateType = 
           (monster->stateType & SFG_MONSTER_MASK_TYPE) |
@@ -2138,10 +2139,9 @@ void SFG_gameStep()
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-      if ((SFG_currentLevel.monsterRecords[i].stateType &
-          SFG_MONSTER_MASK_STATE) != SFG_MONSTER_STATE_INACTIVE)
-        SFG_monsterPerformAI(
-          &(SFG_currentLevel.monsterRecords[i]));
+      if (SFG_MR_STATE(SFG_currentLevel.monsterRecords[i]) !=
+          SFG_MONSTER_STATE_INACTIVE)
+        SFG_monsterPerformAI(&(SFG_currentLevel.monsterRecords[i]));
 }
 
 void SFG_clearScreen(uint8_t color)
@@ -2434,7 +2434,7 @@ void SFG_draw()
     {
       SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
 
-      uint8_t state = m.stateType & SFG_MONSTER_MASK_STATE;
+      uint8_t state = SFG_MR_STATE(m);
 
       if (state != SFG_MONSTER_STATE_INACTIVE)
       {
@@ -2456,7 +2456,7 @@ void SFG_draw()
         {
           const uint8_t *s =
             SFG_getMonsterSprite(
-              m.stateType & SFG_MONSTER_MASK_TYPE,
+              SFG_MR_TYPE(m),
               state,
               SFG_spriteAnimationFrame & 0x01);
 
