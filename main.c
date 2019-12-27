@@ -1227,12 +1227,13 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   coordAdd[0] = 0;
   coordAdd[1] = 0;
 
-  uint8_t melee = type == SFG_LEVEL_ELEMENT_MONSTER_WARRIOR;
+  uint8_t melee = (type == SFG_LEVEL_ELEMENT_MONSTER_WARRIOR) ||
+                  (type == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER);
 
-  if (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY)
+  if ( // sometimes randomly change state
+    (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY) &&
+    (type != SFG_LEVEL_ELEMENT_MONSTER_EXPLODER))
   { 
-    // sometimes randomly change state
-
     if (!melee && (SFG_random() % 4 != 0))
     {
       // attack
@@ -1328,23 +1329,28 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   }
   else
   {
+    int8_t add = type != SFG_LEVEL_ELEMENT_MONSTER_EXPLODER ? 1 : 3;
+
     if (state == SFG_MONSTER_STATE_GOING_E ||
         state == SFG_MONSTER_STATE_GOING_NE ||
         state == SFG_MONSTER_STATE_GOING_SE)
-      coordAdd[0] = 1;
+      coordAdd[0] = add;
     else if (state == SFG_MONSTER_STATE_GOING_W ||
         state == SFG_MONSTER_STATE_GOING_SW ||
         state == SFG_MONSTER_STATE_GOING_NW)
-      coordAdd[0] = -1;
+      coordAdd[0] = -1 * add;
 
     if (state == SFG_MONSTER_STATE_GOING_N ||
         state == SFG_MONSTER_STATE_GOING_NE ||
         state == SFG_MONSTER_STATE_GOING_NW)
-      coordAdd[1] = -1;
+      coordAdd[1] = -1 * add;
     else if (state == SFG_MONSTER_STATE_GOING_S ||
         state == SFG_MONSTER_STATE_GOING_SE ||
         state == SFG_MONSTER_STATE_GOING_SW)
-      coordAdd[1] = 1;
+      coordAdd[1] = add;
+
+    if (add)
+      state = SFG_MONSTER_STATE_IDLE;
   }
 
   int16_t newPos[2];
