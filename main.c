@@ -558,7 +558,9 @@ const uint8_t *SFG_getMonsterSprite(
       }
       break;
 
+    case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER:
     default:
+      index = 16; 
       break;
   }
 
