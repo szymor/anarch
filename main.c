@@ -510,60 +510,59 @@ static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 const uint8_t *SFG_getMonsterSprite(
   uint8_t monsterType, uint8_t state, uint8_t frame)
 {
+  uint8_t index = 0; // makes the code smaller compared to returning pointers
+
   switch (monsterType)
   {
     case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
       switch (state)
       {
-        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[1]; break;
-        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[0]; break;
-        default: return SFG_monsterSprites[frame ? 0 : 2]; break;
+        case SFG_MONSTER_STATE_ATTACKING: index = 1; break;
+        case SFG_MONSTER_STATE_IDLE: index = 0; break;
+        default: index = frame ? 0 : 2; break;
       }
       break;
 
     case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
-      return state != SFG_MONSTER_STATE_ATTACKING ?
-        SFG_monsterSprites[6] : SFG_monsterSprites[7];
-
+      index = state != SFG_MONSTER_STATE_ATTACKING ? 6 : 7;
       break;
 
     case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
       switch (state)
       {
-        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[4]; break;
-        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[3]; break;
-        default: return SFG_monsterSprites[frame ? 3 : 5]; break;
+        case SFG_MONSTER_STATE_ATTACKING: index = 4; break;
+        case SFG_MONSTER_STATE_IDLE: index = 3; break;
+        default: index = frame ? 3 : 5; break;
       }
       break;
 
     case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT:
-      return state != SFG_MONSTER_STATE_ATTACKING ?
-        SFG_monsterSprites[8] : SFG_monsterSprites[9];
-
+      index = state != SFG_MONSTER_STATE_ATTACKING ? 8 : 9;
       break;
 
     case SFG_LEVEL_ELEMENT_MONSTER_ENDER:
       switch (state)
       {
-        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[12]; break;
-        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[10]; break;
-        default: return SFG_monsterSprites[frame ? 10 : 11]; break;
+        case SFG_MONSTER_STATE_ATTACKING: index = 12; break;
+        case SFG_MONSTER_STATE_IDLE: index = 10; break;
+        default: index = frame ? 10 : 11; break;
       }
       break;
 
     case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
       switch (state)
       {
-        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[15]; break;
-        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[13]; break;
-        default: return SFG_monsterSprites[frame ? 13 : 14]; break;
+        case SFG_MONSTER_STATE_ATTACKING: index = 15; break;
+        case SFG_MONSTER_STATE_IDLE: index = 13; break;
+        default: index = frame ? 13 : 14; break;
       }
       break;
 
     default:
-      return SFG_monsterSprites[0];
       break;
   }
+
+  return SFG_monsterSprites[index];
 }
 
 /**
@@ -1095,21 +1094,10 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   {
     const SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
 
-    switch (e->type)
+    if (e->type != SFG_LEVEL_ELEMENT_NONE)
     {
-      case SFG_LEVEL_ELEMENT_BARREL:
-      case SFG_LEVEL_ELEMENT_HEALTH:
-        SFG_LOG("adding item");
-        SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
-        SFG_currentLevel.itemRecordCount++;
-        break;
-
-      case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
-      case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
-      case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
-      case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT:
-      case SFG_LEVEL_ELEMENT_MONSTER_ENDER:
-      case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
+      if (SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(e->type))
+      {
         SFG_LOG("adding monster");
 
         monster =
@@ -1121,10 +1109,13 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster->coords[1] = e->coords[1] * 4;
 
         SFG_currentLevel.monsterRecordCount++;
-        break;
-
-      default:
-        break;
+      }
+      else
+      {
+        SFG_LOG("adding item");
+        SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
+        SFG_currentLevel.itemRecordCount++;
+      }
     }
   } 
 

@@ -90,8 +90,9 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_BARREL 0x01
 #define SFG_LEVEL_ELEMENT_HEALTH 0x02
 
-/* Monsters have lower 4 bits zero and are only distinguished by the 4 upper
-   bits, as this is convenient for the code.
+/* 
+  Monsters have lower 4 bits zero and are only distinguished by the 4 upper
+  bits, as this is convenient for the code.
 */
 #define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x00
 #define SFG_LEVEL_ELEMENT_MONSTER_DESTROYER 0x10
@@ -99,6 +100,8 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT 0x30
 #define SFG_LEVEL_ELEMENT_MONSTER_ENDER 0x40
 #define SFG_LEVEL_ELEMENT_MONSTER_TURRET 0x50
+
+#define SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(t) (((t) & 0x0f) == 0)
 
 typedef struct
 {
