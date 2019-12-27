@@ -14,7 +14,8 @@ Why?
 - Doesn't use ANY floating point, everything is integer math (good for platforms without FPU).
 - Pure C99, also a subset of C++ (i.e. runs as C++ as well, good for systems that are hard C++ based).
 - Completely public domain for the benefit of all people on Earth, no conoditions on use whatsoever. All art is original work and licensed CC0 (as well as code).
-- Suckless, minimal.
+- Suckless, minimal, simple.
+- Single compilation unit (only one .c file to compile).
 - Well documented and commented code, written with tinkering in mind.
 
 early previews:
