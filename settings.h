@@ -146,4 +146,12 @@
 */
 #define SFG_HUD_HEALTH_INDICATOR_DURATION 500
 
+/**
+  How many element (items, monsters, ...) distances will be checked per frame
+  for distance. Higher value may decrease performance a tiny bit, but things
+  will react more quickly and appear less "out of thin air".
+*/
+
+#define SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME 8
+
 #endif // guard

@@ -551,6 +551,15 @@ const uint8_t *SFG_getMonsterSprite(
       }
       break;
 
+    case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
+      switch (state)
+      {
+        case SFG_MONSTER_STATE_ATTACKING: return SFG_monsterSprites[15]; break;
+        case SFG_MONSTER_STATE_IDLE: return SFG_monsterSprites[13]; break;
+        default: return SFG_monsterSprites[frame ? 13 : 14]; break;
+      }
+      break;
+
     default:
       return SFG_monsterSprites[0];
       break;
@@ -1100,6 +1109,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
       case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
       case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT:
       case SFG_LEVEL_ELEMENT_MONSTER_ENDER:
+      case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
         SFG_LOG("adding monster");
 
         monster =
