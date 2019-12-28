@@ -1,8 +1,5 @@
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
-- try to compress images: store images as 4 bits per pixel + 16 color palette
-  (subset of the 256 color palette), check if performance stays ok
 - port to GB Meta
-- custom font
 - GUI
 - menu
 - sounds (music?)
@@ -14,6 +11,7 @@
 - disable transparency for walls for performance (setting)?
 - replace textures in distace with constant color for performance (setting)?
 - add time slowdown constant
+- if space left, try blurring (lerp) the level background, see how it looks
 
 bugs:
 
@@ -24,4 +22,7 @@ done:
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES
 - vertical visual noise when standing on elevator
 - sprite positioning inccuracy
+- try to compress images: store images as 4 bits per pixel + 16 color palette
+  (subset of the 256 color palette), check if performance stays ok
+- custom font
 
