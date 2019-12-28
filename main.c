@@ -1278,31 +1278,54 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
       uint8_t mX = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
       uint8_t mY = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
-      
-      if (mX > SFG_player.squarePosition[0])
+
+      if (!( // exploder will explode when close
+         (type == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER) &&
+          (((mX > SFG_player.squarePosition[0]) ?
+            (mX - SFG_player.squarePosition[0]) :
+            (SFG_player.squarePosition[0] - mX)) <= 1) &&
+          (((mY > SFG_player.squarePosition[1]) ?
+            (mY - SFG_player.squarePosition[1]) :
+            (SFG_player.squarePosition[1] - mY)) <= 1)
+           ))
       {
-        if (mY > SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_NW;
-        else if (mY < SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_SW;
+        if (mX > SFG_player.squarePosition[0])
+        {
+          if (mY > SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_NW;
+          else if (mY < SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_SW;
+          else
+            state = SFG_MONSTER_STATE_GOING_W;
+        }
+        else if (mX < SFG_player.squarePosition[0])
+        {
+          if (mY > SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_NE;
+          else if (mY < SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_SE;
+          else
+            state = SFG_MONSTER_STATE_GOING_E;
+        }
         else
-          state = SFG_MONSTER_STATE_GOING_W;
-      }
-      else if (mX < SFG_player.squarePosition[0])
-      {
-        if (mY > SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_NE;
-        else if (mY < SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_SE;
-        else
-          state = SFG_MONSTER_STATE_GOING_E;
+        {
+          if (mY > SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_N;
+          else if (mY < SFG_player.squarePosition[1])
+            state = SFG_MONSTER_STATE_GOING_S;
+        }
       }
       else
       {
-        if (mY > SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_N;
-        else if (mY < SFG_player.squarePosition[1])
-          state = SFG_MONSTER_STATE_GOING_S;
+        // exploder explodes
+
+        uint8_t properties;
+
+        SFG_TileDefinition tile =
+          SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
+       
+        SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
+        SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
       }
     }
     else
@@ -1510,6 +1533,8 @@ void SFG_playerChangeHealth(int8_t healthAdd)
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
+printf("%d %d %d\n",x,y,z);
+
   SFG_ProjectileRecord explostion;
 
   explostion.type = SFG_PROJECTILE_EXPLOSION;

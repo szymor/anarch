@@ -52,7 +52,7 @@
   Says the (Chebyshev) distance in game squares at which level elements
   (items, monsters etc.) become active.
 */
-#define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 8
+#define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 10
 
 /**
   Rate at which AI will be updated, which also affects how fast enemies will
