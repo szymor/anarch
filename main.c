@@ -1533,8 +1533,6 @@ void SFG_playerChangeHealth(int8_t healthAdd)
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
-printf("%d %d %d\n",x,y,z);
-
   SFG_ProjectileRecord explostion;
 
   explostion.type = SFG_PROJECTILE_EXPLOSION;
