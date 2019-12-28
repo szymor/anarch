@@ -1217,6 +1217,146 @@ uint8_t SFG_launchProjectile(
   return SFG_createProjectile(p);
 }
 
+/**
+  Pushes a given position away from a center by given distance, with collisions.
+  Returns 1 if push away happened, otherwise 0.
+*/
+uint8_t SFG_pushAway(
+  RCL_Unit pos[3],
+  RCL_Unit centerX,
+  RCL_Unit centerY,
+  RCL_Unit preferredDirection,
+  RCL_Unit distance)
+{
+  RCL_Vector2D fromCenter;
+
+  fromCenter.x = pos[0] - centerX;
+  fromCenter.y = pos[1] - centerY;
+
+  RCL_Unit l = RCL_len(fromCenter);
+
+  if (l < 128)
+  {
+    fromCenter = RCL_angleToDirection(preferredDirection);
+    l = RCL_UNITS_PER_SQUARE;
+  }
+  else if (l >= distance)
+  {
+    return 0;
+  }
+
+  RCL_Vector2D offset;
+
+  offset.x = (fromCenter.x * distance) / l; 
+  offset.y = (fromCenter.y * distance) / l; 
+
+  RCL_Camera c;
+
+  RCL_initCamera(&c);
+
+  c.position.x = pos[0];
+  c.position.y = pos[1];
+  c.height = pos[2];
+
+  RCL_moveCameraWithCollision(&c,offset,0,SFG_floorHeightAt,
+    SFG_ceilingHeightAt,1,1);
+
+  pos[0] = c.position.x;
+  pos[1] = c.position.y;
+  pos[2] = c.height;
+
+  return 1;
+}
+
+uint8_t SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
+{
+  RCL_Unit p[3];
+
+  p[0] = SFG_player.camera.position.x; 
+  p[1] = SFG_player.camera.position.y; 
+  p[2] = SFG_player.camera.height; 
+
+  uint8_t result = SFG_pushAway(p,centerX,centerY,
+    SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2,
+    distance);
+
+  SFG_player.camera.position.x = p[0]; 
+  SFG_player.camera.position.y = p[1]; 
+  SFG_player.camera.height = p[2];
+
+  return result;
+}
+
+/**
+  Helper function to resolve collision with level element. The function supposes
+  the collision already does happen and only resolves it. Returns adjusted move
+  offset.
+*/
+RCL_Vector2D SFG_resolveCollisionWithElement(
+  RCL_Vector2D position, RCL_Vector2D moveOffset, RCL_Vector2D elementPos)
+{
+  RCL_Unit dx = RCL_absVal(elementPos.x - position.x);
+  RCL_Unit dy = RCL_absVal(elementPos.y - position.y);
+
+  if (dx > dy)
+  {
+    // colliding from left/right
+
+    if ((moveOffset.x > 0) == (position.x < elementPos.x))
+      moveOffset.x = 0;
+      // ^ only stop if heading towards element, to avoid getting stuck
+  }
+  else
+  {
+    // colliding from up/down
+
+    if ((moveOffset.y > 0) == (position.y < elementPos.y))
+      moveOffset.y = 0;
+  }
+
+  return moveOffset;  
+}
+
+/**
+  Adds or substracts player's health, which either hurts him (negative value)
+  or heals him (positive value).
+*/
+void SFG_playerChangeHealth(int8_t healthAdd)
+{
+  int16_t health = SFG_player.health;
+
+  health += healthAdd;
+
+  health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
+
+  SFG_player.health = health;
+
+  if (healthAdd < 0)
+    SFG_player.lastHurtFrame = SFG_gameFrame;
+}
+
+void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  SFG_ProjectileRecord explostion;
+
+  explostion.type = SFG_PROJECTILE_EXPLOSION;
+
+  explostion.position[0] = x;
+  explostion.position[1] = y;
+  explostion.position[2] = z;
+
+  explostion.direction[0] = 0;
+  explostion.direction[1] = 0;
+  explostion.direction[2] = 0;
+
+  explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+
+  SFG_createProjectile(explostion);
+
+  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
+    SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
+}
+
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = SFG_MR_STATE(*monster);
@@ -1411,146 +1551,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   monster->stateType = state | type;
   monster->coords[0] = newPos[0];
   monster->coords[1] = newPos[1];;
-}
-
-/**
-  Pushes a given position away from a center by given distance, with collisions.
-  Returns 1 if push away happened, otherwise 0.
-*/
-uint8_t SFG_pushAway(
-  RCL_Unit pos[3],
-  RCL_Unit centerX,
-  RCL_Unit centerY,
-  RCL_Unit preferredDirection,
-  RCL_Unit distance)
-{
-  RCL_Vector2D fromCenter;
-
-  fromCenter.x = pos[0] - centerX;
-  fromCenter.y = pos[1] - centerY;
-
-  RCL_Unit l = RCL_len(fromCenter);
-
-  if (l < 128)
-  {
-    fromCenter = RCL_angleToDirection(preferredDirection);
-    l = RCL_UNITS_PER_SQUARE;
-  }
-  else if (l >= distance)
-  {
-    return 0;
-  }
-
-  RCL_Vector2D offset;
-
-  offset.x = (fromCenter.x * distance) / l; 
-  offset.y = (fromCenter.y * distance) / l; 
-
-  RCL_Camera c;
-
-  RCL_initCamera(&c);
-
-  c.position.x = pos[0];
-  c.position.y = pos[1];
-  c.height = pos[2];
-
-  RCL_moveCameraWithCollision(&c,offset,0,SFG_floorHeightAt,
-    SFG_ceilingHeightAt,1,1);
-
-  pos[0] = c.position.x;
-  pos[1] = c.position.y;
-  pos[2] = c.height;
-
-  return 1;
-}
-
-uint8_t SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
-{
-  RCL_Unit p[3];
-
-  p[0] = SFG_player.camera.position.x; 
-  p[1] = SFG_player.camera.position.y; 
-  p[2] = SFG_player.camera.height; 
-
-  uint8_t result = SFG_pushAway(p,centerX,centerY,
-    SFG_player.camera.direction - RCL_UNITS_PER_SQUARE / 2,
-    distance);
-
-  SFG_player.camera.position.x = p[0]; 
-  SFG_player.camera.position.y = p[1]; 
-  SFG_player.camera.height = p[2];
-
-  return result;
-}
-
-/**
-  Helper function to resolve collision with level element. The function supposes
-  the collision already does happen and only resolves it. Returns adjusted move
-  offset.
-*/
-RCL_Vector2D SFG_resolveCollisionWithElement(
-  RCL_Vector2D position, RCL_Vector2D moveOffset, RCL_Vector2D elementPos)
-{
-  RCL_Unit dx = RCL_absVal(elementPos.x - position.x);
-  RCL_Unit dy = RCL_absVal(elementPos.y - position.y);
-
-  if (dx > dy)
-  {
-    // colliding from left/right
-
-    if ((moveOffset.x > 0) == (position.x < elementPos.x))
-      moveOffset.x = 0;
-      // ^ only stop if heading towards element, to avoid getting stuck
-  }
-  else
-  {
-    // colliding from up/down
-
-    if ((moveOffset.y > 0) == (position.y < elementPos.y))
-      moveOffset.y = 0;
-  }
-
-  return moveOffset;  
-}
-
-/**
-  Adds or substracts player's health, which either hurts him (negative value)
-  or heals him (positive value).
-*/
-void SFG_playerChangeHealth(int8_t healthAdd)
-{
-  int16_t health = SFG_player.health;
-
-  health += healthAdd;
-
-  health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
-
-  SFG_player.health = health;
-
-  if (healthAdd < 0)
-    SFG_player.lastHurtFrame = SFG_gameFrame;
-}
-
-void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
-{
-  SFG_ProjectileRecord explostion;
-
-  explostion.type = SFG_PROJECTILE_EXPLOSION;
-
-  explostion.position[0] = x;
-  explostion.position[1] = y;
-  explostion.position[2] = z;
-
-  explostion.direction[0] = 0;
-  explostion.direction[1] = 0;
-  explostion.direction[2] = 0;
-
-  explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
-
-  SFG_createProjectile(explostion);
-
-  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
-    SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
 }
 
 /**
