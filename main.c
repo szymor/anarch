@@ -1106,7 +1106,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
         monster->stateType = e->type | 0;
-        monster->health = 255;
+        monster->health = 100;
         monster->coords[0] = e->coords[0] * 4;
         monster->coords[1] = e->coords[1] * 4;
 
@@ -1467,7 +1467,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
         SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
 
-        state = SFG_MONSTER_STATE_DYING;
+        monster->health = 0;
       }
     }
     else
@@ -2168,14 +2168,15 @@ void SFG_gameStep()
     }
   }
 
-  // update AI and remove dead monsters
+  // update AI and handle dead monsters
 
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
   {
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
-      uint8_t state = SFG_MR_STATE(SFG_currentLevel.monsterRecords[i]);
+      SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
+      uint8_t state = SFG_MR_STATE(*monster);
 
       if (state == SFG_MONSTER_STATE_DYING)
       {
@@ -2189,9 +2190,13 @@ void SFG_gameStep()
 
         i--;
       }
+      else if (monster->health == 0)
+      {
+        monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
+      }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
-        SFG_monsterPerformAI(&(SFG_currentLevel.monsterRecords[i]));
+        SFG_monsterPerformAI(monster);
       }
     }
   }
@@ -2640,7 +2645,6 @@ void SFG_mainLoopBody()
   /* standard deterministic game loop, independed on actuall achieved FPS,
      each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
-
   uint32_t timeNow = SFG_getTimeMs();
   uint32_t timeNextFrame = SFG_lastFrameTimeMs + SFG_MS_PER_FRAME;
 
