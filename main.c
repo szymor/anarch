@@ -690,6 +690,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
         textureIndex != 255 ?
           SFG_currentLevel.textures[textureIndex]:
           SFG_wallTextures[SFG_currentLevel.levelPointer->doorTextureIndex],
+
         pixel->texCoords.x / 32,
         textureV / 32)
       ) :
