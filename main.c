@@ -1466,6 +1466,8 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
        
         SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
         SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
+
+        state = SFG_MONSTER_STATE_DYING;
       }
     }
     else
@@ -2166,14 +2168,33 @@ void SFG_gameStep()
     }
   }
 
-  // update AI
+  // update AI and remove dead monsters
 
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
+  {
     for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-      if (SFG_MR_STATE(SFG_currentLevel.monsterRecords[i]) !=
-          SFG_MONSTER_STATE_INACTIVE)
+    {
+      uint8_t state = SFG_MR_STATE(SFG_currentLevel.monsterRecords[i]);
+
+      if (state == SFG_MONSTER_STATE_DYING)
+      {
+        // remove dead
+
+        for (uint8_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
+          SFG_currentLevel.monsterRecords[j] =
+            SFG_currentLevel.monsterRecords[j + 1];        
+
+        SFG_currentLevel.monsterRecordCount -= 1;
+
+        i--;
+      }
+      else if (state != SFG_MONSTER_STATE_INACTIVE)
+      {
         SFG_monsterPerformAI(&(SFG_currentLevel.monsterRecords[i]));
+      }
+    }
+  }
 }
 
 void SFG_clearScreen(uint8_t color)
