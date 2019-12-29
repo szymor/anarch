@@ -243,7 +243,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0)  // 60
   },
   {0, 1, 2, 6, 3, 12, 10}, // textureIndices
-  7,                       // doorTextureIndex
+  13,                      // doorTextureIndex
   10,                      // floorColor
   32,                      // ceilingColor
   {                        // elements
