@@ -151,7 +151,12 @@
   for distance. Higher value may decrease performance a tiny bit, but things
   will react more quickly and appear less "out of thin air".
 */
-
 #define SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME 8
+
+/**
+  Says the intensity of background image blur. 0 means no blur, improves
+  performance and lowers memory usage.
+*/
+#define SFG_BACKGROUND_BLUR 0
 
 #endif // guard

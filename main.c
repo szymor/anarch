@@ -622,6 +622,22 @@ void SFG_recompurePLayerDirection()
     / RCL_UNITS_PER_SQUARE; 
 }
 
+#if SFG_BACKGROUND_BLUR != 0
+uint8_t SFG_backgroundBlurIndex = 0;
+
+SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
+  {0  * SFG_BACKGROUND_BLUR,
+   16 * SFG_BACKGROUND_BLUR,
+   7  * SFG_BACKGROUND_BLUR,
+   17 * SFG_BACKGROUND_BLUR,
+   1  * SFG_BACKGROUND_BLUR,
+   4  * SFG_BACKGROUND_BLUR,
+   15 * SFG_BACKGROUND_BLUR,
+   9  * SFG_BACKGROUND_BLUR,
+   7  * SFG_BACKGROUND_BLUR
+  };
+#endif
+
 void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
@@ -729,10 +745,24 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
   else
   {
-    color = SFG_getTexel(SFG_backgroundImages[0],
-    SFG_backgroundScaleMap[(pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_GAME_RESOLUTION_Y],
-                                                                   // ^ TODO: get rid of mod?
-    SFG_backgroundScaleMap[pixel->position.y]);
+
+    color = SFG_getTexel(
+      SFG_backgroundImages[0],
+      SFG_backgroundScaleMap[((pixel->position.x 
+#if SFG_BACKGROUND_BLUR != 0
+        + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
+#endif
+        ) * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_GAME_RESOLUTION_Y],                                                               
+      (SFG_backgroundScaleMap[(pixel->position.y          // ^ TODO: get rid of mod?
+#if SFG_BACKGROUND_BLUR != 0
+        + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex + 1]
+#endif
+        ) % SFG_GAME_RESOLUTION_Y ])                                               
+      );
+
+#if SFG_BACKGROUND_BLUR != 0
+    SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 0x07;
+#endif
   }
 
   RCL_Unit screenX = pixel->position.x * SFG_RAYCASTING_SUBSAMPLE;
