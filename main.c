@@ -1324,15 +1324,24 @@ RCL_Vector2D SFG_resolveCollisionWithElement(
 void SFG_playerChangeHealth(int8_t healthAdd)
 {
   int16_t health = SFG_player.health;
-
   health += healthAdd;
-
   health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
 
   SFG_player.health = health;
 
   if (healthAdd < 0)
     SFG_player.lastHurtFrame = SFG_gameFrame;
+}
+
+/**
+  Same as SFG_playerChangeHealth but for monsters.
+*/
+void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
+{
+  int16_t health = monster->health;
+  health += healthAdd;
+  health = RCL_clamp(health,0,255);
+  monster->health = health;
 }
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -1355,6 +1364,22 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
     SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
+
+  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  {
+    SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
+
+    if (
+      (SFG_MR_STATE(*monster) != SFG_MONSTER_STATE_INACTIVE) &&
+      (RCL_absVal(SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]) - x) <=
+       SFG_EXPLOSION_DISTANCE) &&
+      (RCL_absVal(SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]) - y) <=
+       SFG_EXPLOSION_DISTANCE)
+      )
+    {
+      SFG_monsterChangeHealth(monster,-1 * SFG_EXPLOSION_DAMAGE);
+    }
+  }
 }
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
