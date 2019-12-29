@@ -510,59 +510,60 @@ static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 const uint8_t *SFG_getMonsterSprite(
   uint8_t monsterType, uint8_t state, uint8_t frame)
 {
-  uint8_t index = 0; // makes the code smaller compared to returning pointers
+  uint8_t index = 17; // makes the code smaller compared to returning pointers
 
-  switch (monsterType)
-  {
-    case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
-      switch (state)
-      {
-        case SFG_MONSTER_STATE_ATTACKING: index = 1; break;
-        case SFG_MONSTER_STATE_IDLE: index = 0; break;
-        default: index = frame ? 0 : 2; break;
-      }
-      break;
+  if (state != SFG_MONSTER_STATE_DYING)
+    switch (monsterType)
+    {
+      case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
+        switch (state)
+        {
+          case SFG_MONSTER_STATE_ATTACKING: index = 1; break;
+          case SFG_MONSTER_STATE_IDLE: index = 0; break;
+          default: index = frame ? 0 : 2; break;
+        }
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
-      index = state != SFG_MONSTER_STATE_ATTACKING ? 6 : 7;
-      break;
+      case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR:
+        index = state != SFG_MONSTER_STATE_ATTACKING ? 6 : 7;
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
-      switch (state)
-      {
-        case SFG_MONSTER_STATE_ATTACKING: index = 4; break;
-        case SFG_MONSTER_STATE_IDLE: index = 3; break;
-        default: index = frame ? 3 : 5; break;
-      }
-      break;
+      case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER:
+        switch (state)
+        {
+          case SFG_MONSTER_STATE_ATTACKING: index = 4; break;
+          case SFG_MONSTER_STATE_IDLE: index = 3; break;
+          default: index = frame ? 3 : 5; break;
+        }
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT:
-      index = state != SFG_MONSTER_STATE_ATTACKING ? 8 : 9;
-      break;
+      case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT:
+        index = state != SFG_MONSTER_STATE_ATTACKING ? 8 : 9;
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_ENDER:
-      switch (state)
-      {
-        case SFG_MONSTER_STATE_ATTACKING: index = 12; break;
-        case SFG_MONSTER_STATE_IDLE: index = 10; break;
-        default: index = frame ? 10 : 11; break;
-      }
-      break;
+      case SFG_LEVEL_ELEMENT_MONSTER_ENDER:
+        switch (state)
+        {
+          case SFG_MONSTER_STATE_ATTACKING: index = 12; break;
+          case SFG_MONSTER_STATE_IDLE: index = 10; break;
+          default: index = frame ? 10 : 11; break;
+        }
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
-      switch (state)
-      {
-        case SFG_MONSTER_STATE_ATTACKING: index = 15; break;
-        case SFG_MONSTER_STATE_IDLE: index = 13; break;
-        default: index = frame ? 13 : 14; break;
-      }
-      break;
+      case SFG_LEVEL_ELEMENT_MONSTER_TURRET:
+        switch (state)
+        {
+          case SFG_MONSTER_STATE_ATTACKING: index = 15; break;
+          case SFG_MONSTER_STATE_IDLE: index = 13; break;
+          default: index = frame ? 13 : 14; break;
+        }
+        break;
 
-    case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER:
-    default:
-      index = 16; 
-      break;
-  }
+      case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER:
+      default:
+        index = 16; 
+        break;
+    }
 
   return SFG_monsterSprites[index];
 }
