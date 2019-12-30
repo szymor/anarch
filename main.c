@@ -332,6 +332,8 @@ typedef struct
 #define SFG_PROJECTILE_EXPLOSION 0
 #define SFG_PROJECTILE_FIREBALL 1
 #define SFG_PROJECTILE_PLASMA 2
+#define SFG_PROJECTILE_DUST 3
+#define SFG_PROJECTILE_BULLET 4
 
 #define SFG_EXPLOSION_DURATION_DOUBLE_FRAMES \
   (SFG_EXPLOSION_DURATION / SFG_MS_PER_FRAME)
@@ -1377,21 +1379,21 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
-  SFG_ProjectileRecord explostion;
+  SFG_ProjectileRecord explosion;
 
-  explostion.type = SFG_PROJECTILE_EXPLOSION;
+  explosion.type = SFG_PROJECTILE_EXPLOSION;
 
-  explostion.position[0] = x;
-  explostion.position[1] = y;
-  explostion.position[2] = z;
+  explosion.position[0] = x;
+  explosion.position[1] = y;
+  explosion.position[2] = z;
 
-  explostion.direction[0] = 0;
-  explostion.direction[1] = 0;
-  explostion.direction[2] = 0;
+  explosion.direction[0] = 0;
+  explosion.direction[1] = 0;
+  explosion.direction[2] = 0;
 
-  explostion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+  explosion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
 
-  SFG_createProjectile(explostion);
+  SFG_createProjectile(explosion);
 
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
     SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
@@ -1411,6 +1413,25 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
       SFG_monsterChangeHealth(monster,-1 * SFG_EXPLOSION_DAMAGE);
     }
   }
+}
+
+void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  SFG_ProjectileRecord dust;
+
+  dust.type = SFG_PROJECTILE_DUST;
+
+  dust.position[0] = x;
+  dust.position[1] = y;
+  dust.position[2] = z;
+
+  dust.direction[0] = 0;
+  dust.direction[1] = 0;
+  dust.direction[2] = 0;
+
+  dust.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+
+  SFG_createProjectile(dust);
 }
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
@@ -1683,12 +1704,32 @@ void SFG_gameStep()
        SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES))
   {
     // fire
+
+    uint8_t projectile;
  
-    if (SFG_player.weapon == SFG_WEAPON_ROCKET_LAUNCHER ||
-        SFG_player.weapon == SFG_WEAPON_PLASMAGUN)
+    switch (SFG_player.weapon)
+    {
+      case SFG_WEAPON_ROCKET_LAUNCHER:
+        projectile = SFG_PROJECTILE_FIREBALL;
+        break;
+
+      case SFG_WEAPON_PLASMAGUN:
+        projectile = SFG_PROJECTILE_PLASMA;
+        break;
+
+      case SFG_WEAPON_MACHINE_GUN:
+      case SFG_WEAPON_SHOTGUN:
+        projectile = SFG_PROJECTILE_BULLET;
+        break;
+
+      default:
+        projectile = 255;
+        break;
+    }
+
+    if (projectile != 255)
       SFG_launchProjectile(
-        SFG_player.weapon == SFG_WEAPON_ROCKET_LAUNCHER ?
-           SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA,
+        projectile,
         SFG_player.camera.position,
         SFG_player.camera.height,
         RCL_angleToDirection(SFG_player.camera.direction),
@@ -2012,7 +2053,9 @@ void SFG_gameStep()
     {
       eliminate = 1;
     }
-    else if (p->type != SFG_PROJECTILE_EXPLOSION)
+    else if (
+      (p->type != SFG_PROJECTILE_EXPLOSION) &&
+      (p->type != SFG_PROJECTILE_DUST))
     {
       // check collision with the map
 
@@ -2080,6 +2123,8 @@ void SFG_gameStep()
     {
       if (p->type == SFG_PROJECTILE_FIREBALL)
         SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
+      else if (p->type == SFG_PROJECTILE_BULLET)
+        SFG_createDust(p->position[0],p->position[1],p->position[2]);
 
       // remove the projectile
 
@@ -2614,10 +2659,13 @@ void SFG_draw()
         }
       }
 
-    // projecile sprites:
+    // projectile sprites:
     for (uint8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
     {
       SFG_ProjectileRecord *proj = &(SFG_currentLevel.projectileRecords[i]);
+
+      if (proj->type == SFG_PROJECTILE_BULLET)
+        continue; // bullets aren't drawn
 
       RCL_Vector2D worldPosition;
 
@@ -2627,12 +2675,12 @@ void SFG_draw()
       RCL_PixelInfo p =
         RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
        
-      const uint8_t *s =
-        SFG_effectSprites[proj->type];
+      const uint8_t *s = SFG_effectSprites[proj->type];
 
       int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 3;
 
-      if (proj->type == SFG_PROJECTILE_EXPLOSION)
+      if (proj->type == SFG_PROJECTILE_EXPLOSION ||
+          proj->type == SFG_PROJECTILE_DUST)
       {
         // grow the explosion sprite as an animation
         spriteSize =
