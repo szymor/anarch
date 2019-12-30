@@ -88,12 +88,6 @@ void SFG_init();
   #include "platform_sdl.h"
 #endif
 
-#include "constants.h"
-#include "levels.h"
-#include "assets.h"
-#include "palette.h"
-#include "settings.h" // will include if not included by platform
-
 #define RCL_PIXEL_FUNCTION SFG_pixelFunc
 #define RCL_TEXTURE_VERTICAL_STRETCH 0
 
@@ -102,149 +96,11 @@ void SFG_init();
 
 #include "raycastlib.h" 
 
-/*
-  CONSTANTS
-===============================================================================
-*/
-
-#define SFG_WEAPON_KNIFE 0
-#define SFG_WEAPON_SHOTGUN 1
-#define SFG_WEAPON_MACHINE_GUN 2
-#define SFG_WEAPON_ROCKET_LAUNCHER 3
-#define SFG_WEAPON_PLASMAGUN 4
-
-#define SFG_WEAPONS_TOTAL 5
-
-#define SFG_GAME_RESOLUTION_X \
-  (SFG_SCREEN_RESOLUTION_X / SFG_RESOLUTION_SCALEDOWN)
-
-#define SFG_GAME_RESOLUTION_Y \
-  (SFG_SCREEN_RESOLUTION_Y / SFG_RESOLUTION_SCALEDOWN)
-
-#define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
-
-#if SFG_MS_PER_FRAME == 0
-  #define SFG_MS_PER_FRAME 1
-#endif
-
-#define SFG_WEAPON_IMAGE_SCALE \
-  (SFG_GAME_RESOLUTION_X / (SFG_TEXTURE_SIZE * 5))
-
-#if SFG_WEAPON_IMAGE_SCALE == 0
-  #define SFG_WEAPON_IMAGE_SCALE 1
-#endif
-
-#define SFG_WEAPONBOB_OFFSET_PIXELS \
-  (SFG_WEAPONBOB_OFFSET * SFG_WEAPON_IMAGE_SCALE)
-
-#define SFG_WEAPON_IMAGE_POSITION_X \
-  (SFG_GAME_RESOLUTION_X / 2 - (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE) / 2)
-
-#define SFG_WEAPON_IMAGE_POSITION_Y \
-  (SFG_GAME_RESOLUTION_Y - (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE))
-
-#define SFG_PLAYER_TURN_UNITS_PER_FRAME \
-  ((SFG_PLAYER_TURN_SPEED * RCL_UNITS_PER_SQUARE) / (360 * SFG_FPS))
-
-#if SFG_PLAYER_TURN_UNITS_PER_FRAME == 0
-  #define SFG_PLAYER_TURN_UNITS_PER_FRAME 1
-#endif
-
-#define SFG_PLAYER_MOVE_UNITS_PER_FRAME \
-  ((SFG_PLAYER_MOVE_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
-
-#if SFG_PLAYER_MOVE_UNITS_PER_FRAME == 0
-  #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
-#endif
-
-#define SFG_FIREBALL_MOVE_UNITS_PER_FRAME \
-  ((SFG_FIREBALL_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
-
-#if SFG_FIREBALL_MOVE_UNITS_PER_FRAME == 0
-  #define SFG_FIREBALL_MOVE_UNITS_PER_FRAME 1
-#endif
-
-#define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME \
-  ((SFG_GRAVITY_ACCELERATION * RCL_UNITS_PER_SQUARE) / (SFG_FPS * SFG_FPS))
-
-#if SFG_GRAVITY_SPEED_INCREASE_PER_FRAME == 0
-  #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
-#endif
-
-#define SFG_HEADBOB_FRAME_INCREASE_PER_FRAME \
-  (SFG_HEADBOB_SPEED / SFG_FPS)
-
-#if SFG_HEADBOB_FRAME_INCREASE_PER_FRAME == 0
-  #define SFG_HEADBOB_FRAME_INCREASE_PER_FRAME 1
-#endif
-
-#define SFG_HEADBOB_ENABLED (SFG_HEADBOB_SPEED > 0 && SFG_HEADBOB_OFFSET > 0)
-
-#define SFG_CAMERA_SHEAR_STEP_PER_FRAME \
-  ((SFG_GAME_RESOLUTION_Y * SFG_CAMERA_SHEAR_SPEED) / SFG_FPS)
-
-#if SFG_CAMERA_SHEAR_STEP_PER_FRAME == 0
-  #define SFG_CAMERA_SHEAR_STEP_PER_FRAME 1
-#endif
-
-#define SFG_CAMERA_MAX_SHEAR_PIXELS \
-  (SFG_CAMERA_MAX_SHEAR * SFG_GAME_RESOLUTION_Y / 1024)
-
-#define SFG_FONT_SIZE_SMALL \
- (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 50))
-
-#if SFG_FONT_SIZE_SMALL == 0
-  #define SFG_FONT_SIZE_SMALL 1
-#endif
-
-#define SFG_FONT_SIZE_MEDIUM \
-  (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 30))
-
-#if SFG_FONT_SIZE_MEDIUM == 0
-  #define SFG_FONT_SIZE_MEDIUM 1
-#endif
-
-#define SFG_FONT_SIZE_BIG \
-  (SFG_GAME_RESOLUTION_X / (SFG_FONT_CHARACTER_SIZE * 18))
-
-#if SFG_FONT_SIZE_BIG == 0
-  #define SFG_FONT_SIZE_BIG 1
-#endif
-
-#define SFG_Z_BUFFER_SIZE SFG_GAME_RESOLUTION_X
-
-/**
-  Step in which walls get higher, in raycastlib units.
-*/
-#define SFG_WALL_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 4)
-
-#define SFG_CEILING_MAX_HEIGHT\
-  (16 * RCL_UNITS_PER_SQUARE - RCL_UNITS_PER_SQUARE / 2 )
-
-#define SFG_DOOR_DEFAULT_STATE 0x1f
-#define SFG_DOOR_UP_DOWN_MASK 0x20
-#define SFG_DOOR_VERTICAL_POSITION_MASK 0x1f
-#define SFG_DOOR_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 0x1f)
-#define SFG_DOOR_INCREMENT_PER_FRAME \
-  (SFG_DOOR_OPEN_SPEED / (SFG_DOOR_HEIGHT_STEP * SFG_FPS))
-
-#if SFG_DOOR_INCREMENT_PER_FRAME == 0
-  #define SFG_DOOR_INCREMENT_PER_FRAME 1
-#endif
-
-#define SFG_MAX_DOORS 32
-
-#define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
-
-#define SFG_MAX_ITEMS SFG_MAX_LEVEL_ELEMENTS
-
-#define SFG_MAX_SPRITE_SIZE SFG_GAME_RESOLUTION_X
-
-#define SFG_MAP_PIXEL_SIZE (SFG_GAME_RESOLUTION_Y / SFG_MAP_SIZE)
-
-#if SFG_MAP_PIXEL_SIZE == 0
-  #define SFG_MAP_SIZE 1
-#endif
+#include "assets.h"
+#include "levels.h"
+#include "palette.h"
+#include "settings.h" // will include if not included by platform
+#include "constants.h"
 
 typedef struct
 {
@@ -270,6 +126,8 @@ typedef struct
             representing this item 
 */
 typedef uint8_t SFG_ItemRecord;
+
+#define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
 
 typedef struct 
 {
@@ -305,16 +163,6 @@ typedef struct
 #define SFG_MONSTER_STATE_GOING_W   11
 #define SFG_MONSTER_STATE_GOING_NW  12
 
-#define SFG_MAX_MONSTERS 64
-// TODO: ^ move these MAX constants to constants.h?
-
-#define SFG_AI_UPDATE_FRAME_INTERVAL \
-  (SFG_FPS / SFG_AI_FPS)
-
-#if SFG_AI_UPDATE_FRAME_INTERVAL == 0
-  #define SFG_AI_UPDATE_FRAME_INTERVAL 1
-#endif
-
 typedef struct
 {
   uint8_t  type;
@@ -326,46 +174,6 @@ typedef struct
                              map. */
   int16_t direction[3]; /**< Added to position each game step. */
 } SFG_ProjectileRecord;
-
-#define SFG_MAX_PROJECTILES 12
-
-#define SFG_PROJECTILE_EXPLOSION 0
-#define SFG_PROJECTILE_FIREBALL 1
-#define SFG_PROJECTILE_PLASMA 2
-#define SFG_PROJECTILE_DUST 3
-#define SFG_PROJECTILE_BULLET 4
-
-#define SFG_EXPLOSION_DURATION_DOUBLE_FRAMES \
-  (SFG_EXPLOSION_DURATION / SFG_MS_PER_FRAME)
-
-#if SFG_EXPLOSION_DURATION_DOUBLE_FRAMES == 0
-  #define SFG_EXPLOSION_DURATION_FRAMES 1
-#endif
-
-#define SFG_SPRITE_ANIMATION_FRAME_DURATION \
-  (SFG_FPS / SFG_SPRITE_ANIMATION_SPEED)
-
-#if SFG_SPRITE_ANIMATION_FRAME_DURATION == 0
-  #define SFG_SPRITE_ANIMATION_FRAME_DURATION 1
-#endif
-
-#define SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES \
-  (SFG_WEAPON_SHOTGUN_COOLDOWN / SFG_MS_PER_FRAME)
-
-#define SFG_HUD_MARGIN (SFG_GAME_RESOLUTION_X / 40)
-
-#define SFG_HUD_HEALTH_INDICATOR_WIDTH_PIXELS \
-  (SFG_GAME_RESOLUTION_Y /  SFG_HUD_HEALTH_INDICATOR_WIDTH)
-
-#define SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES \
-  (SFG_HUD_HEALTH_INDICATOR_DURATION / SFG_MS_PER_FRAME)
-
-#if SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES == 0
-  #define SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES 1
-#endif
-
-#define SFG_HUD_BAR_HEIGHT \
-  (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)
 
 /*
   GLOBAL VARIABLES
@@ -1701,25 +1509,29 @@ void SFG_gameStep()
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     (SFG_gameFrame - SFG_player.lastShotFrame >
-       SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES))
+    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
     // fire
 
     uint8_t projectile;
- 
-    switch (SFG_player.weapon)
-    {
-      case SFG_WEAPON_ROCKET_LAUNCHER:
-        projectile = SFG_PROJECTILE_FIREBALL;
-        break;
 
-      case SFG_WEAPON_PLASMAGUN:
+    switch (SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon))
+    {
+      case SFG_WEAPON_FIRE_TYPE_PLASMA:
         projectile = SFG_PROJECTILE_PLASMA;
         break;
 
-      case SFG_WEAPON_MACHINE_GUN:
-      case SFG_WEAPON_SHOTGUN:
+      case SFG_WEAPON_FIRE_TYPE_FIREBALL:
+        projectile = SFG_PROJECTILE_FIREBALL;
+        break;
+
+      case SFG_WEAPON_FIRE_TYPE_BULLET:
+      case SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS:
         projectile = SFG_PROJECTILE_BULLET;
+        break;
+
+      case SFG_WEAPON_FIRE_TYPE_MELEE:
+        projectile = SFG_PROJECTILE_NONE;
         break;
 
       default:
@@ -1727,7 +1539,7 @@ void SFG_gameStep()
         break;
     }
 
-    if (projectile != 255)
+    if (projectile != SFG_PROJECTILE_NONE)
       SFG_launchProjectile(
         projectile,
         SFG_player.camera.position,
@@ -2518,7 +2330,7 @@ void SFG_drawWeapon(int16_t bobOffset)
 {
   uint32_t shotAnimationFrame = SFG_gameFrame - SFG_player.lastShotFrame;
 
-  uint32_t animationLength = SFG_WEAPON_SHOTGUN_COOLDOWN_FRAMES;
+  uint32_t animationLength = SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
 
   bobOffset -= SFG_HUD_BAR_HEIGHT;
 
