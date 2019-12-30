@@ -102,6 +102,11 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_MONSTER_TURRET 0x50
 #define SFG_LEVEL_ELEMENT_MONSTER_EXPLODER 0x60
 
+#define SFG_MONSTERS_TOTAL 7
+
+#define SFG_MONSTER_TYPE_TO_INDEX(monsterType) \
+  ((monsterType) >> 4)
+
 #define SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(t) (((t) & 0x0f) == 0)
 
 typedef struct

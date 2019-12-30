@@ -947,7 +947,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
         monster->stateType = e->type | 0;
-        monster->health = 100;
+        monster->health = SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
+
         monster->coords[0] = e->coords[0] * 4;
         monster->coords[1] = e->coords[1] * 4;
 
@@ -992,7 +993,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level1);
+  SFG_setAndInitLevel(&SFG_level0);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
@@ -1034,6 +1035,9 @@ uint8_t SFG_launchProjectile(
   RCL_Unit offsetDistance
   )
 {
+  if (type == SFG_PROJECTILE_NONE)
+    return;
+
   SFG_ProjectileRecord p;
 
   p.type = type;
@@ -1249,20 +1253,25 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = SFG_MR_STATE(*monster);
   uint8_t type = SFG_MR_TYPE(*monster);
+  uint8_t monsterNumber = SFG_MONSTER_TYPE_TO_INDEX(type);
+  uint8_t attackType = SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber);
 
   int8_t coordAdd[2];
 
   coordAdd[0] = 0;
   coordAdd[1] = 0;
 
-  uint8_t melee = (type == SFG_LEVEL_ELEMENT_MONSTER_WARRIOR) ||
-                  (type == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER);
+  uint8_t notRanged =
+    (attackType == SFG_MONSTER_ATTACK_MELEE) || 
+    (attackType == SFG_MONSTER_ATTACK_EXPLODE); 
 
-  if ( // sometimes randomly change state
-    (SFG_random() < SFG_AI_RANDOM_CHANGE_PROBABILITY) &&
-    (type != SFG_LEVEL_ELEMENT_MONSTER_EXPLODER))
+  if ( // sometimes randomly attack
+       !notRanged &&
+       (SFG_random() < 
+       SFG_GET_MONSTER_AGGRESSIVITY(SFG_MONSTER_TYPE_TO_INDEX(type)))
+     )
   { 
-    if (!melee && (SFG_random() % 4 != 0))
+    if (!notRanged && (SFG_random() % 4 != 0))
     {
       // attack
  
@@ -1281,9 +1290,35 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
         dir = RCL_normalize(dir);
 
+        uint8_t projectile;  
+
+        switch (SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber))
+        {
+          case SFG_MONSTER_ATTACK_FIREBALL:
+            projectile = SFG_PROJECTILE_FIREBALL; 
+            break;
+
+          case SFG_MONSTER_ATTACK_BULLET:
+            projectile = SFG_PROJECTILE_BULLET; 
+            break;
+
+          case SFG_MONSTER_ATTACK_PLASMA:
+            projectile = SFG_PROJECTILE_PLASMA;
+            break;
+
+          case SFG_MONSTER_ATTACK_FIREBALL_BULLET:
+            projectile = (SFG_random() < 128) ?
+              SFG_PROJECTILE_FIREBALL : 
+              SFG_PROJECTILE_BULLET;
+            break;
+
+          default:
+            projectile = SFG_PROJECTILE_NONE; 
+            break;
+        }
+
         SFG_launchProjectile(
-          type != SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT ?
-          SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA,
+          projectile,
           pos,
           SFG_floorHeightAt(
              SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
@@ -1300,23 +1335,33 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   }
   else if (state == SFG_MONSTER_STATE_IDLE)
   {
-    if (melee)
+    if (notRanged)
     {
-      // melee monsters walk towards player
+      // non-ranged monsters walk towards player
 
       uint8_t mX = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
       uint8_t mY = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
 
-      if (!( // exploder will explode when close
-         (type == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER) &&
-          (((mX > SFG_player.squarePosition[0]) ?
-            (mX - SFG_player.squarePosition[0]) :
-            (SFG_player.squarePosition[0] - mX)) <= 1) &&
-          (((mY > SFG_player.squarePosition[1]) ?
-            (mY - SFG_player.squarePosition[1]) :
-            (SFG_player.squarePosition[1] - mY)) <= 1)
-           ))
+      uint8_t isClose = // close to player?
+       (
+         (
+           (mX > SFG_player.squarePosition[0]) ?
+           (mX - SFG_player.squarePosition[0]) :
+           (SFG_player.squarePosition[0] - mX)
+         ) <= 1
+       ) &&
+       (
+         (
+           (mY > SFG_player.squarePosition[1]) ?
+           (mY - SFG_player.squarePosition[1]) :
+           (SFG_player.squarePosition[1] - mY)
+         ) <= 1
+       );
+
+      if (!isClose)
       {
+        // walk towards player
+
         if (mX > SFG_player.squarePosition[0])
         {
           if (mY > SFG_player.squarePosition[1])
@@ -1345,22 +1390,32 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       }
       else
       {
-        // exploder explodes
+        if (attackType == SFG_MONSTER_ATTACK_MELEE)
+        {
+          // melee attack
 
-        uint8_t properties;
+          state = SFG_MONSTER_STATE_ATTACKING;
+        }
+        else // SFG_MONSTER_ATTACK_EXPLODE
+        {
+          // explode
 
-        SFG_TileDefinition tile =
-          SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
-       
-        SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
-        SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
+          uint8_t properties;
 
-        monster->health = 0;
+          SFG_TileDefinition tile =
+            SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
+         
+          SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
+          SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
+
+          monster->health = 0;
+          
+        }
       }
     }
-    else
+    else // ranged monsters
     {
-      // ranged monsters choose direction randomly
+      // choose walk direction randomly
 
       switch (SFG_random() % 8)
       {
@@ -1382,7 +1437,12 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   }
   else
   {
-    int8_t add = type != SFG_LEVEL_ELEMENT_MONSTER_EXPLODER ? 1 : 3;
+    int8_t add = 1;
+
+    if (attackType == SFG_MONSTER_ATTACK_MELEE)
+      add = 2;
+    else if (attackType == SFG_MONSTER_ATTACK_EXPLODE)
+      add = 3;
 
     if (state == SFG_MONSTER_STATE_GOING_E ||
         state == SFG_MONSTER_STATE_GOING_NE ||

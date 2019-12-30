@@ -268,6 +268,56 @@
   (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)
 
 // ----------------------------
+// monsters
+
+#define SFG_MONSTER_ATTACK_MELEE 0
+#define SFG_MONSTER_ATTACK_FIREBALL 1
+#define SFG_MONSTER_ATTACK_BULLET 2
+#define SFG_MONSTER_ATTACK_FIREBALL_BULLET 3
+#define SFG_MONSTER_ATTACK_PLASMA 4
+#define SFG_MONSTER_ATTACK_EXPLODE 5
+
+#define SFG_MONSTER_ATTRIBUTE(attackType,aggressivity0to255,health0to255,spriteSize0to3) \
+  ((uint16_t) ( \
+   attackType | \
+   ((aggressivity0to255 / 8) << 3) | \
+   (spriteSize0to3 << 8) | \
+   ((health0to255 / 4) << 10)))
+
+#define SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber) \
+  (SFG_monsterAttributeTable[monsterNumber] & 0x0007)
+
+#define SFG_GET_MONSTER_AGGRESSIVITY(monsterNumber) \
+  (((SFG_monsterAttributeTable[monsterNumber] >> 3) & 0x1F) * 8)
+
+#define SFG_GET_MONSTER_SPRITE_SIZE(monsterNumber) \
+  ((SFG_monsterAttributeTable[monsterNumber] >> 8) & 0x03)
+
+#define SFG_GET_MONSTER_MAX_HEALTH(monsterNumber) \
+  (((SFG_monsterAttributeTable[monsterNumber] >> 10) & 0x3F) * 4)
+
+/**
+  Table of monster attributes, each as a 16bit word in format:
+
+  MSB hhhhhhssaaaattt LSB
+
+  ttt:    attack type
+  aaaaa:  aggressivity (frequence of attacks), 0 to 31
+  ss:     sprite size
+  hhhhhh: health, 0 to 63
+*/
+uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
+{
+  /* spider  */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_FIREBALL,40,120,3),
+  /* destr.  */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_FIREBALL_BULLET,50,130,3),
+  /* warrior */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_MELEE,255,70,2),
+  /* plasma  */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_PLASMA,55,92,2),
+  /* ender   */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_FIREBALL_BULLET,75,255,4),
+  /* turret  */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_BULLET,32,50,2),
+  /* explod. */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_EXPLODE,255,60,2)
+};
+
+// ----------------------------
 // weapons and projectiles
 
 #define SFG_WEAPON_KNIFE 0
@@ -296,7 +346,7 @@
 /**
   Table of weapon attributes, each as a byte in format:
 
-  cccccfff
+  MSB cccccfff LSB
 
   fff:    fire type
   ccccc:  fire cooldown in frames, i.e. time after which the next shot can be
@@ -334,7 +384,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 /**
   Table of projectile attributes, each as a byte in format:
 
-  lllllsss
+  MSB lllllsss LSB
 
   fff:   half speed in game squares per second
   lllll: eigth of frames to live
