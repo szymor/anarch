@@ -1037,7 +1037,8 @@ uint8_t SFG_launchProjectile(
   SFG_ProjectileRecord p;
 
   p.type = type;
-  p.doubleFramesToLive = 255;
+  p.doubleFramesToLive = 
+    RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(type) / 2);
   
   p.position[0] =
     shootFrom.x + (direction.x * offsetDistance) / RCL_UNITS_PER_SQUARE;
@@ -1048,10 +1049,10 @@ uint8_t SFG_launchProjectile(
   p.position[2] = shootFromHeight;
 
   p.direction[0] = 
-    (direction.x * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+    (direction.x * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
 
   p.direction[1] =
-    (direction.y * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / RCL_UNITS_PER_SQUARE;
+    (direction.y * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
 
   p.direction[2] = verticalSpeed;
 
@@ -1199,7 +1200,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   explosion.direction[1] = 0;
   explosion.direction[2] = 0;
 
-  explosion.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+  explosion.doubleFramesToLive = RCL_nonZero(
+    SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_EXPLOSION) / 2);
 
   SFG_createProjectile(explosion);
 
@@ -1237,7 +1239,8 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   dust.direction[1] = 0;
   dust.direction[2] = 0;
 
-  dust.doubleFramesToLive = SFG_EXPLOSION_DURATION_DOUBLE_FRAMES;
+  dust.doubleFramesToLive =
+    RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_DUST) / 2);
 
   SFG_createProjectile(dust);
 }
@@ -1545,7 +1548,7 @@ void SFG_gameStep()
         SFG_player.camera.position,
         SFG_player.camera.height,
         RCL_angleToDirection(SFG_player.camera.direction),
-        (SFG_player.camera.shear * SFG_FIREBALL_MOVE_UNITS_PER_FRAME) / 
+        (SFG_player.camera.shear * SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
           SFG_CAMERA_MAX_SHEAR_PIXELS,
         SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
         );
@@ -2494,14 +2497,17 @@ void SFG_draw()
       if (proj->type == SFG_PROJECTILE_EXPLOSION ||
           proj->type == SFG_PROJECTILE_DUST)
       {
+        int16_t doubleFramesToLive =
+          RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(proj->type) / 2);
+
         // grow the explosion sprite as an animation
         spriteSize =
           (
             SFG_GAME_RESOLUTION_Y *
             RCL_sinInt(          
-              ((SFG_EXPLOSION_DURATION_DOUBLE_FRAMES -
+              ((doubleFramesToLive -
                proj->doubleFramesToLive) * RCL_UNITS_PER_SQUARE / 4)
-               / SFG_EXPLOSION_DURATION_DOUBLE_FRAMES) 
+               / doubleFramesToLive) 
           ) / RCL_UNITS_PER_SQUARE;
       }
 

@@ -126,11 +126,6 @@
 #define SFG_CAMERA_MAX_SHEAR 1024
 
 /**
-  Duration in ms of the explosion animation.
-*/
-#define SFG_EXPLOSION_DURATION 120
-
-/**
   Specifies how quick some sprite animations are, in frames per second.
 */
 #define SFG_SPRITE_ANIMATION_SPEED 4

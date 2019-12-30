@@ -67,11 +67,6 @@
 #define SFG_AI_RANDOM_CHANGE_PROBABILITY 40
 
 /**
-  Speed of rocket projectile, in squares per second.
-*/
-#define SFG_FIREBALL_SPEED 15
-
-/**
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
@@ -114,13 +109,6 @@
 #define SFG_MAX_PROJECTILES 12
 
 #define SFG_MAX_DOORS 32
-
-#define SFG_PROJECTILE_EXPLOSION 0
-#define SFG_PROJECTILE_FIREBALL 1
-#define SFG_PROJECTILE_PLASMA 2
-#define SFG_PROJECTILE_DUST 3
-#define SFG_PROJECTILE_BULLET 4
-#define SFG_PROJECTILE_NONE 255
 
 // ----------------------------
 // derived constants
@@ -165,13 +153,6 @@
 
 #if SFG_PLAYER_MOVE_UNITS_PER_FRAME == 0
   #define SFG_PLAYER_MOVE_UNITS_PER_FRAME 1
-#endif
-
-#define SFG_FIREBALL_MOVE_UNITS_PER_FRAME \
-  ((SFG_FIREBALL_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
-
-#if SFG_FIREBALL_MOVE_UNITS_PER_FRAME == 0
-  #define SFG_FIREBALL_MOVE_UNITS_PER_FRAME 1
 #endif
 
 #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME \
@@ -260,9 +241,6 @@
   #define SFG_AI_UPDATE_FRAME_INTERVAL 1
 #endif
 
-#define SFG_EXPLOSION_DURATION_DOUBLE_FRAMES \
-  (SFG_EXPLOSION_DURATION / SFG_MS_PER_FRAME)
-
 #if SFG_EXPLOSION_DURATION_DOUBLE_FRAMES == 0
   #define SFG_EXPLOSION_DURATION_FRAMES 1
 #endif
@@ -290,7 +268,7 @@
   (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)
 
 // ----------------------------
-// weapons
+// weapons and projectiles
 
 #define SFG_WEAPON_KNIFE 0
 #define SFG_WEAPON_SHOTGUN 1
@@ -316,7 +294,7 @@
 #define SFG_WEAPON_FIRE_TYPE_PLASMA 4
 
 /**
-  Table of Weapon attributes, each as a byte in format :
+  Table of weapon attributes, each as a byte in format:
 
   cccccfff
 
@@ -331,6 +309,43 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
   /* m. gun */   SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,300),
   /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,900),
   /* plasma */   SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,350)
+};
+
+#define SFG_PROJECTILE_EXPLOSION 0
+#define SFG_PROJECTILE_FIREBALL 1
+#define SFG_PROJECTILE_PLASMA 2
+#define SFG_PROJECTILE_DUST 3
+#define SFG_PROJECTILE_BULLET 4
+#define SFG_PROJECTILE_NONE 255
+
+#define SFG_PROJECTILES_TOTAL 5
+
+#define SFG_PROJECTILE_ATTRIBUTE(speedSquaresPerSec,timeToLiveMs) \
+  ((uint8_t) \
+   ((((speedSquaresPerSec / 4 == 0) && (speedSquaresPerSec != 0)) ? 1 : speedSquaresPerSec / 4) | \
+    ((timeToLiveMs / (8 * SFG_MS_PER_FRAME)) << 3)))
+
+#define SFG_GET_PROJECTILE_SPEED_UPS(projectileNumber) \
+  (((SFG_projectileAttributeTable[projectileNumber] & 0x07) * 4 * RCL_UNITS_PER_SQUARE) / SFG_FPS)
+
+#define SFG_GET_PROJECTILE_FRAMES_TO_LIVE(projectileNumber) \
+  ((SFG_projectileAttributeTable[projectileNumber] >> 3) * 8)
+
+/**
+  Table of projectile attributes, each as a byte in format:
+
+  lllllsss
+
+  fff:   half speed in game squares per second
+  lllll: eigth of frames to live
+*/
+SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
+{
+  /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,300),
+  /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(18,1000),
+  /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(20,500),
+  /* dust      */ SFG_PROJECTILE_ATTRIBUTE(0,450),
+  /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(28,1000)
 };
 
 #endif // guard
