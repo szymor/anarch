@@ -391,7 +391,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 */
 SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {
-  /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,300),
+  /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,400),
   /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(18,1000),
   /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(20,500),
   /* dust      */ SFG_PROJECTILE_ATTRIBUTE(0,450),

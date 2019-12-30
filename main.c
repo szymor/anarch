@@ -1036,7 +1036,7 @@ uint8_t SFG_launchProjectile(
   )
 {
   if (type == SFG_PROJECTILE_NONE)
-    return;
+    return 0;
 
   SFG_ProjectileRecord p;
 
