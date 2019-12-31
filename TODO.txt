@@ -12,6 +12,14 @@
 - replace textures in distace with constant color for performance (setting)?
 - add time slowdown constant
 - if space left, try blurring (lerp) the level background, see how it looks
+- create tables for monster and weapon stats in constants.h and read from that
+  instead of cheking with ifs
+- some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
+  back towards the player
+- compile with different compilers (gcc, clang, musl, ...) and settings, make
+  a build script that creates multiple binaries (with different combinations of
+  compilers and settings)
+- run on raspbery pi
 
 bugs:
 
