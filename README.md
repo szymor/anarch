@@ -4,19 +4,23 @@
 
 Why?
 
-- Like Doom but much better because of the following.
-- Extemely low HW demands (no GPU, no FPU, just kilobytes of RAM and storage).
-- Extremely portable (much more than Doom).
-- Has completely NO dependencies, not even rendering or IO, that is left to each platform's frontend, but every frontend is extremely simple (~100 LOC).
-- Fits into less than 256 kb (including all content, textures etc.).
-- Uses no build system, can typically be compiled with a single run of compiler.
-- Doesn't need any file IO, i.e. can work without config files, save files, all content is part of source code.
-- Doesn't use ANY floating point, everything is integer math (good for platforms without FPU).
-- Pure C99, also a subset of C++ (i.e. runs as C++ as well, good for systems that are hard C++ based).
-- Completely public domain for the benefit of all people on Earth, no conoditions on use whatsoever. All art is original work and licensed CC0 (as well as code).
-- Suckless, minimal, simple.
-- Single compilation unit (only one .c file to compile).
-- Well documented and commented code, written with tinkering in mind.
+- **Like Doom** but much better because of the following.
+- **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
+- **Extremely portable** (much more than Doom).
+- Has **completely NO dependencies**, not even rendering or IO, that is left to each platform's frontend, but every frontend is extremely simple (~100 LOC).
+- Fits into **less than 256 kb** (including all content, textures etc.).
+- Uses **no build system**, can typically be compiled with a single run of compiler.
+- **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
+- **Doesn't use ANY floating point**, everything is integer math (good for platforms without FPU).
+- **Pure C99**, also a **subset of C++** (i.e. runs as C++ as well, good for systems that are hard C++ based).
+- **Completely public domain (CC0) free softare, free culture libre game** for the benefit of all people on Earth, no conoditions on use whatsoever. All art is original work and licensed CC0 (as well as code).
+- **Suckless, KISS, minimal, simple**.
+- Made to **last for centuries** without maintenance.
+- Goes beyond technical design and also **attempts to avoid possible cultural dependencies and barriers** (enemies are only robots, no violence on living beings).
+- **Creted with only completely free software** (Debian, GIMP, gcc, Vim, ...).
+- **Single compilation unit** (only one .c file to compile, very fast and simple).
+- Uses a **custom-made 256** color palette (but can run on platforms with fever colors, even just two).
+- **Well documented and commented code**, written with tinkering and remixing in mind.
 
 early previews:
 
