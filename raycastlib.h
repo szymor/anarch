@@ -1549,8 +1549,7 @@ static inline void _RCL_precomputeFloorDistances(RCL_Camera camera,
   RCL_Unit camHeightScreenSize =
     (camera.height * camera.resolution.y) / RCL_UNITS_PER_SQUARE;
 
-  for (uint16_t i = startIndex
-; i < camera.resolution.y; ++i)
+  for (uint16_t i = startIndex; i < camera.resolution.y; ++i)
     dest[i] = RCL_perspectiveScaleInverse(camHeightScreenSize,
              RCL_absVal(i - _RCL_middleRow));
 }
@@ -1681,7 +1680,8 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
     middleColumn + (-1 * toPoint.y * middleColumn) / RCL_nonZero(result.depth);
 
   result.position.y = camera.resolution.y / 2 -
-    (camera.resolution.y *
+(((3 * camera.resolution.y) / 4 ) *
+//    ((camera.resolution.y / 2) *
      RCL_perspectiveScale(height - camera.height,result.depth))
      / RCL_UNITS_PER_SQUARE + camera.shear;
 

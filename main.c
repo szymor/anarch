@@ -482,9 +482,12 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t shadow = 0;
 
   if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
+  {
+    uint8_t zValue = pixel->isWall ? SFG_RCLUnitToZBuffer(pixel->depth) : 255;
+
     for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
-      SFG_zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] =
-        SFG_RCLUnitToZBuffer(pixel->depth);
+      SFG_zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] = zValue;
+  }
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
@@ -950,8 +953,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster->stateType = e->type | 0;
         monster->health = SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
 
-        monster->coords[0] = e->coords[0] * 4;
-        monster->coords[1] = e->coords[1] * 4;
+        monster->coords[0] = e->coords[0] * 4 + 2;
+        monster->coords[1] = e->coords[1] * 4 + 2;
 
         SFG_currentLevel.monsterRecordCount++;
       }
@@ -994,7 +997,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level1);
+  SFG_setAndInitLevel(&SFG_level0);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
@@ -1259,6 +1262,7 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
+return;
   uint8_t state = SFG_MR_STATE(*monster);
   uint8_t type = SFG_MR_TYPE(*monster);
   uint8_t monsterNumber = SFG_MONSTER_TYPE_TO_INDEX(type);
@@ -2522,7 +2526,7 @@ void SFG_draw()
 
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y,p.depth),
+            RCL_perspectiveScale(SFG_BASE_SPRITE_SIZE,p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
         }
       }
@@ -2555,8 +2559,9 @@ void SFG_draw()
         {
           SFG_drawScaledSprite(SFG_itemSprites[e.type - 1],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_GAME_RESOLUTION_Y / 2,p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+
+            RCL_perspectiveScale(SFG_BASE_SPRITE_SIZE,p.depth)/*40*/,
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
         }
       }
 
@@ -2578,7 +2583,7 @@ void SFG_draw()
        
       const uint8_t *s = SFG_effectSprites[proj->type];
 
-      int16_t spriteSize = SFG_GAME_RESOLUTION_Y / 3;
+      int16_t spriteSize = SFG_BASE_SPRITE_SIZE / 2;
 
       if (proj->type == SFG_PROJECTILE_EXPLOSION ||
           proj->type == SFG_PROJECTILE_DUST)
@@ -2589,7 +2594,7 @@ void SFG_draw()
         // grow the explosion sprite as an animation
         spriteSize =
           (
-            SFG_GAME_RESOLUTION_Y *
+            SFG_BASE_SPRITE_SIZE *
             RCL_sinInt(          
               ((doubleFramesToLive -
                proj->doubleFramesToLive) * RCL_UNITS_PER_SQUARE / 4)

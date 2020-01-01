@@ -126,6 +126,9 @@
 
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
 
+#define SFG_BASE_SPRITE_SIZE \
+  ((SFG_GAME_RESOLUTION_Y * 2) / 3)
+
 #if SFG_MS_PER_FRAME == 0
   #define SFG_MS_PER_FRAME 1
 #endif
