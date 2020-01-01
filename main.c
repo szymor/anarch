@@ -1596,7 +1596,6 @@ void SFG_gameStep()
         projectile = SFG_PROJECTILE_FIREBALL;
         break;
 
-      case SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS:
       case SFG_WEAPON_FIRE_TYPE_BULLET:
         projectile = SFG_PROJECTILE_BULLET;
         break;
@@ -1612,13 +1611,8 @@ void SFG_gameStep()
         
     if (projectile != SFG_PROJECTILE_NONE)
     {
-      uint8_t projectileCount = 1;
-
-// TODO: move bullet count to weapon table
-if (SFG_player.weapon == SFG_WEAPON_SHOTGUN)
-projectileCount = 2;
-else if (SFG_player.weapon == SFG_WEAPON_SOLUTION)
-projectileCount = 4;
+      uint8_t projectileCount = 
+        SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
 
       uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
 
@@ -2444,8 +2438,7 @@ void SFG_drawWeapon(int16_t bobOffset)
    
       if (
         ((fireType == SFG_WEAPON_FIRE_TYPE_FIREBALL) ||
-         (fireType == SFG_WEAPON_FIRE_TYPE_BULLET) ||
-         (fireType == SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS)) &&
+         (fireType == SFG_WEAPON_FIRE_TYPE_BULLET)) &&
         shotAnimationFrame < animationLength / 2)
         SFG_blitImage(SFG_effectSprites[0],
           SFG_WEAPON_IMAGE_POSITION_X,

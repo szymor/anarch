@@ -334,38 +334,41 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
 
 #define SFG_WEAPONS_TOTAL 6
 
-#define SFG_WEAPON_ATTRIBUTE(fireType,fireCooldownMs) \
-  ((uint8_t) (fireType | ((fireCooldownMs / (SFG_MS_PER_FRAME * 4)) << 3)))
+#define SFG_WEAPON_ATTRIBUTE(fireType,projectileCount,fireCooldownMs) \
+  ((uint8_t) (fireType | ((projectileCount - 1) << 2) | ((fireCooldownMs / (SFG_MS_PER_FRAME * 16)) << 4)))
 
 #define SFG_GET_WEAPON_FIRE_TYPE(weaponNumber) \
-  (SFG_weaponAttributeTable[weaponNumber] & 0x7)
+  (SFG_weaponAttributeTable[weaponNumber] & 0x03)
 
 #define SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(weaponNumber) \
-  ((SFG_weaponAttributeTable[weaponNumber] >> 3) * 4)
+  ((SFG_weaponAttributeTable[weaponNumber] >> 4) * 16)
+
+#define SFG_GET_WEAPON_PROJECTILE_COUNT(weaponNumber) \
+  (((SFG_weaponAttributeTable[weaponNumber] >> 2) & 0x03) + 1)
 
 #define SFG_WEAPON_FIRE_TYPE_MELEE 0
 #define SFG_WEAPON_FIRE_TYPE_BULLET 1
-#define SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS 2
-#define SFG_WEAPON_FIRE_TYPE_FIREBALL 3
-#define SFG_WEAPON_FIRE_TYPE_PLASMA 4
+#define SFG_WEAPON_FIRE_TYPE_FIREBALL 2
+#define SFG_WEAPON_FIRE_TYPE_PLASMA 3
 
 /**
   Table of weapon attributes, each as a byte in format:
 
-  MSB cccccfff LSB
+  MSB ccccnnff LSB
 
-  fff:    fire type
-  ccccc:  fire cooldown in frames, i.e. time after which the next shot can be
-          shot again, ccccc has to be multiplied by 32 to ge the real value
+  ff:     fire type
+  nn:     number of projectiles - 1
+  cccc:   fire cooldown in frames, i.e. time after which the next shot can be
+          shot again, ccccc has to be multiplied by 16 to ge the real value
 */
 SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 {
-  /* knife    */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_MELEE,400),
-  /* shotgun  */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS,800),
-  /* m. gun   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,300),
-  /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,900),
-  /* plasma   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,350),
-  /* solution */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,750)
+  /* knife    */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_MELEE,1,650),
+  /* shotgun  */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,2,800),
+  /* m. gun   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,1,500),
+  /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,1,900),
+  /* plasma   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,1,600),
+  /* solution */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,4,1000)
 };
 
 #define SFG_PROJECTILE_EXPLOSION 0
