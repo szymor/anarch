@@ -1596,8 +1596,8 @@ void SFG_gameStep()
         projectile = SFG_PROJECTILE_FIREBALL;
         break;
 
-      case SFG_WEAPON_FIRE_TYPE_BULLET:
       case SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS:
+      case SFG_WEAPON_FIRE_TYPE_BULLET:
         projectile = SFG_PROJECTILE_BULLET;
         break;
 
@@ -1609,17 +1609,38 @@ void SFG_gameStep()
         projectile = 255;
         break;
     }
-
+        
     if (projectile != SFG_PROJECTILE_NONE)
-      SFG_launchProjectile(
-        projectile,
-        SFG_player.camera.position,
-        SFG_player.camera.height,
-        RCL_angleToDirection(SFG_player.camera.direction),
-        (SFG_player.camera.shear * SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
-          SFG_CAMERA_MAX_SHEAR_PIXELS,
-        SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
-        );
+    {
+      uint8_t projectileCount = 1;
+
+// TODO: move bullet count to weapon table
+if (SFG_player.weapon == SFG_WEAPON_SHOTGUN)
+projectileCount = 2;
+else if (SFG_player.weapon == SFG_WEAPON_SOLUTION)
+projectileCount = 4;
+
+      uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
+
+      RCL_Unit direction =
+        (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
+        + angleAdd;
+
+      for (uint8_t i = 0; i < projectileCount; ++i)
+      {
+        SFG_launchProjectile(
+          projectile,
+          SFG_player.camera.position,
+          SFG_player.camera.height,
+          RCL_angleToDirection(direction),
+          (SFG_player.camera.shear * SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
+            SFG_CAMERA_MAX_SHEAR_PIXELS,
+          SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
+          );
+
+        direction += angleAdd;
+      }
+    }
 
     SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
   }
