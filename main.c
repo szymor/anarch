@@ -198,8 +198,9 @@ struct
 
   uint8_t health;
 
-  uint32_t lastShotFrame;         ///< frame at which last shot was fired
-  uint32_t lastHurtFrame;
+  uint32_t weaponCooldownStartFrame;   /**< frame from which weapon cooldown is
+                                            counted */
+  uint32_t lastHurtFrame; 
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -469,7 +470,7 @@ void SFG_initPlayer()
 
   SFG_player.weapon = 2;
 
-  SFG_player.lastShotFrame = SFG_gameFrame;
+  SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
   SFG_player.lastHurtFrame = SFG_gameFrame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
@@ -993,7 +994,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level0);
+  SFG_setAndInitLevel(&SFG_level1);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
@@ -1001,7 +1002,14 @@ void SFG_init()
 void SFG_playerRotateWeapon(uint8_t next)
 {
   SFG_player.weapon += next ? 1 : -1;
-  SFG_player.weapon %= SFG_WEAPONS_TOTAL;
+
+  if (SFG_player.weapon == SFG_WEAPONS_TOTAL)
+    SFG_player.weapon = 0;
+  else if (SFG_player.weapon < 0 || SFG_player.weapon > SFG_WEAPONS_TOTAL)
+    SFG_player.weapon = SFG_WEAPONS_TOTAL - 1;
+
+  SFG_player.weaponCooldownStartFrame = SFG_gameFrame -
+    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon) / 2;
 }
 
 /**
@@ -1571,7 +1579,7 @@ void SFG_gameStep()
 
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
-    (SFG_gameFrame - SFG_player.lastShotFrame >
+    (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
     // fire
@@ -1613,7 +1621,7 @@ void SFG_gameStep()
         SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
         );
 
-    SFG_player.lastShotFrame = SFG_gameFrame;
+    SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
   }
 
   if (SFG_keyIsDown(SFG_KEY_A))
@@ -2391,15 +2399,18 @@ void SFG_drawHealthChangeBorder(uint16_t width, uint8_t color)
 */
 void SFG_drawWeapon(int16_t bobOffset)
 {
-  uint32_t shotAnimationFrame = SFG_gameFrame - SFG_player.lastShotFrame;
+  uint32_t shotAnimationFrame =
+    SFG_gameFrame - SFG_player.weaponCooldownStartFrame;
 
   uint32_t animationLength = SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
 
   bobOffset -= SFG_HUD_BAR_HEIGHT;
+     
+  uint8_t fireType = SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon);
 
   if (shotAnimationFrame < animationLength)
   {
-    if (SFG_player.weapon == SFG_WEAPON_KNIFE)
+    if (fireType == SFG_WEAPON_FIRE_TYPE_MELEE)
     {
       bobOffset = shotAnimationFrame < animationLength / 2 ? 0 :
         2 * SFG_WEAPONBOB_OFFSET_PIXELS     ;
@@ -2411,8 +2422,9 @@ void SFG_drawWeapon(int16_t bobOffset)
           / animationLength;
    
       if (
-        SFG_player.weapon != SFG_WEAPON_KNIFE &&
-        SFG_player.weapon != SFG_WEAPON_PLASMAGUN &&
+        ((fireType == SFG_WEAPON_FIRE_TYPE_FIREBALL) ||
+         (fireType == SFG_WEAPON_FIRE_TYPE_BULLET) ||
+         (fireType == SFG_WEAPON_FIRE_TYPE_SPREAD_BULLETS)) &&
         shotAnimationFrame < animationLength / 2)
         SFG_blitImage(SFG_effectSprites[0],
           SFG_WEAPON_IMAGE_POSITION_X,
