@@ -950,7 +950,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
-        monster->stateType = e->type | 0;
+        monster->stateType = e->type | SFG_MONSTER_STATE_INACTIVE;
         monster->health = SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
 
         monster->coords[0] = e->coords[0] * 4 + 2;
@@ -1971,18 +1971,18 @@ void SFG_gameStep()
       {
         SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
 
-        if (SFG_MR_TYPE(*m) != SFG_MONSTER_STATE_INACTIVE)
+        if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
         {
           if (
              SFG_elementCollides(
+               p->position[0],
+               p->position[1],
+               p->position[2],
                SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
                SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
                SFG_floorHeightAt(
                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
-               p->position[0],
-               p->position[1],
-               p->position[2],
                0,
                0)
              )
