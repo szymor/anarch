@@ -2090,7 +2090,7 @@ void SFG_gameStep()
              )
           {
             eliminate = 1;
-            SFG_monsterChangeHealth(m,SFG_getDamageValue(attackType));
+            SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
             break;
           }
         }
