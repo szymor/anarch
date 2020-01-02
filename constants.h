@@ -29,14 +29,23 @@
 /**
   Gravity acceleration in squares / (second^2).
 */
-
 #define SFG_GRAVITY_ACCELERATION 30
 
 /**
   Initial upwards speed of player's jump, in squares per second. 
 */
-
 #define SFG_PLAYER_JUMP_SPEED 80
+
+/**
+  Melee and close-up attack range, in RCL_Units.
+*/
+#define SFG_MELEE_RANGE 1400
+
+/**
+  Player's melee hit range, in RCL_Units (RCL_UNITS_PER_SQUARE means full angle,
+  180 degrees to both sides).
+*/
+#define SFG_PLAYER_MELEE_ANGLE 512
 
 /**
   How quickly elevators and squeezers move, in RCL_Unit per second.
@@ -380,7 +389,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 
 SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 {
-  /* melee                 */ 8,
+  /* melee                 */ 7,
   /* bullet                */ 10,
   /* explostion (fireball) */ 13,
   /* plasma                */ 17

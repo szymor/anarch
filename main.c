@@ -328,9 +328,6 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
     return 0;
 
   int32_t value = SFG_attackDamageTable[attackType];   // has to be signed
-
-printf("%d ",value);
-
   int32_t maxAdd = (value * SFG_DAMAGE_RANDOMNESS) / 256;
 
   value = value - (maxAdd / 2) + (SFG_random() * maxAdd / 256);
@@ -338,7 +335,6 @@ printf("%d ",value);
   if (value < 0)
     value = 0;
 
-printf("%d\n",value);
 
   return value;
 }
@@ -1263,7 +1259,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
     SFG_playerChangeHealth(
       -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
 
-  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
     SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
 
@@ -1299,6 +1295,25 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
     RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_DUST) / 2);
 
   SFG_createProjectile(dust);
+}
+
+uint8_t SFG_isInMeleeRange(RCL_Unit x0, RCL_Unit y0, RCL_Unit z0, RCL_Unit x1,
+  RCL_Unit y1, RCL_Unit z1)
+{
+  return
+    (SFG_taxicabDistance(x0,y0,x1,y1) <= SFG_MELEE_RANGE) &&
+    (RCL_absVal(z0 - z1) <= SFG_MELEE_RANGE);
+}
+
+void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
+  RCL_Unit *y, RCL_Unit *z)
+{
+  *x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+  *y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
+  *z = SFG_floorHeightAt(
+         SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+         SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
+       + RCL_UNITS_PER_SQUARE / 2;
 }
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
@@ -1394,21 +1409,18 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       uint8_t mX = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
       uint8_t mY = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
 
+      RCL_Unit pX, pY, pZ;
+      SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
+
       uint8_t isClose = // close to player?
-       (
-         (
-           (mX > SFG_player.squarePosition[0]) ?
-           (mX - SFG_player.squarePosition[0]) :
-           (SFG_player.squarePosition[0] - mX)
-         ) <= 1
-       ) &&
-       (
-         (
-           (mY > SFG_player.squarePosition[1]) ?
-           (mY - SFG_player.squarePosition[1]) :
-           (SFG_player.squarePosition[1] - mY)
-         ) <= 1
-       );
+        SFG_isInMeleeRange(
+        pX,
+        pY,
+        pZ,
+        SFG_player.camera.position.x,
+        SFG_player.camera.position.y,
+        SFG_player.camera.height
+        );
 
       if (!isClose)
       {
@@ -1440,13 +1452,18 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
             state = SFG_MONSTER_STATE_GOING_S;
         }
       }
-      else
+      else // is close
       {
+        // melee, close-up attack
+
         if (attackType == SFG_MONSTER_ATTACK_MELEE)
         {
           // melee attack
 
           state = SFG_MONSTER_STATE_ATTACKING;
+
+          SFG_playerChangeHealth(
+            -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
         }
         else // SFG_MONSTER_ATTACK_EXPLODE
         {
@@ -1461,7 +1478,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
 
           monster->health = 0;
-          
         }
       }
     }
@@ -1679,6 +1695,43 @@ void SFG_gameStep()
         direction += angleAdd;
       }
     }
+    else
+    {
+      // melee attack
+
+      for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+      {
+        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+
+        if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
+          continue;
+
+        RCL_Unit pX, pY, pZ;
+        SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
+
+        if (!SFG_isInMeleeRange(pX,pY,pZ,
+              SFG_player.camera.position.x,
+              SFG_player.camera.position.y,
+              SFG_player.camera.height))
+          continue;
+ 
+          RCL_Vector2D toMonster;
+
+          toMonster.x = pX - SFG_player.camera.position.x;
+          toMonster.y = pY - SFG_player.camera.position.y;
+
+          if (RCL_vectorsAngleCos(SFG_player.direction,toMonster) >=
+              (RCL_UNITS_PER_SQUARE - SFG_PLAYER_MELEE_ANGLE))
+          {
+            SFG_monsterChangeHealth(m,
+              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
+
+            SFG_createDust(pX,pY,pZ);
+
+            break;
+          }
+      }
+    }
 
     SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
   }
@@ -1840,7 +1893,7 @@ void SFG_gameStep()
   // handle player collision with level elements:
 
   // monsters:
-  for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
     SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
 
@@ -1907,7 +1960,7 @@ void SFG_gameStep()
 
           // take, eliminate the item
 
-          for (uint8_t j = i; j < SFG_currentLevel.itemRecordCount - 1; ++j)
+          for (uint16_t j = i; j < SFG_currentLevel.itemRecordCount - 1; ++j)
             SFG_currentLevel.itemRecords[j] =
               SFG_currentLevel.itemRecords[j + 1];
 
@@ -2016,7 +2069,7 @@ void SFG_gameStep()
 
       // check collision with active level elements
         
-      for (uint8_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
+      for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
       {
         SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
 
@@ -2044,7 +2097,7 @@ void SFG_gameStep()
       }
 
       if (!eliminate)
-        for (uint8_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+        for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
         {
           const SFG_LevelElement *e = SFG_getActiveItemElement(j);
 
@@ -2224,7 +2277,7 @@ void SFG_gameStep()
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
   {
-    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
       SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
       uint8_t state = SFG_MR_STATE(*monster);
@@ -2233,7 +2286,7 @@ void SFG_gameStep()
       {
         // remove dead
 
-        for (uint8_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
+        for (uint16_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
           SFG_currentLevel.monsterRecords[j] =
             SFG_currentLevel.monsterRecords[j + 1];        
 
@@ -2546,7 +2599,7 @@ void SFG_draw()
     // draw sprites:
 
     // monster sprites:
-    for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
       SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
 
@@ -2591,7 +2644,7 @@ void SFG_draw()
     }
 
     // item sprites:
-    for (uint8_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+    for (uint16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
       if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
       {
         RCL_Vector2D worldPosition;
