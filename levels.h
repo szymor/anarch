@@ -121,6 +121,7 @@ typedef struct
                              texture used for door. */
   uint8_t floorColor;
   uint8_t ceilingColor;
+  uint8_t backgroundImage;  /** Index of level background image. */
   SFG_LevelElement elements[SFG_MAX_LEVEL_ELEMENTS];
 } SFG_Level;
 
@@ -251,6 +252,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
   13,                      // doorTextureIndex
   10,                      // floorColor
   32,                      // ceilingColor
+  0,                       // backgroundImage
   {                        // elements
     {SFG_LEVEL_ELEMENT_BARREL, {9, 1}},  {SFG_LEVEL_ELEMENT_BARREL, {9, 13}},
     {SFG_LEVEL_ELEMENT_HEALTH, {12, 4}},  {SFG_LEVEL_ELEMENT_HEALTH, {15, 4}},
@@ -426,6 +428,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
   13,                       // doorTextureIndex
   102,                      // floorColor
   32,                       // ceilingColor
+  1,                        // backgroundImage
   {                         // elements
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},

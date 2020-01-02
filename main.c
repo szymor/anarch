@@ -265,6 +265,8 @@ struct
 
   SFG_ProjectileRecord projectileRecords[SFG_MAX_PROJECTILES];
   uint8_t projectileRecordCount;
+
+  uint8_t backgroundImage;
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -596,7 +598,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   else
   {
     color = SFG_getTexel(
-      SFG_backgroundImages[0],
+      SFG_backgroundImages[SFG_currentLevel.backgroundImage],
       SFG_backgroundScaleMap[((pixel->position.x 
 #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
@@ -917,6 +919,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_currentRandom = 0;
 
+  SFG_currentLevel.backgroundImage = level->backgroundImage;
+
   SFG_currentLevel.levelPointer = level;
 
   SFG_currentLevel.floorColor = level->floorColor;
@@ -1032,7 +1036,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level0);
+  SFG_setAndInitLevel(&SFG_level1);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
