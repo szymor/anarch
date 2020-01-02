@@ -53,21 +53,29 @@
 #define SFG_PROGRAM_MEMORY static const /**< Can be redefined to platform's
                                          specifier of program meory. */
 
-/** Return 1 (0) if given key is pressed (not pressed). At least the mandatory
+/** 
+  Returns 1 (0) if given key is pressed (not pressed). At least the mandatory
   keys have to be implemented, the optional keys don't have to ever return 1.
-  See the key contant definitions to see which ones are mandatory. */
+  See the key contant definitions to see which ones are mandatory.
+*/
 int8_t SFG_keyPressed(uint8_t key);
 
-/** Return time in ms sice program start. */
+/**
+  Returns time in ms sice program start.
+*/
 uint32_t SFG_getTimeMs();
 
-/** Sleep (yield CPU) for specified amount of ms. This is used to relieve CPU
+/** 
+  Sleep (yield CPU) for specified amount of ms. This is used to relieve CPU
   usage. If your platform doesn't need this or handles it in other way, this
-  function can do nothing. */
+  function can do nothing.
+*/
 void SFG_sleepMs(uint16_t timeMs);
 
-/** Set specified screen pixel. The function doesn't have to check whether
-  the coordinates are within screen. */
+/**
+  Set specified screen pixel. The function doesn't have to check whether
+  the coordinates are within screen.
+*/
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 
 /* ========================================================================= */
@@ -114,6 +122,12 @@ typedef struct
                           cc:    by which keys the door is unlocked
                      */
 } SFG_DoorRecord;
+
+#define SFG_SPRITE_SIZE(size0to3) \
+  (((size0to3 + 3) * SFG_BASE_SPRITE_SIZE) / 4)
+
+#define SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(size0to3) \
+  ((((size0to3) + 3) * (RCL_UNITS_PER_SQUARE / 2)) / 4)
 
 /**
   Holds information about one instance of a level item (a type of level element,
@@ -2507,14 +2521,18 @@ void SFG_draw()
         worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
         worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
 
+        uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
+          SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
+
         RCL_PixelInfo p =
           RCL_mapToScreen(
             worldPosition,
             SFG_floorHeightAt(
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
-              + RCL_UNITS_PER_SQUARE / 2,
-            SFG_player.camera);
+              + 
+              SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(spriteSize),
+              SFG_player.camera);
 
         if (p.depth > 0)
         {
@@ -2526,7 +2544,9 @@ void SFG_draw()
 
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_BASE_SPRITE_SIZE,p.depth),
+            RCL_perspectiveScale(
+            SFG_SPRITE_SIZE(spriteSize),
+            p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
         }
       }
@@ -2552,15 +2572,14 @@ void SFG_draw()
           RCL_mapToScreen(
             worldPosition,
             SFG_floorHeightAt(e.coords[0],e.coords[1])
-              + RCL_UNITS_PER_SQUARE / 2,
+            + SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(0),
             SFG_player.camera);
 
         if (p.depth > 0)
         {
           SFG_drawScaledSprite(SFG_itemSprites[e.type - 1],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-
-            RCL_perspectiveScale(SFG_BASE_SPRITE_SIZE,p.depth)/*40*/,
+            RCL_perspectiveScale(SFG_SPRITE_SIZE(0),p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
         }
       }
@@ -2583,7 +2602,7 @@ void SFG_draw()
        
       const uint8_t *s = SFG_effectSprites[proj->type];
 
-      int16_t spriteSize = SFG_BASE_SPRITE_SIZE / 2;
+      int16_t spriteSize = SFG_SPRITE_SIZE(0);
 
       if (proj->type == SFG_PROJECTILE_EXPLOSION ||
           proj->type == SFG_PROJECTILE_DUST)
