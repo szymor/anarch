@@ -317,6 +317,32 @@ uint8_t SFG_random()
   return SFG_currentRandom;
 }
 
+/**
+  Returns a damage value for specific attack type (SFG_WEAPON_FIRE_TYPE_...),
+  with added randomness (so the values will differe). For explosion pass
+  SFG_WEAPON_FIRE_TYPE_FIREBALL.
+*/
+uint8_t SFG_getDamageValue(uint8_t attackType)
+{
+  if (attackType >= SFG_WEAPON_FIRE_TYPES_TOTAL)
+    return 0;
+
+  int32_t value = SFG_attackDamageTable[attackType];   // has to be signed
+
+printf("%d ",value);
+
+  int32_t maxAdd = (value * SFG_DAMAGE_RANDOMNESS) / 256;
+
+  value = value - (maxAdd / 2) + (SFG_random() * maxAdd / 256);
+
+  if (value < 0)
+    value = 0;
+
+printf("%d\n",value);
+
+  return value;
+}
+
 static inline RCL_Unit
   SFG_taxicabDistance(RCL_Unit x0, RCL_Unit y0, RCL_Unit x1, RCL_Unit y1)
 {
@@ -573,7 +599,6 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
   else
   {
-
     color = SFG_getTexel(
       SFG_backgroundImages[0],
       SFG_backgroundScaleMap[((pixel->position.x 
@@ -1235,7 +1260,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   SFG_createProjectile(explosion);
 
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
-    SFG_playerChangeHealth(-1 * SFG_EXPLOSION_DAMAGE);
+    SFG_playerChangeHealth(
+      -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
 
   for (uint8_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
@@ -1249,7 +1275,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
        SFG_EXPLOSION_DISTANCE)
       )
     {
-      SFG_monsterChangeHealth(monster,-1 * SFG_EXPLOSION_DAMAGE);
+      SFG_monsterChangeHealth(monster,
+        -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
     }
   }
 }
@@ -1276,7 +1303,6 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
-return;
   uint8_t state = SFG_MR_STATE(*monster);
   uint8_t type = SFG_MR_TYPE(*monster);
   uint8_t monsterNumber = SFG_MONSTER_TYPE_TO_INDEX(type);
@@ -1935,11 +1961,18 @@ void SFG_gameStep()
   { // ^ has to be signed
     SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
 
+    uint8_t attackType = 255;
+
+    if (p->type == SFG_PROJECTILE_BULLET)
+      attackType = SFG_WEAPON_FIRE_TYPE_BULLET;
+    else if (p->type == SFG_PROJECTILE_PLASMA)
+      attackType = SFG_WEAPON_FIRE_TYPE_PLASMA;
+
     RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
 
     uint8_t eliminate = 0;
 
-    for (uint8_t j = 0; j < 3; ++j)
+    for (uint8_t j = 0; j < 3; ++j) // projectile outside map?
     {
       pos[j] = p->position[j];
       pos[j] += p->direction[j];
@@ -1953,21 +1986,23 @@ void SFG_gameStep()
       }
     }
 
-    if (
-         (p->doubleFramesToLive == 0) ||
-         SFG_elementCollides(
-           SFG_player.camera.position.x,
-           SFG_player.camera.position.y,
-           SFG_player.camera.height,
-           p->position[0],
-           p->position[1],
-           p->position[2],
-           0,
-           0
-         )
-       )
+    if (p->doubleFramesToLive == 0) // no more time to live?
     {
       eliminate = 1;
+    }
+    else if (SFG_elementCollides(   // hits player?
+               SFG_player.camera.position.x,
+               SFG_player.camera.position.y,
+               SFG_player.camera.height,
+               p->position[0],
+               p->position[1],
+               p->position[2],
+               0,
+               0))
+    {
+      eliminate = 1;
+
+      SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
     }
     else if (
       (p->type != SFG_PROJECTILE_EXPLOSION) &&
@@ -2002,6 +2037,7 @@ void SFG_gameStep()
              )
           {
             eliminate = 1;
+            SFG_monsterChangeHealth(m,SFG_getDamageValue(attackType));
             break;
           }
         }
@@ -2026,8 +2062,6 @@ void SFG_gameStep()
                  0)
                )
             {
-
-
               eliminate = 1;
               break;
             }
@@ -2473,6 +2507,10 @@ void SFG_drawWeapon(int16_t bobOffset)
 
 void SFG_draw()
 {
+#if SFG_BACKGROUND_BLUR != 0
+  SFG_backgroundBlurIndex = 0;
+#endif
+
   if (SFG_keyPressed(SFG_KEY_MAP))
   {
     SFG_drawMap();

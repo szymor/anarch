@@ -85,11 +85,6 @@
 #define SFG_EXPLOSION_DISTANCE 2048
 
 /**
-  How much damage explosion causes in its range.
-*/
-#define SFG_EXPLOSION_DAMAGE 18
-
-/**
   Maximum player health.
 */
 #define SFG_PLAYER_MAX_HEALTH 100
@@ -103,6 +98,13 @@
   Amount of health that is increased by taking a health kit.
 */
 #define SFG_HEALTH_KIT_VALUE 20
+
+/**
+  How much randomness (positive and negative) will be added to damage
+  (e.g. by weapons, explisions). This constant is is 0 to 255, 255 meaning
+  100% of the base value.
+*/
+#define SFG_DAMAGE_RANDOMNESS 64 
 
 /**
   Angle in which multiple projectiles are spread, RCL_Units.
@@ -354,6 +356,8 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
 #define SFG_WEAPON_FIRE_TYPE_FIREBALL 2
 #define SFG_WEAPON_FIRE_TYPE_PLASMA 3
 
+#define SFG_WEAPON_FIRE_TYPES_TOTAL 4
+
 /**
   Table of weapon attributes, each as a byte in format:
 
@@ -372,6 +376,14 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
   /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,1,900),
   /* plasma   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,1,600),
   /* solution */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,4,1000)
+};
+
+SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
+{
+  /* melee                 */ 8,
+  /* bullet                */ 10,
+  /* explostion (fireball) */ 13,
+  /* plasma                */ 17
 };
 
 #define SFG_PROJECTILE_EXPLOSION 0

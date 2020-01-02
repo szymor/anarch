@@ -26,6 +26,9 @@
 #undef SFG_LOG
 #define SFG_LOG(str) printf("game: %s\n",str);
 
+#undef SFG_BACKGROUND_BLUR
+#define SFG_BACKGROUND_BLUR 1
+
 const uint8_t *sdlKeyboardState;
 
 uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
