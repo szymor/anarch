@@ -6,20 +6,20 @@ Why?
 
 - **Like Doom** but much better because of the following.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
-- **Extremely portable** (much more than Doom).
+- **Extremely portable** (much more than Doom). So far tested on GNU/Linux PC, TODO.
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but every frontend is extremely simple (~100 LOC).
 - Fits into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler.
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
 - **Doesn't use ANY floating point**, everything is integer math (good for platforms without FPU).
 - **Pure C99**, also a **subset of C++** (i.e. runs as C++ as well, good for systems that are hard C++ based).
-- **Completely public domain (CC0) free softare, free culture libre game** for the benefit of all living beings in the Universe, **no conoditions on use whatsoever**. **All art is original** work and licensed CC0 (as well as code).
-- **Suckless, KISS, minimal, simple**.
+- **Completely public domain (CC0) free softare, free culture, libre game** for the benefit of all living beings in the Universe, **no conoditions on use whatsoever**. **All art is original** work and licensed CC0 (as well as code).
+- **Suckless, KISS, minimal, simple**, short code (< 10000 LOC).
 - Made to **last for centuries** without maintenance.
 - Goes beyond technical design and also **attempts to avoid possible cultural dependencies and barriers** (enemies are only robots, no violence on living beings).
 - **Creted with only completely free software** (Debian, GIMP, gcc, Vim, ...).
 - **Single compilation unit** (only one .c file to compile, very fast and simple).
-- Uses a **custom-made 256** color palette (but can run on platforms with fever colors, even just two).
+- Uses a **custom-made 256 color palette** (but can run on platforms with fever colors, even just two).
 - **Well documented and commented code**, written with tinkering and remixing in mind.
 
 early previews:
@@ -32,9 +32,37 @@ SDL:
 
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
+## code guide
+
+TODO
+
+source files
+
+portability, only backend, avoiding dependencies
+
+how to port to new platform, frontend, configs in files
+
+all images are 32x32, image compression, transparency
+
+integer math
+
+raycastlib, 1D zbuffer
+
+palette
+
+rng, produces all byte values
+
+AI
+
+map format
+
+main loop, constant time step
+
+optimizations, move computations to compile time, approximations (taxicab, ...), precomputations, -O3
+
 ## usage rights
 
-**tl;dr: CC0 + waiver of all rights, completely public domain as much as humanly possible, do absolutely anything you want**
+**tl;dr: everything in this repository is CC0 + waiver of all rights, completely public domain as much as humanly possible, do absolutely anything you want**
 
 This work's goal is to never be encumbered by any exclusive intellectual property rights, it is intended to always stay completely and forever in the public domain, available for any use whatsoever.
 
