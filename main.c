@@ -1036,7 +1036,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level1);
+  SFG_setAndInitLevel(&SFG_level0);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
@@ -1643,6 +1643,7 @@ void SFG_gameStep()
 
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
+    !SFG_keyIsDown(SFG_KEY_C) &&
     (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
