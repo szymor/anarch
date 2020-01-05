@@ -1,4 +1,8 @@
-# WIP -- suckless FPS game
+# WIP
+
+# CorpoDearm
+
+*suckless FPS, the best game ever made game, for the benefit of all living beings*
 
 ## This is going to likely be by far the best game in the universe.
 
