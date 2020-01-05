@@ -1,7 +1,13 @@
 /**
   @file platform_sdl.h
 
-  This is an SDL2 implementation of the game front end.
+  This is an SDL2 implementation of the game front end. It can be used to
+  compile a native executable or a transpired JS browser version with
+  emscripten.
+
+  To compile with emscripten run:
+
+  emcc ./main.c -s USE_SDL=2 -O3 --shell-file HTMLshell.html -o game.html
 
   by Miloslav Ciz (drummyfish), 2019
 
@@ -18,8 +24,6 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include <time.h>
-#include <unistd.h>
 
 #include "palette.h"
 
@@ -45,7 +49,9 @@ uint32_t SFG_getTimeMs()
 
 void SFG_sleepMs(uint16_t timeMs)
 {
+#ifndef __EMSCRIPTEN__
   usleep(timeMs * 1000);
+#endif
 }
 
 int8_t SFG_keyPressed(uint8_t key)
@@ -111,6 +117,32 @@ int8_t SFG_keyPressed(uint8_t key)
   }
 }
 
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
+SDL_Surface *screenSurface;
+
+#ifdef __EMSCRIPTEN__
+void mainLoopIteration()
+{
+  SDL_PumpEvents(); // updates the keyboard state
+
+  if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
+    return;
+
+  SFG_mainLoopBody();
+
+  SDL_UpdateTexture(texture,NULL,screen,SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
+
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer,texture,NULL,NULL);
+  SDL_RenderPresent(renderer);
+}   
+
+typedef void (*em_callback_func)(void);
+void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
+#endif
+
 int main(int argc, char *argv[])
 {
   uint8_t argHelp = 0;
@@ -147,18 +179,18 @@ int main(int argc, char *argv[])
 
   printf("SDL: initializing SDL\n");
 
-  SDL_Window *window =
+  window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED, SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y,
     SDL_WINDOW_SHOWN); 
 
-  SDL_Renderer *renderer = SDL_CreateRenderer(window,-1,0);
+  renderer = SDL_CreateRenderer(window,-1,0);
 
-  SDL_Texture *texture =
+  texture =
     SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB565,SDL_TEXTUREACCESS_STATIC,
     SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
 
-  SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
+  screenSurface = SDL_GetWindowSurface(window);
 
 #if SFG_FULLSCREEN
   argForceFullscreen = 1;
@@ -176,6 +208,9 @@ int main(int argc, char *argv[])
 
   int running = 1;
 
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop(mainLoopIteration,0,1);
+#else
   while (running)
   {
     SDL_PumpEvents(); // updates the keyboard state
@@ -191,6 +226,7 @@ int main(int argc, char *argv[])
     SDL_RenderCopy(renderer,texture,NULL,NULL);
     SDL_RenderPresent(renderer);
   }    
+#endif
 
   printf("SDL: freeing SDL\n");
 
