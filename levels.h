@@ -121,6 +121,8 @@ typedef struct
                              texture used for door. */
   uint8_t floorColor;
   uint8_t ceilingColor;
+  uint8_t playerStart[3];   /**< Player starting location: square X, square Y,
+                                 direction (fourths of RCL_Unit). */
   uint8_t backgroundImage;  /** Index of level background image. */
   SFG_LevelElement elements[SFG_MAX_LEVEL_ELEMENTS];
 } SFG_Level;
@@ -252,6 +254,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
   13,                      // doorTextureIndex
   10,                      // floorColor
   32,                      // ceilingColor
+  {10,10,0},               // player start: x, y, direction
   0,                       // backgroundImage
   {                        // elements
     {SFG_LEVEL_ELEMENT_BARREL, {9, 1}},  {SFG_LEVEL_ELEMENT_BARREL, {9, 13}},
@@ -428,6 +431,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
   13,                       // doorTextureIndex
   102,                      // floorColor
   32,                       // ceilingColor
+  {10,10,64},               // player start: x, y, direction
   1,                        // backgroundImage
   {                         // elements
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},

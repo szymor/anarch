@@ -487,33 +487,6 @@ SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
   };
 #endif
 
-void SFG_initPlayer()
-{
-  RCL_initCamera(&SFG_player.camera);
-
-  SFG_player.camera.resolution.x =
-    SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
-
-  SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
-
-  SFG_player.camera.height = RCL_UNITS_PER_SQUARE * 12;
-  SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE * 15;
-  SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE * 8;
-
-  SFG_recompurePLayerDirection();
-  
-  SFG_player.previousVerticalSpeed = 0;
-
-  SFG_player.headBobFrame = 0;
-
-  SFG_player.weapon = 2;
-
-  SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
-  SFG_player.lastHurtFrame = SFG_gameFrame;
-
-  SFG_player.health = SFG_PLAYER_MAX_HEALTH;
-}
-
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -887,6 +860,43 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
  
   return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP -
            doorHeight * SFG_DOOR_HEIGHT_STEP;
+}
+
+void SFG_initPlayer()
+{
+  RCL_initCamera(&SFG_player.camera);
+
+  SFG_player.camera.resolution.x =
+    SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
+
+  SFG_player.camera.resolution.y = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
+
+  SFG_player.camera.position.x = RCL_UNITS_PER_SQUARE / 2 +
+    SFG_currentLevel.levelPointer->playerStart[0] *  RCL_UNITS_PER_SQUARE;
+
+  SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE / 2 +
+    SFG_currentLevel.levelPointer->playerStart[1] *  RCL_UNITS_PER_SQUARE;
+
+  SFG_player.camera.height = 
+    SFG_floorHeightAt( 
+      SFG_currentLevel.levelPointer->playerStart[0],
+      SFG_currentLevel.levelPointer->playerStart[1]);
+
+  SFG_player.camera.direction = 
+    SFG_currentLevel.levelPointer->playerStart[2] * 4;
+
+  SFG_recompurePLayerDirection(); 
+ 
+  SFG_player.previousVerticalSpeed = 0;
+
+  SFG_player.headBobFrame = 0;
+
+  SFG_player.weapon = 2;
+
+  SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
+  SFG_player.lastHurtFrame = SFG_gameFrame;
+
+  SFG_player.health = SFG_PLAYER_MAX_HEALTH;
 }
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
