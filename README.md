@@ -1,6 +1,6 @@
 # WIP
 
-# CorpoDearm
+# ![](assets/logo.png) CorpoDearm
 
 *suckless FPS, the best game ever made game, for the benefit of all living beings*
 
