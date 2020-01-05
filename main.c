@@ -1036,7 +1036,7 @@ void SFG_init()
 
   SFG_backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level0);
+  SFG_setAndInitLevel(&SFG_level1);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
