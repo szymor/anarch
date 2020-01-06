@@ -21,6 +21,10 @@
   compilers and settings)
 - run on raspbery pi
 - check if monsters are hit by bullets from completely up close
+- add jump pads?
+- add robot deactivator item? (encourages "stealth" gameplay)
+- add "pletivo" transparent wall texture?
+- make barrels explode.
 
 bugs:
 
