@@ -143,6 +143,10 @@ typedef uint8_t SFG_ItemRecord;
 
 #define SFG_ITEM_RECORD_ACTIVE_MASK 0x80
 
+#define SFG_ITEM_RECORD_LEVEL_ELEMENT(itemRecord) \
+  (SFG_currentLevel.levelPointer->elements[itemRecord & \
+  ~SFG_ITEM_RECORD_ACTIVE_MASK])
+
 typedef struct 
 {
   uint8_t stateType;     /**< Holds state (lower 4 bits) and type of monster
@@ -341,10 +345,10 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
   return value;
 }
 
-static inline RCL_Unit
-  SFG_taxicabDistance(RCL_Unit x0, RCL_Unit y0, RCL_Unit x1, RCL_Unit y1)
+RCL_Unit SFG_taxicabDistance(
+  RCL_Unit x0, RCL_Unit y0, RCL_Unit z0, RCL_Unit x1, RCL_Unit y1, RCL_Unit z1)
 {
-  return RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1);
+  return (RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1) + RCL_absVal(z0 - z1));
 }
 
 static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
@@ -1277,16 +1281,49 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   {
     SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
 
-    if (
-      (SFG_MR_STATE(*monster) != SFG_MONSTER_STATE_INACTIVE) &&
-      (RCL_absVal(SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]) - x) <=
-       SFG_EXPLOSION_DISTANCE) &&
-      (RCL_absVal(SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]) - y) <=
-       SFG_EXPLOSION_DISTANCE)
-      )
+    if (SFG_MR_STATE(*monster) == SFG_MONSTER_STATE_INACTIVE)
+      continue; 
+
+    RCL_Unit monsterHeight =
+      SFG_floorHeightAt(
+        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
+        + RCL_UNITS_PER_SQUARE / 2;
+
+    if (SFG_taxicabDistance(
+      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),monsterHeight,
+      x,y,z) <= SFG_EXPLOSION_DISTANCE)
     {
       SFG_monsterChangeHealth(monster,
         -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
+    }
+  }
+
+  // explode other barrels
+
+  for (uint16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+  {
+    SFG_ItemRecord item = SFG_currentLevel.itemRecords[i];
+
+    if (!(item & SFG_ITEM_RECORD_ACTIVE_MASK))
+      continue;
+
+    SFG_LevelElement element = SFG_ITEM_RECORD_LEVEL_ELEMENT(item);
+
+    if (element.type != SFG_LEVEL_ELEMENT_BARREL)
+      continue;
+
+    RCL_Unit elementHeight =
+      SFG_floorHeightAt(element.coords[0],element.coords[1]);
+
+    if (SFG_taxicabDistance(
+      x,y,z,
+      element.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+      element.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+      elementHeight) <= SFG_EXPLOSION_DISTANCE)
+    {
+      // TODO: explode
     }
   }
 }
@@ -1309,14 +1346,6 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
     RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_DUST) / 2);
 
   SFG_createProjectile(dust);
-}
-
-uint8_t SFG_isInMeleeRange(RCL_Unit x0, RCL_Unit y0, RCL_Unit z0, RCL_Unit x1,
-  RCL_Unit y1, RCL_Unit z1)
-{
-  return
-    (SFG_taxicabDistance(x0,y0,x1,y1) <= SFG_MELEE_RANGE) &&
-    (RCL_absVal(z0 - z1) <= SFG_MELEE_RANGE);
 }
 
 void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
@@ -1427,14 +1456,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
 
       uint8_t isClose = // close to player?
-        SFG_isInMeleeRange(
-        pX,
-        pY,
-        pZ,
-        SFG_player.camera.position.x,
-        SFG_player.camera.position.y,
-        SFG_player.camera.height
-        );
+        SFG_taxicabDistance(pX,pY,pZ,
+          SFG_player.camera.position.x,
+          SFG_player.camera.position.y,
+          SFG_player.camera.height) <= SFG_MELEE_RANGE;
 
       if (!isClose)
       {
@@ -1612,15 +1637,8 @@ static inline uint8_t SFG_elementCollides(
 )
 {
   return
-    (
-      SFG_taxicabDistance(pointX,pointY,elementX,elementY)
-      <= (SFG_ELEMENT_COLLISION_DISTANCE + widthMargin)
-    )
-    &&
-    (
-      (pointZ - heightMargin - elementHeight)
-      <= SFG_ELEMENT_COLLISION_HEIGHT
-    );
+    SFG_taxicabDistance(pointX,pointY,pointZ,elementX,elementY,elementHeight)
+    <= (SFG_ELEMENT_COLLISION_DISTANCE + widthMargin);
 }
 
 /**
@@ -1724,10 +1742,10 @@ void SFG_gameStep()
         RCL_Unit pX, pY, pZ;
         SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
 
-        if (!SFG_isInMeleeRange(pX,pY,pZ,
-              SFG_player.camera.position.x,
-              SFG_player.camera.position.y,
-              SFG_player.camera.height))
+        if (SFG_taxicabDistance(pX,pY,pZ,
+            SFG_player.camera.position.x,
+            SFG_player.camera.position.y,
+            SFG_player.camera.height) > SFG_MELEE_RANGE)
           continue;
  
           RCL_Vector2D toMonster;
@@ -1930,8 +1948,7 @@ void SFG_gameStep()
            SFG_floorHeightAt(
                SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
                SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
-           RCL_CAMERA_COLL_RADIUS / 2,
-           RCL_CAMERA_COLL_HEIGHT_BELOW
+           0,0
          )
        )
     {
@@ -1964,8 +1981,7 @@ void SFG_gameStep()
              ePos.x,
              ePos.y,
              SFG_floorHeightAt(e->coords[0],e->coords[1]),
-             RCL_CAMERA_COLL_RADIUS / 2,
-             RCL_CAMERA_COLL_HEIGHT_BELOW
+             0,0
            )
          )
       {

@@ -39,7 +39,7 @@
 /**
   Melee and close-up attack range, in RCL_Units.
 */
-#define SFG_MELEE_RANGE 1400
+#define SFG_MELEE_RANGE 1600
 
 /**
   Player's melee hit range, in RCL_Units (RCL_UNITS_PER_SQUARE means full angle,
@@ -79,7 +79,7 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_DISTANCE 800
+#define SFG_ELEMENT_COLLISION_DISTANCE 2048
 
 /**
   Height, in RCL_Units, at which collisions happen with level elements
@@ -91,7 +91,7 @@
   Distance at which explosion does damage and throws away the player and
   monsters, in RCL_Units.
 */
-#define SFG_EXPLOSION_DISTANCE 2048
+#define SFG_EXPLOSION_DISTANCE 2048 
 
 /**
   Maximum player health.
