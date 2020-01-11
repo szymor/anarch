@@ -94,6 +94,12 @@
 #define SFG_EXPLOSION_DISTANCE 2048 
 
 /**
+  How much damage triggers a barrel explosion.
+*/
+
+#define SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD 11
+
+/**
   Maximum player health.
 */
 #define SFG_PLAYER_MAX_HEALTH 100
@@ -110,7 +116,7 @@
 
 /**
   How much randomness (positive and negative) will be added to damage
-  (e.g. by weapons, explisions). This constant is is 0 to 255, 255 meaning
+  (e.g. by weapons, explosions, ...). This constant is is 0 to 255, 255 meaning
   100% of the base value.
 */
 #define SFG_DAMAGE_RANDOMNESS 64 

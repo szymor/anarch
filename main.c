@@ -336,11 +336,10 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
   int32_t value = SFG_attackDamageTable[attackType];   // has to be signed
   int32_t maxAdd = (value * SFG_DAMAGE_RANDOMNESS) / 256;
 
-  value = value - (maxAdd / 2) + (SFG_random() * maxAdd / 256);
+  value = value + (maxAdd / 2) - (SFG_random() * maxAdd / 256);
 
   if (value < 0)
     value = 0;
-
 
   return value;
 }
@@ -1261,6 +1260,23 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
   monster->health = health;
 }
 
+void SFG_removeItem(uint8_t index)
+{
+  SFG_LOG("removing item");
+
+  for (uint16_t j = index; j < SFG_currentLevel.itemRecordCount - 1; ++j)
+    SFG_currentLevel.itemRecords[j] =
+      SFG_currentLevel.itemRecords[j + 1];
+
+  SFG_currentLevel.itemRecordCount--; 
+}
+
+void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  SFG_removeItem(itemIndex);
+  SFG_createExplosion(x,y,z);
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explosion;
@@ -1280,9 +1296,10 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   SFG_createProjectile(explosion);
 
+  uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
+
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
-    SFG_playerChangeHealth(
-      -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
+    SFG_playerChangeHealth(-1 * damage);
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
@@ -1307,32 +1324,37 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
     }
   }
 
-  // explode other barrels
+  // explode nearby barrels
 
-  for (uint16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
-  {
-    SFG_ItemRecord item = SFG_currentLevel.itemRecords[i];
-
-    if (!(item & SFG_ITEM_RECORD_ACTIVE_MASK))
-      continue;
-
-    SFG_LevelElement element = SFG_ITEM_RECORD_LEVEL_ELEMENT(item);
-
-    if (element.type != SFG_LEVEL_ELEMENT_BARREL)
-      continue;
-
-    RCL_Unit elementHeight =
-      SFG_floorHeightAt(element.coords[0],element.coords[1]);
-
-    if (SFG_taxicabDistance(
-      x,y,z,
-      element.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
-      element.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
-      elementHeight) <= SFG_EXPLOSION_DISTANCE)
+  if (damage >= SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
+    for (uint16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
     {
-      // TODO: explode
+      SFG_ItemRecord item = SFG_currentLevel.itemRecords[i];
+
+      /* We DON'T check just active barrels but all, otherwise it looks weird
+         that out of sight barrels in a line didn't explode.*/
+
+      SFG_LevelElement element = SFG_ITEM_RECORD_LEVEL_ELEMENT(item);
+
+      if (element.type != SFG_LEVEL_ELEMENT_BARREL)
+        continue;
+
+      RCL_Unit elementX =
+        element.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+
+      RCL_Unit elementY =
+        element.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2;
+
+      RCL_Unit elementHeight =
+        SFG_floorHeightAt(element.coords[0],element.coords[1]);
+
+      if (SFG_taxicabDistance(
+        x,y,z,elementX,elementY,elementHeight) <= SFG_EXPLOSION_DISTANCE)
+      {
+        SFG_explodeBarrel(i,elementX,elementY,elementHeight);
+        i--;
+      }
     }
-  }
 }
 
 void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -1998,11 +2020,7 @@ void SFG_gameStep()
 
           // take, eliminate the item
 
-          for (uint16_t j = i; j < SFG_currentLevel.itemRecordCount - 1; ++j)
-            SFG_currentLevel.itemRecords[j] =
-              SFG_currentLevel.itemRecords[j + 1];
-
-          SFG_currentLevel.itemRecordCount--;
+          SFG_removeItem(i);
 
           i--;
         }
@@ -2141,18 +2159,24 @@ void SFG_gameStep()
 
           if (e != 0)
           {
+            RCL_Unit x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
+            RCL_Unit y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
+            RCL_Unit z = SFG_floorHeightAt(e->coords[0],e->coords[1]);
+
             if (
-               SFG_elementCollides(
-                 p->position[0],
-                 p->position[1],
-                 p->position[2],
-                 SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]),
-                 SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]),
-                 SFG_floorHeightAt(e->coords[0],e->coords[1]),
-                 0,
-                 0)
+               SFG_elementCollides(p->position[0],p->position[1],p->position[2],
+               x,y,z,0,0)
                )
             {
+              if (
+                   (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
+                   (SFG_getDamageValue(attackType) >= 
+                     SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
+                 )
+              {
+                SFG_explodeBarrel(j,x,y,z);
+              }
+
               eliminate = 1;
               break;
             }
