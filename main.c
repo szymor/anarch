@@ -1698,13 +1698,14 @@ void SFG_gameStep()
 
   int8_t shearing = 0;
 
+#if SFG_PREVIEW_MODE == 0
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
     (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
-    // fire
+    // attack
 
     uint8_t projectile;
 
@@ -1796,7 +1797,8 @@ void SFG_gameStep()
     }
 
     SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
-  }
+  } // attack
+#endif // SFG_PREVIEW_MODE == 0
 
   if (SFG_keyIsDown(SFG_KEY_A))
   {
@@ -2119,40 +2121,46 @@ void SFG_gameStep()
     {
       // check collision with the map
 
-      if (SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
-          RCL_UNITS_PER_SQUARE) >= pos[2])
+      if (
+          (SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
+            RCL_UNITS_PER_SQUARE) >= pos[2])
+          ||
+          (SFG_ceilingHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] /
+            RCL_UNITS_PER_SQUARE) <= pos[2])
+        )
         eliminate = 1;
 
       // check collision with active level elements
         
-      for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
-      {
-        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
-
-        if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
+      if (!eliminate) // monsters 
+        for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
         {
-          if (
-             SFG_elementCollides(
-               p->position[0],
-               p->position[1],
-               p->position[2],
-               SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-               SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
-               SFG_floorHeightAt(
-                   SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
-                   SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
-               0,
-               0)
-             )
+          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
+
+          if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
           {
-            eliminate = 1;
-            SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
-            break;
+            if (
+               SFG_elementCollides(
+                 p->position[0],
+                 p->position[1],
+                 p->position[2],
+                 SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+                 SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
+                 SFG_floorHeightAt(
+                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
+                 0,
+                 0)
+               )
+            {
+              eliminate = 1;
+              SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
+              break;
+            }
           }
         }
-      }
 
-      if (!eliminate)
+      if (!eliminate) // items
         for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
         {
           const SFG_LevelElement *e = SFG_getActiveItemElement(j);
@@ -2360,7 +2368,9 @@ void SFG_gameStep()
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
+#if SFG_PREVIEW_MODE == 0
         SFG_monsterPerformAI(monster);
+#endif
       }
     }
   }
@@ -2775,7 +2785,8 @@ void SFG_draw()
       if (p.depth > 0)
         SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(spriteSize,p.depth),0,p.depth);  
+            RCL_perspectiveScale(spriteSize,p.depth),
+            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
     }
 
 #if SFG_HEADBOB_ENABLED
@@ -2783,7 +2794,9 @@ void SFG_draw()
     SFG_player.camera.height -= headBobOffset;
 #endif
 
+#if SFG_PREVIEW_MODE == 0
     SFG_drawWeapon(weaponBobOffset);
+#endif
 
     // draw the HUD:
 
