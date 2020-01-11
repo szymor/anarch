@@ -351,6 +351,13 @@ RCL_Unit SFG_taxicabDistance(
   return (RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1) + RCL_absVal(z0 - z1));
 }
 
+uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  return SFG_taxicabDistance(
+    x,y,z,SFG_player.camera.position.x,SFG_player.camera.position.y,
+    SFG_player.camera.height) <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE;
+}
+
 static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 {
   x /= RCL_UNITS_PER_SQUARE;
@@ -2181,7 +2188,6 @@ void SFG_gameStep()
   }
 
   // handle door:
-
   if (SFG_currentLevel.doorRecordCount > 0) // has to be here
   {
     /* Check one door on whether a player is standing nearby. For performance
@@ -2226,7 +2232,6 @@ void SFG_gameStep()
   }
 
   // handle items, in a similar manner to door:
-
   if (SFG_currentLevel.itemRecordCount > 0) // has to be here
   {
     // check item distances:
@@ -2245,11 +2250,10 @@ void SFG_gameStep()
         SFG_currentLevel.levelPointer->elements[item];
 
       if (
-          RCL_absVal(SFG_player.squarePosition[0] - e.coords[0])
-          <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-          &&
-          RCL_absVal(SFG_player.squarePosition[1] - e.coords[1])
-          <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        SFG_isInActiveDistanceFromPlayer(
+          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2)
         )
         item |= SFG_ITEM_RECORD_ACTIVE_MASK;
 
@@ -2263,7 +2267,6 @@ void SFG_gameStep()
   }
 
   // similarly handle monsters:
-
   if (SFG_currentLevel.monsterRecordCount > 0) // has to be here
   {
     // check monster distances:
@@ -2277,11 +2280,14 @@ void SFG_gameStep()
       &(SFG_currentLevel.monsterRecords[SFG_currentLevel.checkedMonsterIndex]);
 
       if ( // far away from the player?
-          RCL_absVal(SFG_player.squarePosition[0] - monster->coords[0] / 4)
-          > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
-          ||
-          RCL_absVal(SFG_player.squarePosition[1] - monster->coords[1] / 4)
-          > SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE
+        !SFG_isInActiveDistanceFromPlayer(
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+          SFG_floorHeightAt(
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
+            + RCL_UNITS_PER_SQUARE / 2
+          )
         )
       {
         monster->stateType = 
@@ -2303,8 +2309,7 @@ void SFG_gameStep()
     }
   }
 
-  // update AI and handle dead monsters
-
+  // update AI and handle dead monsters:
   if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
   {

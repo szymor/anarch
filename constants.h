@@ -58,10 +58,10 @@
 #define SFG_DOOR_OPEN_SPEED 2048
 
 /**
-  Says the (Chebyshev) distance in game squares at which level elements
-  (items, monsters etc.) become active.
+  Says the distance in RCL_Units at which level elements (items, monsters etc.)
+  are active.
 */
-#define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE 10
+#define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE (12 * 1024)
 
 /**
   Rate at which AI will be updated, which also affects how fast enemies will
