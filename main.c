@@ -1270,6 +1270,8 @@ void SFG_removeItem(uint8_t index)
 
   SFG_currentLevel.itemRecordCount--; 
 }
+  
+void SFG_createExplosion(RCL_Unit, RCL_Unit, RCL_Unit); // forward decl
 
 void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {

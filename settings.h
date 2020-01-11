@@ -50,7 +50,7 @@
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
 */
-#define SFG_PREVIEW_MODE 0
+#define SFG_PREVIEW_MODE 1
 
 /**
   How much faster movement is in the preview mode.
