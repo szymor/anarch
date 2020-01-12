@@ -218,7 +218,8 @@ struct
 
   uint32_t weaponCooldownStartFrame;   /**< frame from which weapon cooldown is
                                             counted */
-  uint32_t lastHurtFrame; 
+  uint32_t lastHurtFrame;
+  uint32_t lastItemTakenFrame;
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -905,6 +906,7 @@ void SFG_initPlayer()
 
   SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
   SFG_player.lastHurtFrame = SFG_gameFrame;
+  SFG_player.lastItemTakenFrame = SFG_gameFrame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
 }
@@ -2018,19 +2020,39 @@ void SFG_gameStep()
            )
          )
       {
-        if (e->type == SFG_LEVEL_ELEMENT_HEALTH)
+        uint8_t eliminate = 1;
+
+        switch (e->type)
         {
-          SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+          case SFG_LEVEL_ELEMENT_HEALTH:
+            SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+            break;
+          
+          case SFG_LEVEL_ELEMENT_BULLETS:
+            break;
 
-          // take, eliminate the item
+          case SFG_LEVEL_ELEMENT_ROCKETS:
+            break;
 
+          case SFG_LEVEL_ELEMENT_PLASMA:
+            break;
+
+          default:
+            eliminate = 0;
+            break;
+        }
+
+        if (eliminate)
+        {
           SFG_removeItem(i);
-
+          SFG_player.lastItemTakenFrame = SFG_gameFrame;
           i--;
         }
         else // collide
+        {
           moveOffset = SFG_resolveCollisionWithElement(
             SFG_player.camera.position,moveOffset,ePos);
+        }
       }
     }    
   }
@@ -2555,7 +2577,11 @@ uint8_t SFG_drawNumber(
   return 5 - position;
 }
 
-void SFG_drawHealthChangeBorder(uint16_t width, uint8_t color)
+/**
+  Draws a border that indicates something is happening, e.g. being hurt or
+  taking an item.
+*/
+void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 {
   for (uint16_t j = 0; j < width; ++j)
   {
@@ -2815,7 +2841,7 @@ void SFG_draw()
       color = 2;
     }
 
-    SFG_drawNumber(       // health
+    SFG_drawNumber( // health
       SFG_player.health,
       SFG_HUD_MARGIN,
       SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
@@ -2823,7 +2849,7 @@ void SFG_draw()
       SFG_FONT_SIZE_MEDIUM,
       SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
 
-    SFG_drawNumber(       // ammo
+    SFG_drawNumber( // ammo
       20,
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
@@ -2832,9 +2858,16 @@ void SFG_draw()
       SFG_FONT_SIZE_MEDIUM,
       4);
 
+    // border indicator
+
     if (SFG_gameFrame - SFG_player.lastHurtFrame
-      <= SFG_HUD_HEALTH_INDICATOR_DURATION_FRAMES)
-      SFG_drawHealthChangeBorder(SFG_HUD_HEALTH_INDICATOR_WIDTH_PIXELS,175);
+        <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
+      SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
+      SFG_HUD_HURT_INDICATION_COLOR);
+    else if (SFG_gameFrame - SFG_player.lastItemTakenFrame
+        <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
+      SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
+      SFG_HUD_ITEM_TAKEN_INDICATION_COLOR);
   }
 }
 

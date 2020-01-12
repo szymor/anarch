@@ -50,7 +50,7 @@
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
 */
-#define SFG_PREVIEW_MODE 1
+#define SFG_PREVIEW_MODE 0
 
 /**
   How much faster movement is in the preview mode.
@@ -131,15 +131,24 @@
 #define SFG_SPRITE_ANIMATION_SPEED 4
 
 /**
-  How wide the health indicator (screen border) is, in fractions of screen
-  width.
+  How wide the border indicator is, in fractions of screen width.
 */
-#define SFG_HUD_HEALTH_INDICATOR_WIDTH 32
+#define SFG_HUD_BORDER_INDICATOR_WIDTH 32
 
 /**
-  For how long health indicator stays shown, in ms.
+  For how long border indication (being hurt etc.) stays shown, in ms.
 */
-#define SFG_HUD_HEALTH_INDICATOR_DURATION 500
+#define SFG_HUD_BORDER_INDICATOR_DURATION 500
+
+/**
+  Color (palette index) by which being hurt is indicated.
+*/
+#define SFG_HUD_HURT_INDICATION_COLOR 175
+
+/**
+  Color (palette index) by which taking an item is indicated.
+*/
+#define SFG_HUD_ITEM_TAKEN_INDICATION_COLOR 207
 
 /**
   How many element (items, monsters, ...) distances will be checked per frame
