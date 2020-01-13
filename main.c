@@ -1084,17 +1084,38 @@ void SFG_init()
   SFG_lastFrameTimeMs = SFG_getTimeMs();
 }
 
+void SFG_getPlayerWeaponInfo(
+  uint8_t *ammoType, uint8_t *projectileCount, uint8_t *canShoot)
+{
+  *ammoType = SFG_weaponAmmo(SFG_player.weapon);
+
+  *projectileCount = SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
+
+  *canShoot = 
+    (*ammoType == SFG_AMMO_NONE || 
+     SFG_player.ammo[*ammoType] >= *projectileCount);
+}
+
 void SFG_playerRotateWeapon(uint8_t next)
 {
-  SFG_player.weapon += next ? 1 : -1;
+  RCL_Unit initialWeapon = SFG_player.weapon;
+  RCL_Unit increment = next ? 1 : -1;
 
-  if (SFG_player.weapon == SFG_WEAPONS_TOTAL)
-    SFG_player.weapon = 0;
-  else if (SFG_player.weapon < 0 || SFG_player.weapon > SFG_WEAPONS_TOTAL)
-    SFG_player.weapon = SFG_WEAPONS_TOTAL - 1;
+  while (1)
+  {
+    SFG_player.weapon = 
+      RCL_wrap(SFG_player.weapon + increment,SFG_WEAPONS_TOTAL);
 
-  SFG_player.weaponCooldownStartFrame = SFG_gameFrame -
-    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon) / 2;
+    if (SFG_player.weapon == initialWeapon)
+      break;
+
+    uint8_t ammo, projectileCount, canShoot;
+
+    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+ 
+    if (canShoot)
+      break;
+  }
 }
 
 /**
@@ -1724,104 +1745,116 @@ void SFG_gameStep()
   int8_t shearing = 0;
 
 #if SFG_PREVIEW_MODE == 0
+
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
     (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
-    // attack
+    // player: attack, shoot
 
-    uint8_t projectile;
+    uint8_t ammo, projectileCount, canShoot;
 
-    switch (SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon))
+    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+
+    if (canShoot)
     {
-      case SFG_WEAPON_FIRE_TYPE_PLASMA:
-        projectile = SFG_PROJECTILE_PLASMA;
-        break;
+      if (ammo != SFG_AMMO_NONE)
+        SFG_player.ammo[ammo] -= projectileCount;
 
-      case SFG_WEAPON_FIRE_TYPE_FIREBALL:
-        projectile = SFG_PROJECTILE_FIREBALL;
-        break;
+      uint8_t projectile;
 
-      case SFG_WEAPON_FIRE_TYPE_BULLET:
-        projectile = SFG_PROJECTILE_BULLET;
-        break;
-
-      case SFG_WEAPON_FIRE_TYPE_MELEE:
-        projectile = SFG_PROJECTILE_NONE;
-        break;
-
-      default:
-        projectile = 255;
-        break;
-    }
-        
-    if (projectile != SFG_PROJECTILE_NONE)
-    {
-      uint8_t projectileCount = 
-        SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
-
-      uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
-
-      RCL_Unit direction =
-        (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
-        + angleAdd;
-
-      for (uint8_t i = 0; i < projectileCount; ++i)
+      switch (SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon))
       {
-        SFG_launchProjectile(
-          projectile,
-          SFG_player.camera.position,
-          SFG_player.camera.height,
-          RCL_angleToDirection(direction),
-          (SFG_player.camera.shear * SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
-            SFG_CAMERA_MAX_SHEAR_PIXELS,
-          SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
-          );
+        case SFG_WEAPON_FIRE_TYPE_PLASMA:
+          projectile = SFG_PROJECTILE_PLASMA;
+          break;
 
-        direction += angleAdd;
+        case SFG_WEAPON_FIRE_TYPE_FIREBALL:
+          projectile = SFG_PROJECTILE_FIREBALL;
+          break;
+
+        case SFG_WEAPON_FIRE_TYPE_BULLET:
+          projectile = SFG_PROJECTILE_BULLET;
+          break;
+
+        case SFG_WEAPON_FIRE_TYPE_MELEE:
+          projectile = SFG_PROJECTILE_NONE;
+          break;
+
+        default:
+          projectile = 255;
+          break;
       }
-    }
-    else
-    {
-      // melee attack
-
-      for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+          
+      if (projectile != SFG_PROJECTILE_NONE)
       {
-        SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+        uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
 
-        if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
-          continue;
+        RCL_Unit direction =
+          (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
+          + angleAdd;
 
-        RCL_Unit pX, pY, pZ;
-        SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
+        for (uint8_t i = 0; i < projectileCount; ++i)
+        {
+          SFG_launchProjectile(
+            projectile,
+            SFG_player.camera.position,
+            SFG_player.camera.height,
+            RCL_angleToDirection(direction),
+            (SFG_player.camera.shear *
+              SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
+              SFG_CAMERA_MAX_SHEAR_PIXELS,
+            SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
+            );
 
-        if (SFG_taxicabDistance(pX,pY,pZ,
-            SFG_player.camera.position.x,
-            SFG_player.camera.position.y,
-            SFG_player.camera.height) > SFG_MELEE_RANGE)
-          continue;
- 
-          RCL_Vector2D toMonster;
-
-          toMonster.x = pX - SFG_player.camera.position.x;
-          toMonster.y = pY - SFG_player.camera.position.y;
-
-          if (RCL_vectorsAngleCos(SFG_player.direction,toMonster) >=
-              (RCL_UNITS_PER_SQUARE - SFG_PLAYER_MELEE_ANGLE))
-          {
-            SFG_monsterChangeHealth(m,
-              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
-
-            SFG_createDust(pX,pY,pZ);
-
-            break;
-          }
+          direction += angleAdd;
+        }
       }
-    }
+      else
+      {
+        // player's melee attack
 
-    SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
+        for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+        {
+          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+
+          if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
+            continue;
+
+          RCL_Unit pX, pY, pZ;
+          SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
+
+          if (SFG_taxicabDistance(pX,pY,pZ,
+              SFG_player.camera.position.x,
+              SFG_player.camera.position.y,
+              SFG_player.camera.height) > SFG_MELEE_RANGE)
+            continue;
+   
+            RCL_Vector2D toMonster;
+
+            toMonster.x = pX - SFG_player.camera.position.x;
+            toMonster.y = pY - SFG_player.camera.position.y;
+
+            if (RCL_vectorsAngleCos(SFG_player.direction,toMonster) >=
+                (RCL_UNITS_PER_SQUARE - SFG_PLAYER_MELEE_ANGLE))
+            {
+              SFG_monsterChangeHealth(m,
+                -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
+
+              SFG_createDust(pX,pY,pZ);
+
+              break;
+            }
+        }
+      }
+
+      SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
+
+      if (ammo != SFG_AMMO_NONE && SFG_player.ammo[ammo] == 0)
+        SFG_playerRotateWeapon(1);
+    } // endif: has enough ammo?
   } // attack
 #endif // SFG_PREVIEW_MODE == 0
 
