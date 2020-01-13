@@ -132,6 +132,18 @@
 
 #define SFG_MAX_DOORS 32
 
+#define SFG_AMMO_BULLETS 0
+#define SFG_AMMO_ROCKETS 1
+#define SFG_AMMO_PLASMA 2
+
+#define SFG_AMMO_INCREASE_BULLETS 10
+#define SFG_AMMO_INCREASE_ROCKETS 5
+#define SFG_AMMO_INCREASE_PLASMA 8
+
+#define SFG_AMMO_TOTAL 3
+
+#define SFG_AMMO_NONE SFG_AMMO_TOTAL
+
 // ----------------------------
 // derived constants
 

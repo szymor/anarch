@@ -212,14 +212,16 @@ struct
                                   for determining whether player is in the
                                   air. */
   uint16_t headBobFrame;
-  uint8_t weapon;                 ///< currently selected weapon
+  uint8_t  weapon;                 ///< currently selected weapon
 
-  uint8_t health;
+  uint8_t  health;
 
   uint32_t weaponCooldownStartFrame;   /**< frame from which weapon cooldown is
                                             counted */
   uint32_t lastHurtFrame;
   uint32_t lastItemTakenFrame;
+
+  uint8_t  ammo[SFG_AMMO_TOTAL];
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -343,6 +345,22 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
     value = 0;
 
   return value;
+}
+
+/**
+  Returns ammo type for given weapon.
+*/
+uint8_t SFG_weaponAmmo(uint8_t weapon)
+{
+  if (weapon == SFG_WEAPON_KNIFE)
+    return SFG_AMMO_NONE;
+  if (weapon == SFG_WEAPON_MACHINE_GUN ||
+      weapon == SFG_WEAPON_SHOTGUN)
+    return SFG_AMMO_BULLETS;
+  else if (weapon == SFG_WEAPON_ROCKET_LAUNCHER)
+    return SFG_AMMO_ROCKETS;
+  else
+    return SFG_AMMO_PLASMA;
 }
 
 RCL_Unit SFG_taxicabDistance(
@@ -909,6 +927,9 @@ void SFG_initPlayer()
   SFG_player.lastItemTakenFrame = SFG_gameFrame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
+
+  for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
+    SFG_player.ammo[i] = 0;
 }
 
 RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
@@ -2029,12 +2050,15 @@ void SFG_gameStep()
             break;
           
           case SFG_LEVEL_ELEMENT_BULLETS:
+            SFG_player.ammo[SFG_AMMO_BULLETS] += SFG_AMMO_INCREASE_BULLETS;
             break;
 
           case SFG_LEVEL_ELEMENT_ROCKETS:
+            SFG_player.ammo[SFG_AMMO_ROCKETS] += SFG_AMMO_INCREASE_ROCKETS;
             break;
 
           case SFG_LEVEL_ELEMENT_PLASMA:
+            SFG_player.ammo[SFG_AMMO_PLASMA] += SFG_AMMO_INCREASE_PLASMA;
             break;
 
           default:
@@ -2042,7 +2066,7 @@ void SFG_gameStep()
             break;
         }
 
-        if (eliminate)
+        if (eliminate) // take the item
         {
           SFG_removeItem(i);
           SFG_player.lastItemTakenFrame = SFG_gameFrame;
@@ -2850,7 +2874,7 @@ void SFG_draw()
       SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
 
     SFG_drawNumber( // ammo
-      20,
+      SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)],
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
       SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
