@@ -28,6 +28,12 @@
 #define SFG_FPS 60
 
 /**
+  On platforms with mouse this sets its horizontal sensitivity. 128 means 1
+  RCL_Unit per mouse pixel travelled.
+*/
+#define SFG_MOUSE_SENSITIVITY_HORIZONTAL 32
+
+/**
   Width of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  

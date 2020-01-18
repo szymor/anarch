@@ -37,6 +37,11 @@ const uint8_t *sdlKeyboardState;
 
 uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
 
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
+SDL_Surface *screenSurface;
+
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
   screen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
@@ -52,6 +57,19 @@ void SFG_sleepMs(uint16_t timeMs)
 #ifndef __EMSCRIPTEN__
   usleep(timeMs * 1000);
 #endif
+}
+
+void SFG_getMouseOffset(int16_t *x, int16_t *y)
+{
+  int mX, mY;
+
+  SDL_GetMouseState(&mX,&mY);
+
+  *x = mX - SFG_SCREEN_RESOLUTION_X / 2;
+  *y = mY - SFG_SCREEN_RESOLUTION_Y / 2;
+
+  SDL_WarpMouseInWindow(window,
+    SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
 }
 
 int8_t SFG_keyPressed(uint8_t key)
@@ -116,11 +134,6 @@ int8_t SFG_keyPressed(uint8_t key)
     default: return 0; break;
   }
 }
-
-SDL_Window *window;
-SDL_Renderer *renderer;
-SDL_Texture *texture;
-SDL_Surface *screenSurface;
 
 #ifdef __EMSCRIPTEN__
 void mainLoopIteration()
@@ -203,6 +216,8 @@ int main(int argc, char *argv[])
   }
 
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
+
+  SDL_ShowCursor(0);
 
   SFG_init();
 

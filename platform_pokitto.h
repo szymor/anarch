@@ -76,6 +76,12 @@ int8_t SFG_keyPressed(uint8_t key)
   }
 }
 
+void SFG_getMouseOffset(int16_t *x, int16_t *y)
+{
+  *x = 0;
+  *y = 0;
+}
+
 int main()
 {
   pokitto.begin(); 

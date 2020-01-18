@@ -61,6 +61,14 @@
 int8_t SFG_keyPressed(uint8_t key);
 
 /**
+  Optinal function for mouse/analog controls, gets mouse x and y offset in
+  pixels from the game screen center (to achieve classic FPS mouse controls the
+  platform should center the mouse at the end). If the platform isn't using a
+  mouse, this function should simply return [0,0] offets at each call.
+*/
+void SFG_getMouseOffset(int16_t *x, int16_t *y);
+
+/**
   Returns time in ms sice program start.
 */
 uint32_t SFG_getTimeMs();
@@ -1745,7 +1753,6 @@ void SFG_gameStep()
   int8_t shearing = 0;
 
 #if SFG_PREVIEW_MODE == 0
-
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
@@ -1913,6 +1920,18 @@ void SFG_gameStep()
         SFG_playerRotateWeapon(0);
       else if (SFG_keyJustPressed(SFG_KEY_RIGHT) | SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
+    }
+
+    int16_t mouseX, mouseY;
+
+    SFG_getMouseOffset(&mouseX,&mouseY);
+
+    if (mouseX != 0 || mouseY != 0)
+    {
+      SFG_player.camera.direction += 
+        (mouseX * SFG_MOUSE_SENSITIVITY_HORIZONTAL) / 128;
+
+      recomputeDirection = 1;
     }
 
     if (recomputeDirection)
