@@ -1089,7 +1089,7 @@ void SFG_init()
     SFG_backgroundScaleMap[i] =
       (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
 
-  for (uint8_t i = 0; i < SFG_KEY_DOWN; ++i)
+  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     SFG_keyStates[i] = 0;
 
   SFG_backgroundScroll = 0;

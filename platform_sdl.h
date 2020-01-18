@@ -35,8 +35,6 @@
 
 const uint8_t *sdlKeyboardState;
 
-int8_t mouseWheel;
-
 uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
 
 SDL_Window *window;
@@ -138,11 +136,11 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_NEXT_WEAPON:
-      return sdlKeyboardState[SDL_SCANCODE_M] || (mouseWheel > 0);
+      return sdlKeyboardState[SDL_SCANCODE_M];
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
-      return sdlKeyboardState[SDL_SCANCODE_N] || (mouseWheel < 0);
+      return sdlKeyboardState[SDL_SCANCODE_N];
       break;
 
     default: return 0; break;
@@ -154,19 +152,6 @@ int running;
 void mainLoopIteration()
 {
   SDL_PumpEvents(); // updates the keyboard state
-
-  mouseWheel = 0;
-
-  SDL_Event event;
-
-  while(SDL_PollEvent(&event))
-    if(event.type == SDL_MOUSEWHEEL)
-    {
-      if(event.wheel.y > 0)
-        mouseWheel = 1;
-      else
-        mouseWheel = -1;
-    }
 
   if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
     running = 0;
