@@ -34,6 +34,12 @@
 #define SFG_MOUSE_SENSITIVITY_HORIZONTAL 32
 
 /**
+  Like SFG_MOUSE_SENSITIVITY_HORIZONTAL but for vertical look. 128 means 1
+  shear pixel per mouse pixel travelled.
+*/
+#define SFG_MOUSE_SENSITIVITY_VERTICAL 64
+
+/**
   Width of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
@@ -168,5 +174,10 @@
   performance and lowers memory usage.
 */
 #define SFG_BACKGROUND_BLUR 0
+
+/**
+  Developer cheat for having infinite ammo in all weapons.
+*/
+#define SFG_INFINITE_AMMO 1
 
 #endif // guard

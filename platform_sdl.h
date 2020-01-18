@@ -35,6 +35,8 @@
 
 const uint8_t *sdlKeyboardState;
 
+int8_t mouseWheel;
+
 uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
 
 SDL_Window *window;
@@ -106,7 +108,7 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_B:
-      return sdlKeyboardState[SDL_SCANCODE_H];
+      return sdlKeyboardState[SDL_SCANCODE_H] || SDL_GetMouseState(0,0);
       break;
 
     case SFG_KEY_C:
@@ -131,17 +133,43 @@ int8_t SFG_keyPressed(uint8_t key)
       return sdlKeyboardState[SDL_SCANCODE_TAB];
       break;
 
+    case SFG_KEY_TOGGLE_FREELOOK:
+      return sdlKeyboardState[SDL_SCANCODE_T];
+      break;
+
+    case SFG_KEY_NEXT_WEAPON:
+      return sdlKeyboardState[SDL_SCANCODE_M] || (mouseWheel > 0);
+      break;
+
+    case SFG_KEY_PREVIOUS_WEAPON:
+      return sdlKeyboardState[SDL_SCANCODE_N] || (mouseWheel < 0);
+      break;
+
     default: return 0; break;
   }
 }
+  
+int running;
 
-#ifdef __EMSCRIPTEN__
 void mainLoopIteration()
 {
   SDL_PumpEvents(); // updates the keyboard state
 
+  mouseWheel = 0;
+
+  SDL_Event event;
+
+  while(SDL_PollEvent(&event))
+    if(event.type == SDL_MOUSEWHEEL)
+    {
+      if(event.wheel.y > 0)
+        mouseWheel = 1;
+      else
+        mouseWheel = -1;
+    }
+
   if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
-    return;
+    running = 0;
 
   SFG_mainLoopBody();
 
@@ -152,6 +180,7 @@ void mainLoopIteration()
   SDL_RenderPresent(renderer);
 }   
 
+#ifdef __EMSCRIPTEN__
 typedef void (*em_callback_func)(void);
 void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
 #endif
@@ -221,26 +250,13 @@ int main(int argc, char *argv[])
 
   SFG_init();
 
-  int running = 1;
+  running = 1;
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(mainLoopIteration,0,1);
 #else
   while (running)
-  {
-    SDL_PumpEvents(); // updates the keyboard state
-
-    if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
-      break;
-
-    SFG_mainLoopBody();
-
-    SDL_UpdateTexture(texture,NULL,screen,SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
-
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer,texture,NULL,NULL);
-    SDL_RenderPresent(renderer);
-  }    
+    mainLoopIteration();
 #endif
 
   printf("SDL: freeing SDL\n");

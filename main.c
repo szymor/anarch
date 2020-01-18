@@ -34,8 +34,11 @@
 #define SFG_KEY_STRAFE_LEFT 8
 #define SFG_KEY_STRAFE_RIGHT 9
 #define SFG_KEY_MAP 10
+#define SFG_KEY_TOGGLE_FREELOOK 11
+#define SFG_KEY_NEXT_WEAPON 12
+#define SFG_KEY_PREVIOUS_WEAPON 13
 
-#define SFG_KEY_COUNT 10 ///< Number of keys.
+#define SFG_KEY_COUNT 14 ///< Number of keys.
 
 /* ============================= PORTING =================================== */
 
@@ -230,6 +233,10 @@ struct
   uint32_t lastItemTakenFrame;
 
   uint8_t  ammo[SFG_AMMO_TOTAL];
+
+  uint8_t  freeLook;             /**< If on, the vertical looking (shear) does
+                                 not automatically shear back. This is mainly 
+                                 for mouse control. */
 } SFG_player;
 
 RCL_RayConstraints SFG_rayConstraints;
@@ -1090,6 +1097,8 @@ void SFG_init()
   SFG_setAndInitLevel(&SFG_level0);
 
   SFG_lastFrameTimeMs = SFG_getTimeMs();
+
+  SFG_player.freeLook = 0;
 }
 
 void SFG_getPlayerWeaponInfo(
@@ -1099,9 +1108,13 @@ void SFG_getPlayerWeaponInfo(
 
   *projectileCount = SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
 
+#if SFG_INFINITE_AMMO
+  *canShoot = 1;
+#else
   *canShoot = 
     (*ammoType == SFG_AMMO_NONE || 
      SFG_player.ammo[*ammoType] >= *projectileCount);
+#endif
 }
 
 void SFG_playerRotateWeapon(uint8_t next)
@@ -1752,6 +1765,9 @@ void SFG_gameStep()
 
   int8_t shearing = 0;
 
+  if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
+    SFG_player.freeLook = !SFG_player.freeLook;
+
 #if SFG_PREVIEW_MODE == 0
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
@@ -1865,6 +1881,11 @@ void SFG_gameStep()
   } // attack
 #endif // SFG_PREVIEW_MODE == 0
 
+  if (SFG_keyJustPressed(SFG_KEY_NEXT_WEAPON))
+    SFG_playerRotateWeapon(1);
+  else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON))
+    SFG_playerRotateWeapon(0);
+
   if (SFG_keyIsDown(SFG_KEY_A))
   {
     if (SFG_keyIsDown(SFG_KEY_UP))
@@ -1893,9 +1914,9 @@ void SFG_gameStep()
     }
     else
     {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT) | SFG_keyJustPressed(SFG_KEY_A))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) | SFG_keyJustPressed(SFG_KEY_B))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) || SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
     }
   }
@@ -1931,6 +1952,14 @@ void SFG_gameStep()
       SFG_player.camera.direction += 
         (mouseX * SFG_MOUSE_SENSITIVITY_HORIZONTAL) / 128;
 
+      if (SFG_player.freeLook)
+        SFG_player.camera.shear =
+          RCL_max(RCL_min(
+            SFG_player.camera.shear - (mouseY * SFG_MOUSE_SENSITIVITY_VERTICAL)
+            / 128,
+            SFG_CAMERA_MAX_SHEAR_PIXELS),
+            -1 * SFG_CAMERA_MAX_SHEAR_PIXELS);
+ 
       recomputeDirection = 1;
     }
 
@@ -1986,7 +2015,7 @@ void SFG_gameStep()
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
-  if (!shearing && SFG_player.camera.shear != 0)
+  if (!shearing && SFG_player.camera.shear != 0 && !SFG_player.freeLook)
   {
     // gradually shear back to zero
 
