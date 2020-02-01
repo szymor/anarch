@@ -1,6 +1,6 @@
 # WIP
 
-# ![](assets/logo.png) CorpoDearm
+# Anarch
 
 *suckless FPS, the best game ever made game, for the benefit of all living beings*
 
