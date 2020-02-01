@@ -364,12 +364,12 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
 /*22*/ o ,o ,o ,8 ,8 ,o ,o ,o ,o ,8 ,8 ,o ,o ,o ,o ,o ,o ,3 ,3 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 22
 /*23*/ o ,o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,o ,5 ,5 ,5 ,4 ,4 ,5 ,5 ,5 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 23
 /*24*/ o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 24
-/*25*/ o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 25
-/*26*/ 8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 26
-/*27*/ 8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 27
-/*28*/ 8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 28
-/*29*/ 8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 29
-/*30*/ o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,6 ,o ,o ,o ,o ,o ,o ,o ,o ,3 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 30
+/*25*/ o ,8 ,o ,o ,o ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 25
+/*26*/ 8 ,o ,o ,o ,9 ,9 ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 26
+/*27*/ 8 ,o ,o ,o ,9 ,9 ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 27
+/*28*/ 8 ,o ,o ,o ,9 ,9 ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 28
+/*29*/ 8 ,o ,o ,o ,9 ,9 ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 29
+/*30*/ o ,8 ,o ,o ,o ,9 ,9 ,9 ,9 ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,6 ,o ,o ,o ,o ,o ,o ,o ,o ,3 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 30
 /*31*/ o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,6 ,o ,o ,o ,o ,o ,o ,o ,o ,3 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 31
 /*32*/ o ,o ,8 ,o ,o ,o ,o ,o ,o ,o ,o ,8 ,o ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 32
 /*33*/ o ,o ,o ,8 ,8 ,o ,o ,o ,o ,8 ,8 ,o ,o ,o ,5 ,4 ,4 ,4 ,4 ,4 ,4 ,5 ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 33
@@ -415,7 +415,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
   { // tileDictionary
     SFG_TD(14,31,0,0),SFG_TD(18,31,0,0),SFG_TD(26,31,0,0),SFG_TD(16,31,0,0), // 0
     SFG_TD(18, 8,0,0),SFG_TD(26, 0,0,0),SFG_TD(18,31,4,0),SFG_TD(12,12,0,5), // 4
-    SFG_TD(26, 0,4,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 8
+    SFG_TD(26, 0,4,0),SFG_TD(15,31,2,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 8
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 12
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 16
     SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 20

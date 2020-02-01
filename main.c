@@ -531,6 +531,11 @@ SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
   };
 #endif
 
+uint8_t static inline SFG_fogValueDiminish(RCL_Unit depth)
+{
+  return depth / SFG_FOG_DIMINISH_STEP;
+}
+
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -593,8 +598,8 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   if (color != SFG_TRANSPARENT_COLOR)
   {
 #if SFG_DITHERED_SHADOW
-    uint8_t fogShadow = (pixel->depth * 4) / (RCL_UNITS_PER_SQUARE);
-   
+    uint8_t fogShadow = (pixel->depth * 8) / SFG_FOG_DIMINISH_STEP;
+
     uint8_t fogShadowPart = fogShadow & 0x07;
 
     fogShadow /= 8;
@@ -605,7 +610,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     shadow +=
       fogShadow + SFG_ditheringPatterns[fogShadowPart * 8 + yMod2 * 4 + xMod4];
 #else
-    shadow += pixel->depth / (RCL_UNITS_PER_SQUARE * 2);
+    shadow += SFG_fogValueDiminish(pixel->depth);
 #endif
 
 #if SFG_ENABLE_FOG
@@ -2025,7 +2030,7 @@ void SFG_gameStep()
       RCL_min(0,SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
   }
 
-#if SFG_HEADBOB_ENABLED
+#if SFG_HEADBOB_ENABLED && !SFG_PREVIEW_MODE
   if (bobbing)
   {
     SFG_player.headBobFrame += SFG_HEADBOB_FRAME_INCREASE_PER_FRAME; 
@@ -2149,9 +2154,11 @@ void SFG_gameStep()
 
         if (eliminate) // take the item
         {
+#if !SFG_PREVIEW_MODE
           SFG_removeItem(i);
           SFG_player.lastItemTakenFrame = SFG_gameFrame;
           i--;
+#endif
         }
         else // collide
         {
@@ -2919,7 +2926,8 @@ void SFG_draw()
         SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(spriteSize,p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);  
+            SFG_fogValueDiminish(p.depth),
+            p.depth);  
     }
 
 #if SFG_HEADBOB_ENABLED

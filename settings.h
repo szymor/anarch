@@ -81,6 +81,12 @@
 #define SFG_DITHERED_SHADOW 1
 
 /**
+  Depth step (in RCL_Units) after which fog diminishes a color by one value
+  point. For performance reasons this number should be kept a power of two!
+*/
+#define SFG_FOG_DIMINISH_STEP 4096
+
+/**
   Maximum number of squares that will be traversed by any cast ray. Smaller
   number is faster but can cause visual artifacts.
 */
