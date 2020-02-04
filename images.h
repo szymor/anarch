@@ -17,8 +17,8 @@
   whatsoever.
 */
 
-#ifndef _SFG_RESOURCES_H
-#define _SFG_RESOURCES_H
+#ifndef _SFG_IMAGES_H
+#define _SFG_IMAGES_H
 
 #define SFG_TEXTURE_SIZE 32
 

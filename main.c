@@ -89,6 +89,13 @@ void SFG_sleepMs(uint16_t timeMs);
 */
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 
+/**
+  Play given sound effect (SFX). This function can use sound samples from
+  sounds.h or use different sounds (e.g. beeps of the specific platform), or
+  even do nothing (meaning there will be no sound effects playing).
+*/
+void SFG_playSound(uint8_t soundIndex, uint8_t volume);
+
 /* ========================================================================= */
 
 /**
@@ -115,7 +122,7 @@ void SFG_init();
 
 #include "raycastlib.h" 
 
-#include "assets.h"
+#include "images.h"
 #include "levels.h"
 #include "palette.h"
 #include "settings.h" // will include if not included by platform
@@ -1780,7 +1787,7 @@ void SFG_gameStep()
     (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
-    // player: attack, shoot
+    // player: attack, shoot, fire
 
     uint8_t ammo, projectileCount, canShoot;
 
@@ -1788,6 +1795,8 @@ void SFG_gameStep()
 
     if (canShoot)
     {
+      SFG_playSound(0,255);
+
       if (ammo != SFG_AMMO_NONE)
         SFG_player.ammo[ammo] -= projectileCount;
 
@@ -2370,14 +2379,19 @@ void SFG_gameStep()
       SFG_DoorRecord *door =
         &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
 
-      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) |
-        (
-          ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-           (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-           (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-           (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
-           SFG_DOOR_UP_DOWN_MASK : 0x00 
-        );
+      uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
+
+      uint8_t newUpDownState = 
+                ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+                 (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+                 (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+                 (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
+                 SFG_DOOR_UP_DOWN_MASK : 0x00; 
+
+      if (upDownState != newUpDownState)
+        SFG_playSound(1,255);
+
+      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
 
       SFG_currentLevel.checkedDoorIndex++;
 

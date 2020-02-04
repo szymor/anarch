@@ -27,6 +27,8 @@
 
 #include "palette.h"
 
+#include "sounds.h"
+
 #undef SFG_LOG
 #define SFG_LOG(str) printf("game: %s\n",str);
 
@@ -170,6 +172,34 @@ typedef void (*em_callback_func)(void);
 void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
 #endif
 
+uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
+uint32_t audioPos = 0;
+
+void audioFillCallback(void *userdata, uint8_t *s, int l)
+{
+  if (audioPos >= SFG_SFX_SAMPLE_COUNT)
+    SDL_PauseAudio(1);
+
+  for (int i = 0; i < l; ++i)
+    if (audioPos < SFG_SFX_SAMPLE_COUNT)
+    {
+      s[i] = audioBuff[audioPos];
+      audioPos++;
+    }
+    else
+      s[i] = 127;
+}
+
+void SFG_playSound(uint8_t soundIndex, uint8_t volume)
+{
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+    audioBuff[i] = SFG_GET_SFX_SAMPLE(soundIndex,i) * 16;
+
+  audioPos = 0;
+ 
+  SDL_PauseAudio(0);
+}
+
 int main(int argc, char *argv[])
 {
   uint8_t argHelp = 0;
@@ -233,7 +263,18 @@ int main(int argc, char *argv[])
 
   SDL_ShowCursor(0);
 
-  SFG_init();
+  SFG_init(SDL_INIT_AUDIO);
+
+  SDL_AudioSpec audioSpec;
+
+  audioSpec.callback = audioFillCallback;
+  audioSpec.userdata = 0;
+  audioSpec.freq = 8000;
+  audioSpec.format = AUDIO_U8;
+  audioSpec.channels = 1;
+
+  if (SDL_OpenAudio(&audioSpec, NULL) < 0)
+    printf("SDL: could not initialize audio\n");
 
   running = 1;
 
@@ -249,6 +290,7 @@ int main(int argc, char *argv[])
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer); 
   SDL_DestroyWindow(window); 
+  SDL_CloseAudio();
 
   printf("SDL: ending\n");
 
