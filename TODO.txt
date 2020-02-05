@@ -5,15 +5,11 @@
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional)
-- enemies
-- weapons
 - more levels
 - disable transparency for walls for performance (setting)?
 - replace textures in distace with constant color for performance (setting)?
 - add time slowdown constant
 - if space left, try blurring (lerp) the level background, see how it looks
-- create tables for monster and weapon stats in constants.h and read from that
-  instead of cheking with ifs
 - some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
   back towards the player
 - compile with different compilers (gcc, clang, musl, ...) and settings, make
@@ -24,7 +20,6 @@
 - add jump pads?
 - add robot deactivator item? (encourages "stealth" gameplay)
 - add "pletivo" transparent wall texture?
-- make barrels explode.
 
 bugs:
 
@@ -38,4 +33,9 @@ done:
 - try to compress images: store images as 4 bits per pixel + 16 color palette
   (subset of the 256 color palette), check if performance stays ok
 - custom font
+- make barrels explode.
+- enemies
+- weapons
+- create tables for monster and weapon stats in constants.h and read from that
+  instead of cheking with ifs
 

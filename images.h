@@ -40,7 +40,8 @@ static inline uint8_t SFG_getTexel(const uint8_t *texture, uint8_t x, uint8_t y)
   y &= 0x1f;
 
   return texture[
-    (texture[16 + (x * SFG_TEXTURE_SIZE + y) / 2] >> (4 * (y % 2 == 0))) & 0x0f];
+    (texture[16 + (x * SFG_TEXTURE_SIZE + y) / 2] >> (4 * (y % 2 == 0)))
+    & 0x0f];
 }
 
 SFG_PROGRAM_MEMORY uint8_t SFG_wallTextures[][SFG_TEXTURE_STORE_SIZE] =
