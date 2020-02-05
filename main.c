@@ -1360,7 +1360,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explosion;
 
-SFG_playSound(2,255);
+  SFG_playSound(2,255);
 
   explosion.type = SFG_PROJECTILE_EXPLOSION;
 
@@ -2169,6 +2169,7 @@ void SFG_gameStep()
           SFG_removeItem(i);
           SFG_player.lastItemTakenFrame = SFG_gameFrame;
           i--;
+          SFG_playSound(3,255);
 #endif
         }
         else // collide
@@ -2517,6 +2518,7 @@ void SFG_gameStep()
       else if (monster->health == 0)
       {
         monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
+        SFG_playSound(2,255);
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
