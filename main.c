@@ -1360,6 +1360,8 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explosion;
 
+SFG_playSound(2,255);
+
   explosion.type = SFG_PROJECTILE_EXPLOSION;
 
   explosion.position[0] = x;
