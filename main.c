@@ -2885,18 +2885,23 @@ void SFG_draw()
         worldPosition.y =
           SFG_ELEMENT_COORD_TO_RCL_UNITS(e.coords[1]);
 
+        uint8_t size = 0;
+
+        if (e.type == SFG_LEVEL_ELEMENT_TREE)
+          size = 2;
+
         RCL_PixelInfo p =
           RCL_mapToScreen(
             worldPosition,
             SFG_floorHeightAt(e.coords[0],e.coords[1])
-            + SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(0),
+            + SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(size),
             SFG_player.camera);
 
         if (p.depth > 0)
         {
           SFG_drawScaledSprite(SFG_itemSprites[e.type - 1],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_SPRITE_SIZE(0),p.depth),
+            RCL_perspectiveScale(SFG_SPRITE_SIZE(size),p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
         }
       }
