@@ -85,6 +85,10 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
   *y = 0;
 }
 
+void SFG_playSound(uint8_t soundIndex, uint8_t volume)
+{
+}
+
 int main()
 {
   pokitto.begin(); 
