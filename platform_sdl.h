@@ -173,33 +173,37 @@ void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infin
 #endif
 
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
-uint32_t audioPos = 0;
+uint16_t audioPos = 0;
 
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
-  if (audioPos >= SFG_SFX_SAMPLE_COUNT)
-    SDL_PauseAudio(1);
-
   for (int i = 0; i < l; ++i)
-    if (audioPos < SFG_SFX_SAMPLE_COUNT)
-    {
-      s[i] = audioBuff[audioPos];
-      audioPos++;
-    }
-    else
-      s[i] = 127;
+  {
+    s[i] = audioBuff[audioPos];
+
+    audioBuff[audioPos] = 127;
+
+    audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
+  }
 }
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
   uint8_t volumeStep = volume / 16;
 
-  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
-    audioBuff[i] = SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
+  uint16_t pos = audioPos;
 
-  audioPos = 0;
- 
-  SDL_PauseAudio(0);
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+  {
+    int16_t mixedValue =
+      audioBuff[pos] - 127 + SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
+
+    mixedValue = (mixedValue > 0) ? ((mixedValue < 255) ? mixedValue : 255) : 0;
+
+    audioBuff[pos] = mixedValue; 
+
+    pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
+  }
 }
 
 int main(int argc, char *argv[])
@@ -278,6 +282,11 @@ int main(int argc, char *argv[])
   if (SDL_OpenAudio(&audioSpec, NULL) < 0)
     printf("SDL: could not initialize audio\n");
 
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+    audioBuff[i] = 127;
+
+  SDL_PauseAudio(0);
+
   running = 1;
 
 #ifdef __EMSCRIPTEN__
@@ -289,6 +298,7 @@ int main(int argc, char *argv[])
 
   printf("SDL: freeing SDL\n");
 
+  SDL_PauseAudio(1);
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer); 
   SDL_DestroyWindow(window); 

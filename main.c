@@ -94,7 +94,9 @@ static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
   samples provided in sounds.h, and it may or may not ignore the volume
   parameter (which is 0 to 255). Depending on the platform the function can play
   completely different samples or even e.g. just beeps. If the platform can't
-  play sounds, this function implementation can simply be left empty.
+  play sounds, this function implementation can simply be left empty. This
+  function doesn't have to implement safety measures, the back end takes cares
+  of them.
 */
 void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
@@ -248,6 +250,9 @@ struct
                                  for mouse control. */
 } SFG_player;
 
+uint8_t SFG_explosionSoundPlayed;  /**< Prevents playing too many explosion
+                                 sounds at once */
+
 RCL_RayConstraints SFG_rayConstraints;
 
 /**
@@ -348,6 +353,19 @@ uint8_t SFG_random()
   SFG_currentRandom += 7;
   
   return SFG_currentRandom;
+}
+
+void SFG_playSoundSafe(uint8_t soundIndex, uint8_t volume)
+{
+  if (soundIndex == 2) // explosion?
+  {
+    if (!SFG_explosionSoundPlayed)
+      SFG_playSound(soundIndex,volume);
+    
+    SFG_explosionSoundPlayed = 1;
+  }
+  else
+    SFG_playSound(soundIndex,volume);
 }
 
 /**
@@ -1772,6 +1790,8 @@ static inline uint8_t SFG_elementCollides(
 */
 void SFG_gameStep()
 {
+  SFG_explosionSoundPlayed = 0;
+
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     SFG_keyStates[i] = (SFG_keyStates[i] << 1) | SFG_keyPressed(i);
 
@@ -1812,7 +1832,7 @@ void SFG_gameStep()
 
     if (canShoot)
     {
-      SFG_playSound(0,255);
+      SFG_playSoundSafe(0,255);
 
       if (ammo != SFG_AMMO_NONE)
         SFG_player.ammo[ammo] -= projectileCount;
@@ -2184,7 +2204,7 @@ void SFG_gameStep()
           SFG_removeItem(i);
           SFG_player.lastItemTakenFrame = SFG_gameFrame;
           i--;
-          SFG_playSound(3,255);
+          SFG_playSoundSafe(3,255);
 #endif
         }
         else // collide
@@ -2407,7 +2427,7 @@ void SFG_gameStep()
                  SFG_DOOR_UP_DOWN_MASK : 0x00; 
 
       if (upDownState != newUpDownState)
-        SFG_playSound(1,255);
+        SFG_playSoundSafe(1,255);
 
       door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
 
@@ -2533,7 +2553,7 @@ void SFG_gameStep()
       else if (monster->health == 0)
       {
         monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
-        SFG_playSound(2,255);
+        SFG_playSoundSafe(2,255);
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
