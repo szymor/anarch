@@ -90,9 +90,11 @@ void SFG_sleepMs(uint16_t timeMs);
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 
 /**
-  Play given sound effect (SFX). This function can use sound samples from
-  sounds.h or use different sounds (e.g. beeps of the specific platform), or
-  even do nothing (meaning there will be no sound effects playing).
+  Play given sound effect (SFX). This function may or may not use the sound
+  samples provided in sounds.h, and it may or may not ignore the volume
+  parameter (which is 0 to 255). Depending on the platform the function can play
+  completely different samples or even e.g. just beeps. If the platform can't
+  play sounds, this function implementation can simply be left empty.
 */
 void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
