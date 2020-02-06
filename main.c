@@ -1774,14 +1774,12 @@ static inline uint8_t SFG_elementCollides(
   RCL_Unit pointZ,
   RCL_Unit elementX,
   RCL_Unit elementY,
-  RCL_Unit elementHeight,
-  RCL_Unit heightMargin,
-  RCL_Unit widthMargin
+  RCL_Unit elementHeight
 )
 {
   return
     SFG_taxicabDistance(pointX,pointY,pointZ,elementX,elementY,elementHeight)
-    <= (SFG_ELEMENT_COLLISION_DISTANCE + widthMargin);
+    <= SFG_ELEMENT_COLLISION_DISTANCE;
 }
 
 /**
@@ -2153,8 +2151,7 @@ void SFG_gameStep()
            mPos.y,
            SFG_floorHeightAt(
                SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
-               SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
-           0,0
+               SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
          )
        )
     {
@@ -2186,8 +2183,7 @@ void SFG_gameStep()
              SFG_player.camera.height,
              ePos.x,
              ePos.y,
-             SFG_floorHeightAt(e->coords[0],e->coords[1]),
-             0,0
+             SFG_floorHeightAt(e->coords[0],e->coords[1])
            )
          )
       {
@@ -2308,9 +2304,8 @@ void SFG_gameStep()
                SFG_player.camera.height,
                p->position[0],
                p->position[1],
-               p->position[2],
-               0,
-               0))
+               p->position[2]
+               ))
     {
       eliminate = 1;
 
@@ -2349,9 +2344,8 @@ void SFG_gameStep()
                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
                  SFG_floorHeightAt(
                      SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
-                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[1])),
-                 0,
-                 0)
+                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
+                 )
                )
             {
               eliminate = 1;
@@ -2374,7 +2368,7 @@ void SFG_gameStep()
 
             if (
                SFG_elementCollides(p->position[0],p->position[1],p->position[2],
-               x,y,z,0,0)
+               x,y,z)
                )
             {
               if (

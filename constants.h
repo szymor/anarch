@@ -79,7 +79,7 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_DISTANCE 2048
+#define SFG_ELEMENT_COLLISION_DISTANCE 2500
 
 /**
   Height, in RCL_Units, at which collisions happen with level elements
