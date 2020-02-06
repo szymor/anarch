@@ -192,8 +192,10 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
+  uint8_t volumeStep = volume / 16;
+
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
-    audioBuff[i] = SFG_GET_SFX_SAMPLE(soundIndex,i) * 16;
+    audioBuff[i] = SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
 
   audioPos = 0;
  

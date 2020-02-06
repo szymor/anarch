@@ -176,6 +176,12 @@
 #define SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME 8
 
 /**
+  Maximum distance at which sound effects (SFX) will be played. The SFX volume
+  will gradually drop towards this distance.
+*/
+#define SFG_SFX_MAX_DISTANCE (1024 * 20)
+
+/**
   Says the intensity of background image blur. 0 means no blur, improves
   performance and lowers memory usage.
 */

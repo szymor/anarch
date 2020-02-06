@@ -1358,11 +1358,24 @@ void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
   SFG_createExplosion(x,y,z);
 }
 
+uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  RCL_Unit distance = SFG_taxicabDistance(x,y,z,
+                        SFG_player.camera.position.x,
+                        SFG_player.camera.position.y,
+                        SFG_player.camera.height);
+
+  if (distance >= SFG_SFX_MAX_DISTANCE)
+    return 0;
+
+  return 255 - (distance * 255) / SFG_SFX_MAX_DISTANCE;
+}
+
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explosion;
 
-  SFG_playSound(2,255);
+  SFG_playSound(2,SFG_distantSoundVolume(x,y,z));
 
   explosion.type = SFG_PROJECTILE_EXPLOSION;
 
