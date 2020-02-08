@@ -2991,6 +2991,8 @@ void SFG_draw()
 
         if (e.type == SFG_LEVEL_ELEMENT_TREE)
           size = 2;
+        else if (e.type == SFG_LEVEL_ELEMENT_FINISH)
+          size = 3;
 
         RCL_PixelInfo p =
           RCL_mapToScreen(
