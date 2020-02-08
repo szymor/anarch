@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.901
+  version: 0.902
 */
 
 #include <stdint.h>
@@ -1680,8 +1680,7 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
     middleColumn + (-1 * toPoint.y * middleColumn) / RCL_nonZero(result.depth);
 
   result.position.y = camera.resolution.y / 2 -
-(((3 * camera.resolution.y) / 4 ) *
-//    ((camera.resolution.y / 2) *
+     (((3 * camera.resolution.y) / 4 ) *
      RCL_perspectiveScale(height - camera.height,result.depth))
      / RCL_UNITS_PER_SQUARE + camera.shear;
 
@@ -1760,8 +1759,9 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
         dir##Collides = 1;\
       else if (ceilingHeightFunc != 0)\
       {\
-        height = ceilingHeightFunc(s1,s2);\
-        if (height < topLimit)\
+        RCL_Unit height2 = ceilingHeightFunc(s1,s2);\
+        if ((height2 < topLimit) || ((height2 - height) < \
+          (RCL_CAMERA_COLL_HEIGHT_ABOVE + RCL_CAMERA_COLL_HEIGHT_BELOW)))\
           dir##Collides = 1;\
       }\
     }\

@@ -122,7 +122,7 @@ void SFG_init();
 #define RCL_TEXTURE_VERTICAL_STRETCH 0
 
 #define RCL_CAMERA_COLL_HEIGHT_BELOW 800
-#define RCL_CAMERA_COLL_HEIGHT_ABOVE 150
+#define RCL_CAMERA_COLL_HEIGHT_ABOVE 200
 
 #include "raycastlib.h" 
 
@@ -248,6 +248,8 @@ struct
   uint8_t  freeLook;             /**< If on, the vertical looking (shear) does
                                  not automatically shear back. This is mainly 
                                  for mouse control. */
+  uint8_t  cards;                /**< Lowest bits say which access cards have
+                                 been taken. */
 } SFG_player;
 
 uint8_t SFG_explosionSoundPlayed;  /**< Prevents playing too many explosion
@@ -974,6 +976,8 @@ void SFG_initPlayer()
   SFG_player.lastItemTakenFrame = SFG_gameFrame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
+
+  SFG_player.cards = 0;
 
   for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
     SFG_player.ammo[i] = 0;
@@ -1782,6 +1786,12 @@ static inline uint8_t SFG_elementCollides(
     <= SFG_ELEMENT_COLLISION_DISTANCE;
 }
 
+uint8_t SFG_getLevelElementSpriteIndex(uint8_t elementType)
+{
+  return ((elementType < SFG_LEVEL_ELEMENT_CARD0)
+    ? elementType : SFG_LEVEL_ELEMENT_CARD0) - 1;
+}
+
 /**
   Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
   previous frame. 
@@ -2207,6 +2217,12 @@ void SFG_gameStep()
             SFG_player.ammo[SFG_AMMO_PLASMA] += SFG_AMMO_INCREASE_PLASMA;
             break;
 
+          case SFG_LEVEL_ELEMENT_CARD0:
+          case SFG_LEVEL_ELEMENT_CARD1:
+          case SFG_LEVEL_ELEMENT_CARD2:
+            SFG_player.cards |= 1 << (e->type - SFG_LEVEL_ELEMENT_CARD0);
+            break;
+
           default:
             eliminate = 0;
             break;
@@ -2449,6 +2465,7 @@ void SFG_gameStep()
         SFG_currentLevel.checkedDoorIndex = 0;
     }
 
+    // move door up/down:
     for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
     {
       SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
@@ -2948,7 +2965,8 @@ void SFG_draw()
 
         if (p.depth > 0)
         {
-          SFG_drawScaledSprite(SFG_itemSprites[e.type - 1],
+          SFG_drawScaledSprite(
+            SFG_itemSprites[SFG_getLevelElementSpriteIndex(e.type)],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(SFG_SPRITE_SIZE(size),p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
@@ -3024,11 +3042,13 @@ void SFG_draw()
       color = 2;
     }
 
+    #define TEXT_Y (SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - \
+      SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM)
+
     SFG_drawNumber( // health
       SFG_player.health,
       SFG_HUD_MARGIN,
-      SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
-        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
+      TEXT_Y,
       SFG_FONT_SIZE_MEDIUM,
       SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
 
@@ -3036,10 +3056,17 @@ void SFG_draw()
       SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)],
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
         SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
-      SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - 
-        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM,
+      TEXT_Y,
       SFG_FONT_SIZE_MEDIUM,
-      4);
+      4); 
+
+    for (uint8_t i = 0; i < 3; ++i) // access cards
+      if (SFG_player.cards & (1 << i))
+        SFG_drawText(",",SFG_HUD_MARGIN + SFG_FONT_CHARACTER_SIZE *
+        SFG_FONT_SIZE_MEDIUM * (6 + i),
+        TEXT_Y,SFG_FONT_SIZE_MEDIUM,i == 0 ? 93 : (i == 1 ? 124 : 60));
+
+    #undef TEXT_Y
 
     // border indicator
 

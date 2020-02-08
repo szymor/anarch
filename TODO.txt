@@ -20,6 +20,7 @@
 - add jump pads?
 - add robot deactivator item? (encourages "stealth" gameplay)
 - add "pletivo" transparent wall texture?
+- add universal corpse sprite?
 
 bugs:
 
