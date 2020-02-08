@@ -93,9 +93,15 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_ROCKETS 0x04
 #define SFG_LEVEL_ELEMENT_PLASMA 0x05
 #define SFG_LEVEL_ELEMENT_TREE 0x06
-#define SFG_LEVEL_ELEMENT_CARD0 0x07
+#define SFG_LEVEL_ELEMENT_CARD0 0x07 ///< Access card, unlocks doors with lock.
 #define SFG_LEVEL_ELEMENT_CARD1 0x08
 #define SFG_LEVEL_ELEMENT_CARD2 0x09
+#define SFG_LEVEL_ELEMENT_LOCK0 0x0a /**< Special level element that must be
+                                     placed on a tile with door. This door is
+                                     then unlocked by taking the corresponding
+                                     access card. */
+#define SFG_LEVEL_ELEMENT_LOCK1 0x0b
+#define SFG_LEVEL_ELEMENT_LOCK2 0x0c
 
 /* 
   Monsters have lower 4 bits zero and are only distinguished by the 4 upper
@@ -286,7 +292,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
     {SFG_LEVEL_ELEMENT_TREE, {16, 46}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_CARD0, {13, 20}},     {SFG_LEVEL_ELEMENT_CARD1, {14, 20}},
     {SFG_LEVEL_ELEMENT_CARD2, {13, 21}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
-    {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
+    {SFG_LEVEL_ELEMENT_LOCK1, {3, 21}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},

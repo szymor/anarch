@@ -251,6 +251,7 @@
 
 #define SFG_DOOR_DEFAULT_STATE 0x1f
 #define SFG_DOOR_UP_DOWN_MASK 0x20
+#define SFG_DOOR_LOCK(doorRecord) ((doorRecord) >> 6)
 #define SFG_DOOR_VERTICAL_POSITION_MASK 0x1f
 #define SFG_DOOR_HEIGHT_STEP (RCL_UNITS_PER_SQUARE / 0x1f)
 

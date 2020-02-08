@@ -141,7 +141,8 @@ typedef struct
 
                           aaaaa: current door height (how much they're open)
                           b:     whether currently going up (0) or down (1)
-                          cc:    by which keys the door is unlocked
+                          cc:    by which card (key) the door is unlocked, 00
+                                 means no card (unlocked), 1 means card 0 etc.
                      */
 } SFG_DoorRecord;
 
@@ -1053,7 +1054,10 @@ void SFG_setAndInitLevel(const SFG_Level *level)
       }
 
       if (SFG_currentLevel.doorRecordCount >= SFG_MAX_DOORS)
+      {
+        SFG_LOG("warning: too many doors!");
         break;
+      }
     }
 
     if (SFG_currentLevel.doorRecordCount >= SFG_MAX_DOORS)
@@ -1091,11 +1095,39 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
         SFG_currentLevel.monsterRecordCount++;
       }
-      else
+      else if ((e->type < SFG_LEVEL_ELEMENT_LOCK0) ||
+        (e->type > SFG_LEVEL_ELEMENT_LOCK2))
       {
         SFG_LOG("adding item");
         SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
         SFG_currentLevel.itemRecordCount++;
+      }
+      else
+      {
+        SFG_LOG("adding door lock");
+      
+        uint8_t properties;
+     
+        SFG_getMapTile(level,e->coords[0],e->coords[1],&properties);
+
+        if ((properties & SFG_TILE_PROPERTY_MASK) == SFG_TILE_PROPERTY_DOOR)
+        {
+          // find the door record and lock the door:
+          for (uint16_t j = 0; j < SFG_currentLevel.doorRecordCount; ++j)
+          {
+            SFG_DoorRecord *d = &(SFG_currentLevel.doorRecords[j]);
+
+            if (d->coords[0] == e->coords[0] && d->coords[1] == e->coords[1])
+            {
+              d->state |= (e->type - SFG_LEVEL_ELEMENT_LOCK0 + 1) << 6;
+              break;
+            }
+          }
+        }
+        else
+        {
+          SFG_LOG("warning: lock not put on door tile!");
+        }
       }
     }
   } 
@@ -2447,12 +2479,16 @@ void SFG_gameStep()
 
       uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
 
+      uint8_t lock = SFG_DOOR_LOCK(door->state);
+
       uint8_t newUpDownState = 
-                ((door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-                 (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-                 (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-                 (door->coords[1] <= (SFG_player.squarePosition[1] + 1))) ?
-                 SFG_DOOR_UP_DOWN_MASK : 0x00; 
+                (
+                  ((lock == 0) || (SFG_player.cards & (1 << (lock - 1)))) &&
+                  (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+                  (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+                  (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+                  (door->coords[1] <= (SFG_player.squarePosition[1] + 1))
+                ) ? SFG_DOOR_UP_DOWN_MASK : 0x00; 
 
       if (upDownState != newUpDownState)
         SFG_playSoundSafe(1,255);
