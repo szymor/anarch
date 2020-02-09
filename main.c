@@ -1616,6 +1616,18 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
             break;
         }
 
+        if (projectile == SFG_PROJECTILE_BULLET)
+          SFG_playSoundSafe(0,
+            SFG_distantSoundVolume( 
+              SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+              SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+              SFG_floorHeightAt(
+                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
+                )
+              )
+            );
+
         SFG_launchProjectile(
           projectile,
           pos,
@@ -1692,6 +1704,8 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
           SFG_playerChangeHealth(
             -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
+              
+          SFG_playSoundSafe(3,255);
         }
         else // SFG_MONSTER_ATTACK_EXPLODE
         {
@@ -2008,6 +2022,8 @@ void SFG_gameStep()
                 -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
 
               SFG_createDust(pX,pY,pZ);
+
+              SFG_playSoundSafe(3,255);
 
               break;
             }
