@@ -149,7 +149,7 @@ typedef struct
 #define SFG_SPRITE_SIZE(size0to3) \
   (((size0to3 + 3) * SFG_BASE_SPRITE_SIZE) / 4)
 
-#define SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(size0to3) \
+#define SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(size0to3) \
   ((((size0to3) + 3) * (RCL_UNITS_PER_SQUARE / 2)) / 4)
 
 /**
@@ -817,8 +817,8 @@ void SFG_drawScaledSprite(
   if (y1 >= SFG_GAME_RESOLUTION_Y)
     y1 = SFG_GAME_RESOLUTION_Y - 1;
 
-  if ((x0 > x1) || (y0 > y1) || (u0 >= size) || (v0 >= size))
-    return;     // outside screen?
+  if ((x0 > x1) || (y0 > y1) || (u0 >= size) || (v0 >= size)) // outside screen?
+    return; 
 
   int16_t u1 = u0 + (x1 - x0);
   int16_t v1 = v0 + (y1 - y0);
@@ -2950,7 +2950,7 @@ void SFG_draw()
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
               + 
-              SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(spriteSize),
+              SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
               SFG_player.camera);
 
         if (p.depth > 0)
@@ -2998,7 +2998,7 @@ void SFG_draw()
           RCL_mapToScreen(
             worldPosition,
             SFG_floorHeightAt(e.coords[0],e.coords[1])
-            + SFG_SPRITE_SIZE_TO_HEAIGH_ABOVE_GROUND(size),
+            + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(size),
             SFG_player.camera);
 
         if (p.depth > 0)
