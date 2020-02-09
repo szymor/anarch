@@ -278,8 +278,9 @@ int main(int argc, char *argv[])
   audioSpec.freq = 8000;
   audioSpec.format = AUDIO_U8;
   audioSpec.channels = 1;
+  audioSpec.samples = 128;
 
-  if (SDL_OpenAudio(&audioSpec, NULL) < 0)
+  if (SDL_OpenAudio(&audioSpec,0) < 0)
     printf("SDL: could not initialize audio\n");
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
