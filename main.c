@@ -251,6 +251,7 @@ struct
                                  for mouse control. */
   uint8_t  cards;                /**< Lowest bits say which access cards have
                                  been taken. */
+  uint8_t  justTeleported;
 } SFG_player;
 
 uint8_t SFG_explosionSoundPlayed;  /**< Prevents playing too many explosion
@@ -306,6 +307,8 @@ struct
   uint8_t projectileRecordCount;
 
   uint8_t backgroundImage;
+
+  uint8_t teleportCount;
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -980,6 +983,8 @@ void SFG_initPlayer()
 
   SFG_player.cards = 0;
 
+  SFG_player.justTeleported = 0;
+
   for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
     SFG_player.ammo[i] = 0;
 }
@@ -1032,6 +1037,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_currentLevel.doorRecordCount = 0;
 
   SFG_currentLevel.projectileRecordCount = 0;
+
+  SFG_currentLevel.teleportCount = 0;
 
   for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
   {
@@ -1101,6 +1108,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         SFG_LOG("adding item");
         SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
         SFG_currentLevel.itemRecordCount++;
+
+        if (e->type == SFG_LEVEL_ELEMENT_TELEPORT)
+          SFG_currentLevel.teleportCount++;
       }
       else
       {
@@ -1818,10 +1828,32 @@ static inline uint8_t SFG_elementCollides(
     <= SFG_ELEMENT_COLLISION_DISTANCE;
 }
 
-uint8_t SFG_getLevelElementSpriteIndex(uint8_t elementType)
+SFG_getLevelElementSprite(
+  uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
 {
-  return ((elementType < SFG_LEVEL_ELEMENT_CARD0)
-    ? elementType : SFG_LEVEL_ELEMENT_CARD0) - 1;
+  *spriteSize = 0;
+  *spriteIndex = elementType - 1;
+
+  switch (elementType)
+  {
+    case SFG_LEVEL_ELEMENT_TREE:
+      *spriteSize = 2;
+      break;
+
+    case SFG_LEVEL_ELEMENT_TELEPORT:
+    case SFG_LEVEL_ELEMENT_FINISH:
+      *spriteSize = 3;
+      break;
+
+    case SFG_LEVEL_ELEMENT_CARD0:
+    case SFG_LEVEL_ELEMENT_CARD1:
+    case SFG_LEVEL_ELEMENT_CARD2:
+      *spriteIndex = SFG_LEVEL_ELEMENT_CARD0 - 1;
+      break;
+
+    default:
+      break;
+  }
 }
 
 /**
@@ -2202,6 +2234,8 @@ void SFG_gameStep()
     }
   }
 
+  uint8_t collidesWithTeleport = 0;
+
   // items:
   for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
     // ^ has to be int16_t (signed)
@@ -2255,6 +2289,11 @@ void SFG_gameStep()
             SFG_player.cards |= 1 << (e->type - SFG_LEVEL_ELEMENT_CARD0);
             break;
 
+          case SFG_LEVEL_ELEMENT_TELEPORT:
+            collidesWithTeleport = 1;
+            eliminate = 0;
+            break;
+
           default:
             eliminate = 0;
             break;
@@ -2269,14 +2308,63 @@ void SFG_gameStep()
           SFG_playSoundSafe(3,255);
 #endif
         }
-        else // collide
+        else 
         {
-          moveOffset = SFG_resolveCollisionWithElement(
-            SFG_player.camera.position,moveOffset,ePos);
+          if (e->type != SFG_LEVEL_ELEMENT_TELEPORT)
+          {
+            // collide
+            moveOffset = SFG_resolveCollisionWithElement(
+              SFG_player.camera.position,moveOffset,ePos);
+          }
+          else if ((SFG_currentLevel.teleportCount > 1) &&
+            !SFG_player.justTeleported)
+          {
+            // teleport to random destination teleport
+
+            uint8_t teleportNumber =
+              SFG_random() % (SFG_currentLevel.teleportCount - 1) + 1;
+
+            for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+            {
+              SFG_LevelElement e2 = 
+                SFG_currentLevel.levelPointer->elements
+                  [SFG_currentLevel.itemRecords[j] &
+                  ~SFG_ITEM_RECORD_ACTIVE_MASK];
+
+              if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORT) && (j != i))
+                teleportNumber--;
+
+              if (teleportNumber == 0)
+              {
+                SFG_player.camera.position.x =
+                  SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[0]);
+
+                SFG_player.camera.position.y =
+                  SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[1]);
+
+                SFG_player.camera.height =
+                  SFG_floorHeightAt(e2.coords[0],e2.coords[1]) +
+                  RCL_CAMERA_COLL_HEIGHT_BELOW;
+
+                SFG_currentLevel.itemRecords[j] |= SFG_ITEM_RECORD_ACTIVE_MASK;
+                /* ^ we have to make the new teleport immediately active so
+                   that it will immediately collide */
+
+                SFG_player.justTeleported = 1;
+
+                SFG_playSoundSafe(4,255);
+
+                break;
+              }
+            }
+          }
         }
       }
-    }    
-  }
+    } 
+  } // item collision check
+
+  if (!collidesWithTeleport)
+    SFG_player.justTeleported = 0;
 
 #if SFG_PREVIEW_MODE
   SFG_player.camera.position.x +=
@@ -2987,26 +3075,24 @@ void SFG_draw()
         worldPosition.y =
           SFG_ELEMENT_COORD_TO_RCL_UNITS(e.coords[1]);
 
-        uint8_t size = 0;
+        uint8_t spriteIndex;
+        uint8_t spriteSize;
 
-        if (e.type == SFG_LEVEL_ELEMENT_TREE)
-          size = 2;
-        else if (e.type == SFG_LEVEL_ELEMENT_FINISH)
-          size = 3;
+        SFG_getLevelElementSprite(e.type,&spriteIndex,&spriteSize);
 
         RCL_PixelInfo p =
           RCL_mapToScreen(
             worldPosition,
             SFG_floorHeightAt(e.coords[0],e.coords[1])
-            + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(size),
+            + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
             SFG_player.camera);
 
         if (p.depth > 0)
         {
           SFG_drawScaledSprite(
-            SFG_itemSprites[SFG_getLevelElementSpriteIndex(e.type)],
+            SFG_itemSprites[spriteIndex],
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_SPRITE_SIZE(size),p.depth),
+            RCL_perspectiveScale(SFG_SPRITE_SIZE(spriteSize),p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
         }
       }
