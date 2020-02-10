@@ -1637,7 +1637,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
              ) + RCL_UNITS_PER_SQUARE / 2,
           dir,
           0,
-          SFG_ELEMENT_COLLISION_DISTANCE
+          SFG_PROJECTILE_SPAWN_OFFSET
         );
       }
     }
@@ -1842,6 +1842,35 @@ static inline uint8_t SFG_elementCollides(
     <= SFG_ELEMENT_COLLISION_DISTANCE;
 }
 
+/**
+  Checks collision of a projectile with level element at given position.
+*/
+uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
+  RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  if (!SFG_elementCollides(x,y,z,
+    projectile->position[0],projectile->position[1],projectile->position[2]))
+    return 0;
+
+  if ((projectile->type == SFG_PROJECTILE_EXPLOSION) ||
+      (projectile->type == SFG_PROJECTILE_DUST))
+    return 0;
+
+  /* For directional projectiles we only register a collision if its direction
+     is "towards" the element so that the shooter doesn't get shot by his own
+     projectile. */
+
+  RCL_Vector2D projDir, toElement;
+
+  projDir.x = projectile->direction[0]; 
+  projDir.y = projectile->direction[1];
+
+  toElement.x = x - projectile->position[0];
+  toElement.y = y - projectile->position[1];
+   
+  return RCL_vectorsAngleCos(projDir,toElement) >= 0;
+}
+
 SFG_getLevelElementSprite(
   uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
 {
@@ -1984,7 +2013,7 @@ void SFG_gameStep()
             (SFG_player.camera.shear *
               SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
               SFG_CAMERA_MAX_SHEAR_PIXELS,
-            SFG_ELEMENT_COLLISION_DISTANCE + RCL_CAMERA_COLL_RADIUS
+              SFG_PROJECTILE_SPAWN_OFFSET
             );
 
           direction += angleAdd;
@@ -2432,12 +2461,12 @@ void SFG_gameStep()
 
     uint8_t eliminate = 0;
 
-    for (uint8_t j = 0; j < 3; ++j) // projectile outside map?
+    for (uint8_t j = 0; j < 3; ++j) 
     {
       pos[j] = p->position[j];
       pos[j] += p->direction[j];
 
-      if (
+      if ( // projectile outside map?
         (pos[j] < 0) ||
         (pos[j] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
       {
@@ -2450,36 +2479,33 @@ void SFG_gameStep()
     {
       eliminate = 1;
     }
-    else if (SFG_elementCollides(   // hits player?
-               SFG_player.camera.position.x,
-               SFG_player.camera.position.y,
-               SFG_player.camera.height,
-               p->position[0],
-               p->position[1],
-               p->position[2]
-               ))
-    {
-      eliminate = 1;
-
-      SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
-    }
     else if (
       (p->type != SFG_PROJECTILE_EXPLOSION) &&
       (p->type != SFG_PROJECTILE_DUST))
     {
+      if (SFG_projectileCollides( // collides with player?
+            p,
+            SFG_player.camera.position.x,
+            SFG_player.camera.position.y,
+            SFG_player.camera.height))
+        {
+          eliminate = 1;
+          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
+        }
+
       // check collision with the map
 
-      if (
-          (SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
+      if (!eliminate &&
+          ((SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
             RCL_UNITS_PER_SQUARE) >= pos[2])
           ||
           (SFG_ceilingHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] /
-            RCL_UNITS_PER_SQUARE) <= pos[2])
+            RCL_UNITS_PER_SQUARE) <= pos[2]))
         )
         eliminate = 1;
 
       // check collision with active level elements
-        
+
       if (!eliminate) // monsters 
         for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
         {
@@ -2487,18 +2513,13 @@ void SFG_gameStep()
 
           if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
           {
-            if (
-               SFG_elementCollides(
-                 p->position[0],
-                 p->position[1],
-                 p->position[2],
-                 SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-                 SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
-                 SFG_floorHeightAt(
-                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
-                     SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
-                 )
-               )
+            if (SFG_projectileCollides(p,
+                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
+                  SFG_floorHeightAt(
+                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
+                   ))
             {
               eliminate = 1;
               SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
@@ -2518,10 +2539,7 @@ void SFG_gameStep()
             RCL_Unit y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
             RCL_Unit z = SFG_floorHeightAt(e->coords[0],e->coords[1]);
 
-            if (
-               SFG_elementCollides(p->position[0],p->position[1],p->position[2],
-               x,y,z)
-               )
+            if (SFG_projectileCollides(p,x,y,z))
             {
               if (
                    (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
@@ -2545,6 +2563,8 @@ void SFG_gameStep()
         SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
       else if (p->type == SFG_PROJECTILE_BULLET)
         SFG_createDust(p->position[0],p->position[1],p->position[2]);
+      else if (p->type == SFG_PROJECTILE_PLASMA)
+        SFG_playSoundSafe(4,SFG_distantSoundVolume(pos[0],pos[1],pos[2]));
 
       // remove the projectile
 

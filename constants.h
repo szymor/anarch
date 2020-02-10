@@ -42,6 +42,13 @@
 #define SFG_MELEE_RANGE 1600
 
 /**
+  When a projectile is shot, it'll be offset by this distance (in RCL_Units)
+  from the shooter.
+*/
+
+#define SFG_PROJECTILE_SPAWN_OFFSET 256
+
+/**
   Player's melee hit range, in RCL_Units (RCL_UNITS_PER_SQUARE means full angle,
   180 degrees to both sides).
 */
