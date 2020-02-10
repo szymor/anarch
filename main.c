@@ -221,10 +221,35 @@ typedef struct
 ===============================================================================
 */
 
-uint8_t SFG_currentRandom;
+/**
+  Groups global variables related to the game as such in a single struct. There
+  are still other global structs for player, level etc.
+*/
+struct
+{
+  uint8_t currentRandom;         ///< for RNG
+  uint8_t spriteAnimationFrame;
+  uint8_t explosionSoundPlayed;  /**< Prevents playing too many explosion
+                                     sounds at once */
+  RCL_RayConstraints rayConstraints;
+  uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, LSB of each
+                                     value means current pressed states, other
+                                     bits store states in previous frames. */
+  uint8_t zBuffer[SFG_Z_BUFFER_SIZE];
+  int8_t backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
+  uint16_t backgroundScroll;
+  uint8_t spriteSamplingPoints[SFG_MAX_SPRITE_SIZE]; /**< Helper for
+                                                     precomputing sprite
+                                                     sampling positions for
+                                                     drawing. */
+  uint32_t frameTime; ///< Keeps a constant time (in ms) during a frame
+  uint32_t frame;
+  uint32_t lastFrameTimeMs;
+} SFG_game;
 
-uint8_t SFG_spriteAnimationFrame;
-
+/**
+  Stores player state.
+*/
 struct
 {
   RCL_Camera camera;
@@ -253,29 +278,6 @@ struct
                                  been taken. */
   uint8_t  justTeleported;
 } SFG_player;
-
-uint8_t SFG_explosionSoundPlayed;  /**< Prevents playing too many explosion
-                                 sounds at once */
-
-RCL_RayConstraints SFG_rayConstraints;
-
-/**
-  Pressed states of keys, LSB of each value means current pessed states, other
-  bits store states in previous frames.
-*/
-uint8_t SFG_keyStates[SFG_KEY_COUNT]; 
-
-uint8_t SFG_zBuffer[SFG_Z_BUFFER_SIZE];
-
-int8_t SFG_backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
-uint16_t SFG_backgroundScroll;
-
-/** Helper for precomputing sprite sampling positions for drawing. */
-uint8_t SFG_spriteSamplingPoints[SFG_MAX_SPRITE_SIZE];
-
-uint32_t SFG_frameTime; ///< Keeps a constant time (in ms) during a frame
-uint32_t SFG_gameFrame;
-uint32_t SFG_lastFrameTimeMs;
 
 /**
   Stores the current level and helper precomputed vaues for better performance.
@@ -355,20 +357,20 @@ SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
 */
 uint8_t SFG_random()
 {
-  SFG_currentRandom *= 13;
-  SFG_currentRandom += 7;
+  SFG_game.currentRandom *= 13;
+  SFG_game.currentRandom += 7;
   
-  return SFG_currentRandom;
+  return SFG_game.currentRandom;
 }
 
 void SFG_playSoundSafe(uint8_t soundIndex, uint8_t volume)
 {
   if (soundIndex == 2) // explosion?
   {
-    if (!SFG_explosionSoundPlayed)
+    if (!SFG_game.explosionSoundPlayed)
       SFG_playSound(soundIndex,volume);
     
-    SFG_explosionSoundPlayed = 1;
+    SFG_game.explosionSoundPlayed = 1;
   }
   else
     SFG_playSound(soundIndex,volume);
@@ -500,7 +502,7 @@ const uint8_t *SFG_getMonsterSprite(
 */
 uint8_t SFG_keyIsDown(uint8_t key)
 {
-  return SFG_keyStates[key] & 0x01;
+  return SFG_game.keyStates[key] & 0x01;
 }
 
 /**
@@ -508,7 +510,7 @@ uint8_t SFG_keyIsDown(uint8_t key)
 */
 uint8_t SFG_keyJustPressed(uint8_t key)
 {
-  return (SFG_keyStates[key] & 0x03) == 1;
+  return (SFG_game.keyStates[key] & 0x03) == 1;
 }
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
@@ -543,7 +545,7 @@ void SFG_recompurePLayerDirection()
     (SFG_player.direction.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME)
     / RCL_UNITS_PER_SQUARE;
 
-  SFG_backgroundScroll =
+  SFG_game.backgroundScroll =
     ((SFG_player.camera.direction * 8) * SFG_GAME_RESOLUTION_Y)
     / RCL_UNITS_PER_SQUARE; 
 }
@@ -579,7 +581,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     uint8_t zValue = pixel->isWall ? SFG_RCLUnitToZBuffer(pixel->depth) : 255;
 
     for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
-      SFG_zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] = zValue;
+      SFG_game.zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] = zValue;
   }
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
@@ -654,12 +656,12 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   {
     color = SFG_getTexel(
       SFG_backgroundImages[SFG_currentLevel.backgroundImage],
-      SFG_backgroundScaleMap[((pixel->position.x 
+      SFG_game.backgroundScaleMap[((pixel->position.x 
 #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
 #endif
-        ) * SFG_RAYCASTING_SUBSAMPLE + SFG_backgroundScroll) % SFG_GAME_RESOLUTION_Y],                                                               
-      (SFG_backgroundScaleMap[(pixel->position.y          // ^ TODO: get rid of mod?
+        ) * SFG_RAYCASTING_SUBSAMPLE + SFG_game.backgroundScroll) % SFG_GAME_RESOLUTION_Y],                                                               
+      (SFG_game.backgroundScaleMap[(pixel->position.y          // ^ TODO: get rid of mod?
 #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex + 1]
 #endif
@@ -846,7 +848,7 @@ void SFG_drawScaledSprite(
 
   for (int16_t i = precompFrom; i <= precompTo; ++i)
   {
-    SFG_spriteSamplingPoints[i] = precompPosScaled / PRECOMP_SCALE;
+    SFG_game.spriteSamplingPoints[i] = precompPosScaled / PRECOMP_SCALE;
     precompPosScaled += precompStepScaled;
   }
 
@@ -856,15 +858,15 @@ void SFG_drawScaledSprite(
 
   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
   {
-    if (SFG_zBuffer[x] >= zDistance)
+    if (SFG_game.zBuffer[x] >= zDistance)
     {
       int8_t columnTransparent = 1;
 
       for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
       {
         uint8_t color =
-          SFG_getTexel(image,SFG_spriteSamplingPoints[u],
-            SFG_spriteSamplingPoints[v]);
+          SFG_getTexel(image,SFG_game.spriteSamplingPoints[u],
+            SFG_game.spriteSamplingPoints[v]);
 
         if (color != SFG_TRANSPARENT_COLOR)
         {
@@ -878,7 +880,7 @@ void SFG_drawScaledSprite(
       }
 
       if (!columnTransparent)
-        SFG_zBuffer[x] = zDistance;
+        SFG_game.zBuffer[x] = zDistance;
     }
   }
 }
@@ -937,7 +939,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
     return SFG_movingWallHeight(
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
-      SFG_frameTime - SFG_currentLevel.timeStart);
+      SFG_game.frameTime - SFG_currentLevel.timeStart);
   }
  
   return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP -
@@ -975,9 +977,9 @@ void SFG_initPlayer()
 
   SFG_player.weapon = 2;
 
-  SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
-  SFG_player.lastHurtFrame = SFG_gameFrame;
-  SFG_player.lastItemTakenFrame = SFG_gameFrame;
+  SFG_player.weaponCooldownStartFrame = SFG_game.frame;
+  SFG_player.lastHurtFrame = SFG_game.frame;
+  SFG_player.lastItemTakenFrame = SFG_game.frame;
 
   SFG_player.health = SFG_PLAYER_MAX_HEALTH;
 
@@ -1010,14 +1012,14 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       (SFG_TILE_CEILING_HEIGHT(tile) + SFG_TILE_FLOOR_HEIGHT(tile))
          * SFG_WALL_HEIGHT_STEP,
-      SFG_frameTime - SFG_currentLevel.timeStart);
+      SFG_game.frameTime - SFG_currentLevel.timeStart);
 }
 
 void SFG_setAndInitLevel(const SFG_Level *level)
 {
   SFG_LOG("setting and initializing level");
 
-  SFG_currentRandom = 0;
+  SFG_game.currentRandom = 0;
 
   SFG_currentLevel.backgroundImage = level->backgroundImage;
 
@@ -1143,9 +1145,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   } 
 
   SFG_currentLevel.timeStart = SFG_getTimeMs(); 
-  SFG_currentLevel.frameStart = SFG_gameFrame;
+  SFG_currentLevel.frameStart = SFG_game.frame;
 
-  SFG_spriteAnimationFrame = 0;
+  SFG_game.spriteAnimationFrame = 0;
  
   SFG_initPlayer();
 }
@@ -1154,27 +1156,27 @@ void SFG_init()
 {
   SFG_LOG("initializing game")
 
-  SFG_gameFrame = 0;
+  SFG_game.frame = 0;
 
-  SFG_currentRandom = 0;
+  SFG_game.currentRandom = 0;
 
-  RCL_initRayConstraints(&SFG_rayConstraints);
+  RCL_initRayConstraints(&SFG_game.rayConstraints);
 
-  SFG_rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
-  SFG_rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
+  SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
+  SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
 
   for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_Y; ++i)
-    SFG_backgroundScaleMap[i] =
+    SFG_game.backgroundScaleMap[i] =
       (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
-    SFG_keyStates[i] = 0;
+    SFG_game.keyStates[i] = 0;
 
-  SFG_backgroundScroll = 0;
+  SFG_game.backgroundScroll = 0;
 
   SFG_setAndInitLevel(&SFG_level0);
 
-  SFG_lastFrameTimeMs = SFG_getTimeMs();
+  SFG_game.lastFrameTimeMs = SFG_getTimeMs();
 
   SFG_player.freeLook = 0;
 }
@@ -1389,7 +1391,7 @@ void SFG_playerChangeHealth(int8_t healthAdd)
   SFG_player.health = health;
 
   if (healthAdd < 0)
-    SFG_player.lastHurtFrame = SFG_gameFrame;
+    SFG_player.lastHurtFrame = SFG_game.frame;
 }
 
 /**
@@ -1905,14 +1907,14 @@ SFG_getLevelElementSprite(
 */
 void SFG_gameStep()
 {
-  SFG_explosionSoundPlayed = 0;
+  SFG_game.explosionSoundPlayed = 0;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
-    SFG_keyStates[i] = (SFG_keyStates[i] << 1) | SFG_keyPressed(i);
+    SFG_game.keyStates[i] = (SFG_game.keyStates[i] << 1) | SFG_keyPressed(i);
 
-  if ((SFG_currentLevel.frameStart - SFG_gameFrame) %
+  if ((SFG_currentLevel.frameStart - SFG_game.frame) %
       SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
-    SFG_spriteAnimationFrame++;
+    SFG_game.spriteAnimationFrame++;
 
   int8_t recomputeDirection = 0;
 
@@ -1936,7 +1938,7 @@ void SFG_gameStep()
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
-    (SFG_gameFrame - SFG_player.weaponCooldownStartFrame >
+    (SFG_game.frame - SFG_player.weaponCooldownStartFrame >
     SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
   {
     // player: attack, shoot, fire
@@ -2059,7 +2061,7 @@ void SFG_gameStep()
         }
       }
 
-      SFG_player.weaponCooldownStartFrame = SFG_gameFrame;
+      SFG_player.weaponCooldownStartFrame = SFG_game.frame;
 
       if (ammo != SFG_AMMO_NONE && SFG_player.ammo[ammo] == 0)
         SFG_playerRotateWeapon(1);
@@ -2348,7 +2350,7 @@ void SFG_gameStep()
         {
 #if !SFG_PREVIEW_MODE
           SFG_removeItem(i);
-          SFG_player.lastItemTakenFrame = SFG_gameFrame;
+          SFG_player.lastItemTakenFrame = SFG_game.frame;
           i--;
           SFG_playSoundSafe(3,255);
 #endif
@@ -2443,7 +2445,7 @@ void SFG_gameStep()
   // update projectiles:
 
   uint8_t substractFrames =
-    (SFG_gameFrame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
+    (SFG_game.frame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
     // ^ only substract frames to live every other frame
 
   for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
@@ -2719,7 +2721,7 @@ void SFG_gameStep()
   }
 
   // update AI and handle dead monsters:
-  if ((SFG_gameFrame - SFG_currentLevel.frameStart) %
+  if ((SFG_game.frame - SFG_currentLevel.frameStart) %
       SFG_AI_UPDATE_FRAME_INTERVAL == 0)
   {
     for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
@@ -2972,7 +2974,7 @@ void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 void SFG_drawWeapon(int16_t bobOffset)
 {
   uint32_t shotAnimationFrame =
-    SFG_gameFrame - SFG_player.weaponCooldownStartFrame;
+    SFG_game.frame - SFG_player.weaponCooldownStartFrame;
 
   uint32_t animationLength = SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
 
@@ -3023,7 +3025,7 @@ void SFG_draw()
   else
   { 
     for (uint16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
-      SFG_zBuffer[i] = 255;
+      SFG_game.zBuffer[i] = 255;
 
     int16_t weaponBobOffset;
 
@@ -3046,7 +3048,7 @@ void SFG_draw()
       SFG_floorHeightAt,
       SFG_ceilingHeightAt,
       SFG_texturesAt,
-      SFG_rayConstraints);
+      SFG_game.rayConstraints);
  
     // draw sprites:
 
@@ -3083,7 +3085,7 @@ void SFG_draw()
             SFG_getMonsterSprite(
               SFG_MR_TYPE(m),
               state,
-              SFG_spriteAnimationFrame & 0x01);
+              SFG_game.spriteAnimationFrame & 0x01);
 
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
@@ -3230,11 +3232,11 @@ void SFG_draw()
 
     // border indicator
 
-    if (SFG_gameFrame - SFG_player.lastHurtFrame
+    if (SFG_game.frame - SFG_player.lastHurtFrame
         <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
       SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
       SFG_HUD_HURT_INDICATION_COLOR);
-    else if (SFG_gameFrame - SFG_player.lastItemTakenFrame
+    else if (SFG_game.frame - SFG_player.lastItemTakenFrame
         <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
       SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
       SFG_HUD_ITEM_TAKEN_INDICATION_COLOR);
@@ -3247,13 +3249,13 @@ void SFG_mainLoopBody()
      each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
   uint32_t timeNow = SFG_getTimeMs();
-  uint32_t timeNextFrame = SFG_lastFrameTimeMs + SFG_MS_PER_FRAME;
+  uint32_t timeNextFrame = SFG_game.lastFrameTimeMs + SFG_MS_PER_FRAME;
 
-  SFG_frameTime = timeNow;
+  SFG_game.frameTime = timeNow;
 
   if (timeNow >= timeNextFrame)
   {
-    uint32_t timeSinceLastFrame = timeNow - SFG_lastFrameTimeMs;
+    uint32_t timeSinceLastFrame = timeNow - SFG_game.lastFrameTimeMs;
 
     uint8_t steps = 0;
 
@@ -3264,7 +3266,7 @@ void SFG_mainLoopBody()
 
       timeSinceLastFrame -= SFG_MS_PER_FRAME;
 
-      SFG_gameFrame++;
+      SFG_game.frame++;
       steps++;
     }
 
@@ -3274,7 +3276,7 @@ void SFG_mainLoopBody()
     // render noly once
     SFG_draw();
 
-    SFG_lastFrameTimeMs = timeNow;
+    SFG_game.lastFrameTimeMs = timeNow;
   }
   else
   {
