@@ -660,7 +660,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
 #endif
-        ) * SFG_RAYCASTING_SUBSAMPLE + SFG_game.backgroundScroll) % SFG_GAME_RESOLUTION_Y],                                                               
+        ) * SFG_RAYCASTING_SUBSAMPLE + SFG_game.backgroundScroll) % SFG_GAME_RESOLUTION_Y], 
       (SFG_game.backgroundScaleMap[(pixel->position.y          // ^ TODO: get rid of mod?
 #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex + 1]
@@ -1873,7 +1873,7 @@ uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
   return RCL_vectorsAngleCos(projDir,toElement) >= 0;
 }
 
-SFG_getLevelElementSprite(
+void SFG_getLevelElementSprite(
   uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
 {
   *spriteSize = 0;
@@ -3012,11 +3012,91 @@ void SFG_drawWeapon(int16_t bobOffset)
   SFG_WEAPON_IMAGE_SCALE);
 }
 
+void SFG_drawMenu()
+{
+  #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE ) )
+
+  #if BACKGROUND_SCALE == 0
+    #define BACKGROUND_SCALE 1
+  #endif
+
+  #define SCROLL_PIXELS_PER_FRAME ((64 * SFG_GAME_RESOLUTION_X) / (8 * SFG_FPS))
+
+  #if SCROLL_PIXELS_PER_FRAME == 0
+    #define SCROLL_PIXELS_PER_FRAME 1
+  #endif
+
+  #define MAX_ITEMS 8
+
+  #define CHAR_SIZE (SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE + 1))
+
+  uint16_t scroll = (SFG_game.frame * SCROLL_PIXELS_PER_FRAME) / 64;
+
+  for (uint16_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
+    for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
+      SFG_setGamePixel(x,y,
+        (y >= (SFG_TEXTURE_SIZE * BACKGROUND_SCALE)) ? 0 :
+        SFG_getTexel(SFG_backgroundImages[0],((x + scroll) / BACKGROUND_SCALE)
+          % SFG_TEXTURE_SIZE,y / BACKGROUND_SCALE));
+
+  char *itemTexts[MAX_ITEMS];
+
+  for (uint8_t i = 0; i < MAX_ITEMS; ++i)
+    itemTexts[i] = 0;
+
+  itemTexts[0] = "continue";
+  itemTexts[1] = "map";
+  itemTexts[2] = "play level 1";
+  itemTexts[3] = "load";
+  itemTexts[4] = "sound on";
+  itemTexts[5] = "exit";
+
+
+uint16_t y = CHAR_SIZE;
+
+
+SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,
+  y,SFG_FONT_SIZE_MEDIUM   );
+
+  y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE * 2;
+
+  for (uint8_t i = 0; i < MAX_ITEMS; ++i)
+  {
+
+    if (itemTexts[i] == 0)
+      break;
+
+    uint8_t textLen = 0;
+
+    while (itemTexts[i][textLen] != 0)
+      textLen++;
+
+
+    uint16_t drawX = (SFG_GAME_RESOLUTION_X - textLen * CHAR_SIZE) / 2;
+
+
+
+    //SFG_drawText(itemTexts[i],drawX - 1,y - 1,SFG_FONT_SIZE_MEDIUM,63);
+    SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,23);
+
+
+    y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
+  }
+
+  #undef CHAR_SIZE
+  #undef MAX_ITEMS
+  #undef BACKGROUND_SCALE
+  #undef SCROLL_PIXELS_PER_FRAME
+}
+
 void SFG_draw()
 {
 #if SFG_BACKGROUND_BLUR != 0
   SFG_backgroundBlurIndex = 0;
 #endif
+
+SFG_drawMenu();
+return;
 
   if (SFG_keyPressed(SFG_KEY_MAP))
   {
@@ -3217,14 +3297,14 @@ void SFG_draw()
     SFG_drawNumber( // ammo
       SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)],
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
-        SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM * 3,
+        (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM * 3,
       TEXT_Y,
       SFG_FONT_SIZE_MEDIUM,
       4); 
 
     for (uint8_t i = 0; i < 3; ++i) // access cards
       if (SFG_player.cards & (1 << i))
-        SFG_drawText(",",SFG_HUD_MARGIN + SFG_FONT_CHARACTER_SIZE *
+        SFG_drawText(",",SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
         SFG_FONT_SIZE_MEDIUM * (6 + i),
         TEXT_Y,SFG_FONT_SIZE_MEDIUM,i == 0 ? 93 : (i == 1 ? 124 : 60));
 
