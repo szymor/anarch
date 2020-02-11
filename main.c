@@ -3030,6 +3030,8 @@ void SFG_drawMenu()
 
   #define CHAR_SIZE (SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE + 1))
 
+  #define SELECTION_START_X (SFG_GAME_RESOLUTION_X / 5)
+
   uint16_t scroll = (SFG_game.frame * SCROLL_PIXELS_PER_FRAME) / 64;
 
   for (uint16_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
@@ -3058,7 +3060,7 @@ uint16_t y = CHAR_SIZE;
 SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,
   y,SFG_FONT_SIZE_MEDIUM   );
 
-  y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE * 2;
+  y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE;
 
   for (uint8_t i = 0; i < MAX_ITEMS; ++i)
   {
@@ -3077,11 +3079,30 @@ SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_ME
 
 
     //SFG_drawText(itemTexts[i],drawX - 1,y - 1,SFG_FONT_SIZE_MEDIUM,63);
-    SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,23);
+
+if (i != 2)
+{
+  SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,23);
+}
+else
+{
+
+  for (uint16_t l = y - SFG_FONT_SIZE_MEDIUM; l < y + CHAR_SIZE; ++l)
+    for (uint16_t k = SELECTION_START_X; k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
+      SFG_setGamePixel(k,l,2); 
+
+  SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,7);
+}
 
 
     y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
   }
+  
+
+
+SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
+- SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,
+SFG_FONT_SIZE_SMALL,2);
 
   #undef CHAR_SIZE
   #undef MAX_ITEMS
