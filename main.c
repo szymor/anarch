@@ -126,6 +126,7 @@ void SFG_init();
 
 #include "raycastlib.h" 
 
+#include "texts.h"
 #include "images.h"
 #include "levels.h"
 #include "palette.h"
@@ -218,6 +219,15 @@ typedef struct
 
 #define SFG_GAME_STATE_MENU 0
 #define SFG_GAME_STATE_PLAYING 1
+
+#define SFG_MENU_ITEM_CONTINUE 0
+#define SFG_MENU_ITEM_MAP 1
+#define SFG_MENU_ITEM_PLAY 2
+#define SFG_MENU_ITEM_LOAD 3
+#define SFG_MENU_ITEM_SOUND 4
+#define SFG_MENU_ITEM_EXIT 5
+
+#define SFG_MENU_ITEM_NONE 255
 
 /*
   GLOBAL VARIABLES
@@ -518,6 +528,26 @@ uint8_t SFG_keyIsDown(uint8_t key)
 uint8_t SFG_keyJustPressed(uint8_t key)
 {
   return (SFG_game.keyStates[key]) == 1;
+}
+
+/**
+  Says whether a key is being repeated after being held for certain time.
+*/
+uint8_t SFG_keyRepeated(uint8_t key)
+{
+  if (SFG_game.keyStates[key] >= SFG_KEY_REPEAT_DELAY_FRAMES)
+  {
+    if (SFG_game.keyStates[key] == 255)
+    {
+      SFG_game.keyStates[key] -= SFG_KEY_REPEAT_PERIOD_FRAMES;
+      return 1;
+    }
+
+    return ((SFG_game.keyStates[key] - SFG_KEY_REPEAT_DELAY_FRAMES) %
+      SFG_KEY_REPEAT_PERIOD_FRAMES) == 0;
+  }
+
+  return 0;
 }
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
@@ -1181,7 +1211,7 @@ void SFG_init()
 
   SFG_game.backgroundScroll = 0;
 
-  SFG_setAndInitLevel(&SFG_level0);
+  SFG_currentLevel.levelPointer = 0;
 
   SFG_game.lastFrameTimeMs = SFG_getTimeMs();
 
@@ -2755,6 +2785,48 @@ void SFG_gameStepPlaying()
   }
 }
 
+uint8_t SFG_getMenuItem(uint8_t index)
+{
+  if (index <= SFG_MENU_ITEM_EXIT)
+    return index;
+
+  return SFG_MENU_ITEM_NONE;
+}
+
+void SFG_gameStepMenu()
+{
+  uint8_t menuItems = 0;
+
+  while (SFG_getMenuItem(menuItems) != SFG_MENU_ITEM_NONE)
+    menuItems++;
+
+  if ((SFG_keyJustPressed(SFG_KEY_DOWN) || SFG_keyRepeated(SFG_KEY_DOWN))  &&
+    SFG_game.selectedMenuItem < menuItems - 1)
+  {
+    SFG_game.selectedMenuItem++;
+    SFG_playSoundSafe(3,64);
+  }
+  else if ((SFG_keyJustPressed(SFG_KEY_UP) || SFG_keyRepeated(SFG_KEY_UP))
+    && SFG_game.selectedMenuItem > 0)
+  {
+    SFG_game.selectedMenuItem--;
+    SFG_playSoundSafe(3,64);
+  }
+  else if (SFG_keyJustPressed(SFG_KEY_A))
+  {
+    switch (SFG_getMenuItem(SFG_game.selectedMenuItem))
+    {
+      case SFG_MENU_ITEM_PLAY:
+        SFG_setAndInitLevel(&SFG_level0);
+        SFG_game.state = SFG_GAME_STATE_PLAYING;
+        break;
+
+      default:
+        break;
+    }
+  }
+}
+
 /**
   Performs one game step (logic, physics, menu, ...), happening SFG_MS_PER_FRAME
   after previous frame.
@@ -2773,7 +2845,6 @@ void SFG_gameStep()
       SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
     SFG_game.spriteAnimationFrame++;
 
-
   switch (SFG_game.state)
   {
     case SFG_GAME_STATE_PLAYING:
@@ -2781,11 +2852,7 @@ void SFG_gameStep()
       break;
 
     case SFG_GAME_STATE_MENU: 
-      if (SFG_keyJustPressed(SFG_KEY_DOWN))
-        SFG_game.selectedMenuItem++;
-      else if (SFG_keyJustPressed(SFG_KEY_UP))
-        SFG_game.selectedMenuItem--;
-
+      SFG_gameStepMenu();
       break;
 
     default:
@@ -3063,8 +3130,6 @@ void SFG_drawMenu()
     #define SCROLL_PIXELS_PER_FRAME 1
   #endif
 
-  #define MAX_ITEMS 8
-
   #define CHAR_SIZE (SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE + 1))
 
   #define SELECTION_START_X (SFG_GAME_RESOLUTION_X / 5)
@@ -3078,36 +3143,27 @@ void SFG_drawMenu()
         SFG_getTexel(SFG_backgroundImages[0],((x + scroll) / BACKGROUND_SCALE)
           % SFG_TEXTURE_SIZE,y / BACKGROUND_SCALE));
 
-  char *itemTexts[MAX_ITEMS];
-
-  for (uint8_t i = 0; i < MAX_ITEMS; ++i)
-    itemTexts[i] = 0;
-
-  itemTexts[0] = "continue";
-  itemTexts[1] = "map";
-  itemTexts[2] = "play level 1";
-  itemTexts[3] = "load";
-  itemTexts[4] = "sound on";
-  itemTexts[5] = "exit";
-
-
 uint16_t y = CHAR_SIZE;
-
 
 SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,
   y,SFG_FONT_SIZE_MEDIUM   );
 
   y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE;
 
-  for (uint8_t i = 0; i < MAX_ITEMS; ++i)
-  {
+ uint8_t i = 0;
 
-    if (itemTexts[i] == 0)
+  while (1)
+  {
+uint8_t item = SFG_getMenuItem(i);
+
+    if (item == SFG_MENU_ITEM_NONE)
       break;
+
+const char *text = SFG_menuItemTexts[item];
 
     uint8_t textLen = 0;
 
-    while (itemTexts[i][textLen] != 0)
+    while (text[textLen] != 0)
       textLen++;
 
 
@@ -3115,11 +3171,13 @@ SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_ME
 
 
 
-    //SFG_drawText(itemTexts[i],drawX - 1,y - 1,SFG_FONT_SIZE_MEDIUM,63);
+
+
+
 
 if (i != SFG_game.selectedMenuItem)
 {
-  SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,23);
+  SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,23);
 }
 else
 {
@@ -3128,11 +3186,12 @@ else
     for (uint16_t k = SELECTION_START_X; k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
       SFG_setGamePixel(k,l,2); 
 
-  SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,7);
+  SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,7);
 }
 
 
     y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
+    i++;
   }
   
 

@@ -129,6 +129,16 @@
 #define SFG_DAMAGE_RANDOMNESS 64 
 
 /**
+  Specifies key repeat delay, in ms.
+*/
+#define SFG_KEY_REPEAT_DELAY 500
+
+/**
+  Specifies key repeat period, in ms.
+*/
+#define SFG_KEY_REPEAT_PERIOD 150
+
+/**
   Angle in which multiple projectiles are spread, RCL_Units.
 */
 #define SFG_PROJECTILE_SPREAD_ANGLE 100
@@ -167,6 +177,20 @@
 
 #if SFG_MS_PER_FRAME == 0
   #define SFG_MS_PER_FRAME 1
+#endif
+
+#define SFG_KEY_REPEAT_DELAY_FRAMES \
+  (SFG_KEY_REPEAT_DELAY / SFG_MS_PER_FRAME)
+
+#if SFG_KEY_REPEAT_DELAY_FRAMES == 0
+  #define SFG_KEY_REPEAT_DELAY_FRAMES 1
+#endif
+
+#define SFG_KEY_REPEAT_PERIOD_FRAMES \
+  (SFG_KEY_REPEAT_PERIOD / SFG_MS_PER_FRAME)
+
+#if SFG_KEY_REPEAT_PERIOD_FRAMES == 0
+  #define SFG_KEY_REPEAT_PERIOD_FRAMES 1
 #endif
 
 #define SFG_WEAPON_IMAGE_SCALE \
