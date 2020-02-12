@@ -216,6 +216,9 @@ typedef struct
   int16_t direction[3]; /**< Added to position each game step. */
 } SFG_ProjectileRecord;
 
+#define SFG_GAME_STATE_MENU 0
+#define SFG_GAME_STATE_PLAYING 1
+
 /*
   GLOBAL VARIABLES
 ===============================================================================
@@ -227,14 +230,16 @@ typedef struct
 */
 struct
 {
+  uint8_t state;
+
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
-  uint8_t explosionSoundPlayed;  /**< Prevents playing too many explosion
-                                     sounds at once */
+  uint8_t explosionSoundPlayed;  /**< Prevents playing too many explosion sounds
+                                 at once */
   RCL_RayConstraints rayConstraints;
-  uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, LSB of each
-                                     value means current pressed states, other
-                                     bits store states in previous frames. */
+  uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, each value
+                                    stores the number of frames for which the
+                                    key has been held. */
   uint8_t zBuffer[SFG_Z_BUFFER_SIZE];
   int8_t backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
   uint16_t backgroundScroll;
@@ -245,6 +250,8 @@ struct
   uint32_t frameTime; ///< Keeps a constant time (in ms) during a frame
   uint32_t frame;
   uint32_t lastFrameTimeMs;
+
+  uint8_t selectedMenuItem;
 } SFG_game;
 
 /**
@@ -502,7 +509,7 @@ const uint8_t *SFG_getMonsterSprite(
 */
 uint8_t SFG_keyIsDown(uint8_t key)
 {
-  return SFG_game.keyStates[key] & 0x01;
+  return SFG_game.keyStates[key] != 0;
 }
 
 /**
@@ -510,7 +517,7 @@ uint8_t SFG_keyIsDown(uint8_t key)
 */
 uint8_t SFG_keyJustPressed(uint8_t key)
 {
-  return (SFG_game.keyStates[key] & 0x03) == 1;
+  return (SFG_game.keyStates[key]) == 1;
 }
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
@@ -1156,8 +1163,8 @@ void SFG_init()
 {
   SFG_LOG("initializing game")
 
+  SFG_game.state = SFG_GAME_STATE_MENU;
   SFG_game.frame = 0;
-
   SFG_game.currentRandom = 0;
 
   RCL_initRayConstraints(&SFG_game.rayConstraints);
@@ -1177,6 +1184,8 @@ void SFG_init()
   SFG_setAndInitLevel(&SFG_level0);
 
   SFG_game.lastFrameTimeMs = SFG_getTimeMs();
+
+  SFG_game.selectedMenuItem = 0;
 
   SFG_player.freeLook = 0;
 }
@@ -1902,20 +1911,10 @@ void SFG_getLevelElementSprite(
 }
 
 /**
-  Performs one game step (logic, physics), happening SFG_MS_PER_FRAME after
-  previous frame. 
+  Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
-void SFG_gameStep()
+void SFG_gameStepPlaying()
 {
-  SFG_game.explosionSoundPlayed = 0;
-
-  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
-    SFG_game.keyStates[i] = (SFG_game.keyStates[i] << 1) | SFG_keyPressed(i);
-
-  if ((SFG_currentLevel.frameStart - SFG_game.frame) %
-      SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
-    SFG_game.spriteAnimationFrame++;
-
   int8_t recomputeDirection = 0;
 
   RCL_Vector2D moveOffset;
@@ -2756,6 +2755,44 @@ void SFG_gameStep()
   }
 }
 
+/**
+  Performs one game step (logic, physics, menu, ...), happening SFG_MS_PER_FRAME
+  after previous frame.
+*/
+void SFG_gameStep()
+{
+  SFG_game.explosionSoundPlayed = 0;
+
+  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
+    if (!SFG_keyPressed(i))
+      SFG_game.keyStates[i] = 0;
+    else if (SFG_game.keyStates[i] < 255)
+      SFG_game.keyStates[i]++;
+
+  if ((SFG_currentLevel.frameStart - SFG_game.frame) %
+      SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
+    SFG_game.spriteAnimationFrame++;
+
+
+  switch (SFG_game.state)
+  {
+    case SFG_GAME_STATE_PLAYING:
+      SFG_gameStepPlaying();
+      break;
+
+    case SFG_GAME_STATE_MENU: 
+      if (SFG_keyJustPressed(SFG_KEY_DOWN))
+        SFG_game.selectedMenuItem++;
+      else if (SFG_keyJustPressed(SFG_KEY_UP))
+        SFG_game.selectedMenuItem--;
+
+      break;
+
+    default:
+      break;
+  }
+}
+
 void SFG_clearScreen(uint8_t color)
 {
   for (uint16_t j = 0; j < SFG_GAME_RESOLUTION_Y; ++j)
@@ -3080,7 +3117,7 @@ SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_ME
 
     //SFG_drawText(itemTexts[i],drawX - 1,y - 1,SFG_FONT_SIZE_MEDIUM,63);
 
-if (i != 2)
+if (i != SFG_game.selectedMenuItem)
 {
   SFG_drawText(itemTexts[i],drawX,y,SFG_FONT_SIZE_MEDIUM,23);
 }
@@ -3116,8 +3153,11 @@ void SFG_draw()
   SFG_backgroundBlurIndex = 0;
 #endif
 
-SFG_drawMenu();
-return;
+  if (SFG_game.state == SFG_GAME_STATE_MENU)
+  {
+    SFG_drawMenu();
+    return;
+  }
 
   if (SFG_keyPressed(SFG_KEY_MAP))
   {
