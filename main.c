@@ -566,7 +566,8 @@ static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 
 void SFG_recompurePLayerDirection()
 {
-  SFG_player.camera.direction = RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
+  SFG_player.camera.direction =
+    RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
 
   SFG_player.direction = RCL_angleToDirection(SFG_player.camera.direction);
 
@@ -923,7 +924,9 @@ RCL_Unit SFG_texturesAt(int16_t x, int16_t y)
 {
   uint8_t p;
 
-  SFG_TileDefinition tile = SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&p);
+  SFG_TileDefinition tile =
+    SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&p);
+
   return
     SFG_TILE_FLOOR_TEXTURE(tile) | (SFG_TILE_CEILING_TEXTURE(tile) << 3) | p;
     // ^ store both textures (floor and ceiling) and properties in one number
@@ -1131,7 +1134,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
         monster->stateType = e->type | SFG_MONSTER_STATE_INACTIVE;
-        monster->health = SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
+        monster->health =
+          SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
 
         monster->coords[0] = e->coords[0] * 4 + 2;
         monster->coords[1] = e->coords[1] * 4 + 2;
@@ -1361,7 +1365,8 @@ uint8_t SFG_pushAway(
   return 1;
 }
 
-uint8_t SFG_pushPlayerAway(RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
+uint8_t SFG_pushPlayerAway(
+  RCL_Unit centerX, RCL_Unit centerY, RCL_Unit distance)
 {
   RCL_Unit p[3];
 
@@ -1750,8 +1755,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_TileDefinition tile =
             SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
          
-          SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE ,mY * RCL_UNITS_PER_SQUARE,
-          SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP + SFG_WALL_HEIGHT_STEP);
+          SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE,
+            mY * RCL_UNITS_PER_SQUARE,
+            SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP +
+            SFG_WALL_HEIGHT_STEP);
 
           monster->health = 0;
         }
@@ -2126,7 +2133,8 @@ void SFG_gameStepPlaying()
     {
       if (SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) || SFG_keyJustPressed(SFG_KEY_B))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) ||
+               SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
     }
   }
@@ -2147,9 +2155,11 @@ void SFG_gameStepPlaying()
     }
     else
     {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT) | SFG_keyJustPressed(SFG_KEY_A))
+      if (SFG_keyJustPressed(SFG_KEY_LEFT) ||
+          SFG_keyJustPressed(SFG_KEY_A))
         SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) | SFG_keyJustPressed(SFG_KEY_B))
+      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) ||
+          SFG_keyJustPressed(SFG_KEY_B))
         SFG_playerRotateWeapon(1);
     }
 
@@ -2811,7 +2821,7 @@ void SFG_gameStepMenu()
     switch (item)
     {
       case SFG_MENU_ITEM_PLAY:
-        SFG_setAndInitLevel(&SFG_level0);
+        SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
         SFG_game.state = SFG_GAME_STATE_PLAYING;
         break;
 
@@ -2821,7 +2831,8 @@ void SFG_gameStepMenu()
   }
   else if (item == SFG_MENU_ITEM_PLAY)
   {
-    if (SFG_keyRegisters(SFG_KEY_RIGHT) && SFG_game.selectedLevel < 9)
+    if (SFG_keyRegisters(SFG_KEY_RIGHT) && 
+      (SFG_game.selectedLevel < SFG_NUMBER_OF_LEVELS - 1))
     {
       SFG_game.selectedLevel++;
       SFG_playSoundSafe(3,64);
@@ -3087,7 +3098,8 @@ void SFG_drawWeapon(int16_t bobOffset)
   uint32_t shotAnimationFrame =
     SFG_game.frame - SFG_player.weaponCooldownStartFrame;
 
-  uint32_t animationLength = SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
+  uint32_t animationLength =
+    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
 
   bobOffset -= SFG_HUD_BAR_HEIGHT;
      
@@ -3112,7 +3124,8 @@ void SFG_drawWeapon(int16_t bobOffset)
         shotAnimationFrame < animationLength / 2)
         SFG_blitImage(SFG_effectSprites[0],
           SFG_WEAPON_IMAGE_POSITION_X,
-          SFG_WEAPON_IMAGE_POSITION_Y - (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
+          SFG_WEAPON_IMAGE_POSITION_Y -
+            (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
           SFG_WEAPON_IMAGE_SCALE);
     }
   }
@@ -3150,66 +3163,58 @@ void SFG_drawMenu()
         SFG_getTexel(SFG_backgroundImages[0],((x + scroll) / BACKGROUND_SCALE)
           % SFG_TEXTURE_SIZE,y / BACKGROUND_SCALE));
 
-uint16_t y = CHAR_SIZE;
+  uint16_t y = CHAR_SIZE;
 
-SFG_blitImage(SFG_logoImage,
-  SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,SFG_FONT_SIZE_MEDIUM);
+  SFG_blitImage(SFG_logoImage,
+    SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,
+    SFG_FONT_SIZE_MEDIUM);
 
   y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE;
 
- uint8_t i = 0;
+  uint8_t i = 0;
 
   while (1)
   {
-uint8_t item = SFG_getMenuItem(i);
+    uint8_t item = SFG_getMenuItem(i);
 
     if (item == SFG_MENU_ITEM_NONE)
       break;
 
-const char *text = SFG_menuItemTexts[item];
+    const char *text = SFG_menuItemTexts[item];
 
     uint8_t textLen = 0;
 
     while (text[textLen] != 0)
       textLen++;
 
-
     uint16_t drawX = (SFG_GAME_RESOLUTION_X - textLen * CHAR_SIZE) / 2;
+    uint8_t textColor = 7;
 
+    if (i != SFG_game.selectedMenuItem)
+    {
+      textColor = 23;
+    }
+    else
+    {
 
-
-
-
-uint8_t textColor = 7;
-
-if (i != SFG_game.selectedMenuItem)
-{
-  textColor = 23;
-}
-else
-{
-
-  for (uint16_t l = y - SFG_FONT_SIZE_MEDIUM; l < y + CHAR_SIZE; ++l)
-    for (uint16_t k = SELECTION_START_X; k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
-      SFG_setGamePixel(k,l,2); 
-}
+      for (uint16_t l = y - SFG_FONT_SIZE_MEDIUM; l < y + CHAR_SIZE; ++l)
+        for (uint16_t k = SELECTION_START_X;
+          k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
+          SFG_setGamePixel(k,l,2); 
+    }
   
-SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor);
+    SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor);
 
-if (item == SFG_MENU_ITEM_PLAY)
-  SFG_drawNumber((SFG_game.selectedLevel + 1), 
-  drawX + CHAR_SIZE * (textLen + 1) ,y,SFG_FONT_SIZE_MEDIUM,93);
-
+    if (item == SFG_MENU_ITEM_PLAY)
+      SFG_drawNumber((SFG_game.selectedLevel + 1), 
+      drawX + CHAR_SIZE * (textLen + 1) ,y,SFG_FONT_SIZE_MEDIUM,93);
 
     y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
     i++;
   }
   
-
-
-SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
-- SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,
-SFG_FONT_SIZE_SMALL,4);
+  SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
+    - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4);
 
   #undef CHAR_SIZE
   #undef MAX_ITEMS
