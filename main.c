@@ -260,8 +260,8 @@ struct
   uint32_t frameTime; ///< Keeps a constant time (in ms) during a frame
   uint32_t frame;
   uint32_t lastFrameTimeMs;
-
   uint8_t selectedMenuItem;
+  uint8_t selectedLevel;   ///< Level to play selected in the main menu.
 } SFG_game;
 
 /**
@@ -535,19 +535,15 @@ uint8_t SFG_keyJustPressed(uint8_t key)
 */
 uint8_t SFG_keyRepeated(uint8_t key)
 {
-  if (SFG_game.keyStates[key] >= SFG_KEY_REPEAT_DELAY_FRAMES)
-  {
-    if (SFG_game.keyStates[key] == 255)
-    {
-      SFG_game.keyStates[key] -= SFG_KEY_REPEAT_PERIOD_FRAMES;
-      return 1;
-    }
+  return
+    ((SFG_game.keyStates[key] >= SFG_KEY_REPEAT_DELAY_FRAMES) ||
+    (SFG_game.keyStates[key] == 255)) &&
+    (SFG_game.frame % SFG_KEY_REPEAT_PERIOD_FRAMES == 0);
+}
 
-    return ((SFG_game.keyStates[key] - SFG_KEY_REPEAT_DELAY_FRAMES) %
-      SFG_KEY_REPEAT_PERIOD_FRAMES) == 0;
-  }
-
-  return 0;
+uint16_t SFG_keyRegisters(uint8_t key)
+{
+  return SFG_keyJustPressed(key) || SFG_keyRepeated(key);
 }
 
 #if SFG_RESOLUTION_SCALEDOWN == 1
@@ -1199,7 +1195,6 @@ void SFG_init()
   SFG_game.currentRandom = 0;
 
   RCL_initRayConstraints(&SFG_game.rayConstraints);
-
   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
 
@@ -1211,13 +1206,10 @@ void SFG_init()
     SFG_game.keyStates[i] = 0;
 
   SFG_game.backgroundScroll = 0;
-
   SFG_currentLevel.levelPointer = 0;
-
   SFG_game.lastFrameTimeMs = SFG_getTimeMs();
-
   SFG_game.selectedMenuItem = 0;
-
+  SFG_game.selectedLevel = 0;
   SFG_player.freeLook = 0;
 }
 
@@ -2801,21 +2793,22 @@ void SFG_gameStepMenu()
   while (SFG_getMenuItem(menuItems) != SFG_MENU_ITEM_NONE)
     menuItems++;
 
-  if ((SFG_keyJustPressed(SFG_KEY_DOWN) || SFG_keyRepeated(SFG_KEY_DOWN))  &&
-    SFG_game.selectedMenuItem < menuItems - 1)
+  uint8_t item = SFG_getMenuItem(SFG_game.selectedMenuItem);
+
+  if (SFG_keyRegisters(SFG_KEY_DOWN) && 
+    (SFG_game.selectedMenuItem < menuItems - 1))
   {
     SFG_game.selectedMenuItem++;
     SFG_playSoundSafe(3,64);
   }
-  else if ((SFG_keyJustPressed(SFG_KEY_UP) || SFG_keyRepeated(SFG_KEY_UP))
-    && SFG_game.selectedMenuItem > 0)
+  else if (SFG_keyRegisters(SFG_KEY_UP) && (SFG_game.selectedMenuItem > 0))
   {
     SFG_game.selectedMenuItem--;
     SFG_playSoundSafe(3,64);
   }
   else if (SFG_keyJustPressed(SFG_KEY_A))
   {
-    switch (SFG_getMenuItem(SFG_game.selectedMenuItem))
+    switch (item)
     {
       case SFG_MENU_ITEM_PLAY:
         SFG_setAndInitLevel(&SFG_level0);
@@ -2824,6 +2817,19 @@ void SFG_gameStepMenu()
 
       default:
         break;
+    }
+  }
+  else if (item == SFG_MENU_ITEM_PLAY)
+  {
+    if (SFG_keyRegisters(SFG_KEY_RIGHT) && SFG_game.selectedLevel < 9)
+    {
+      SFG_game.selectedLevel++;
+      SFG_playSoundSafe(3,64);
+    }
+    else if (SFG_keyRegisters(SFG_KEY_LEFT) && SFG_game.selectedLevel > 0)
+    {
+      SFG_game.selectedLevel--;
+      SFG_playSoundSafe(3,64);
     }
   }
 }
@@ -3146,8 +3152,8 @@ void SFG_drawMenu()
 
 uint16_t y = CHAR_SIZE;
 
-SFG_blitImage(SFG_logoImage,   SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,
-  y,SFG_FONT_SIZE_MEDIUM   );
+SFG_blitImage(SFG_logoImage,
+  SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,SFG_FONT_SIZE_MEDIUM);
 
   y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE;
 
@@ -3174,11 +3180,11 @@ const char *text = SFG_menuItemTexts[item];
 
 
 
-
+uint8_t textColor = 7;
 
 if (i != SFG_game.selectedMenuItem)
 {
-  SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,23);
+  textColor = 23;
 }
 else
 {
@@ -3186,9 +3192,13 @@ else
   for (uint16_t l = y - SFG_FONT_SIZE_MEDIUM; l < y + CHAR_SIZE; ++l)
     for (uint16_t k = SELECTION_START_X; k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
       SFG_setGamePixel(k,l,2); 
-
-  SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,7);
 }
+  
+SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor);
+
+if (item == SFG_MENU_ITEM_PLAY)
+  SFG_drawNumber((SFG_game.selectedLevel + 1), 
+  drawX + CHAR_SIZE * (textLen + 1) ,y,SFG_FONT_SIZE_MEDIUM,93);
 
 
     y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
@@ -3199,7 +3209,7 @@ else
 
 SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
 - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,
-SFG_FONT_SIZE_SMALL,2);
+SFG_FONT_SIZE_SMALL,4);
 
   #undef CHAR_SIZE
   #undef MAX_ITEMS
