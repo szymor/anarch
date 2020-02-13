@@ -10,8 +10,8 @@ Why?
 
 - **Like Doom** but much better because of the following.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
-- **Extremely portable** (much more than Doom). So far tested on GNU/Linux PC, TODO.
-- Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but every frontend is extremely simple (~100 LOC).
+- **Extremely portable** (much more than Doom). So far tested on GNU/Linux PC, Pokitto, TODO.
+- Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple.
 - Fits into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler.
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
