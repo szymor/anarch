@@ -2,6 +2,7 @@
 - port to GB Meta
 - GUI
 - menu
+- more level prop items
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional)
@@ -16,7 +17,6 @@
   a build script that creates multiple binaries (with different combinations of
   compilers and settings)
 - run on raspbery pi
-- check if monsters are hit by bullets from completely up close
 - add jump pads?
 - add robot deactivator item? (encourages "stealth" gameplay)
 - add "pletivo" transparent wall texture?
@@ -39,4 +39,5 @@ done:
 - weapons
 - create tables for monster and weapon stats in constants.h and read from that
   instead of cheking with ifs
+- check if monsters are hit by bullets from completely up close
 
