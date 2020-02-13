@@ -21,6 +21,7 @@
 - add robot deactivator item? (encourages "stealth" gameplay)
 - add "pletivo" transparent wall texture?
 - add universal corpse sprite?
+- easter egg(s)
 
 bugs:
 

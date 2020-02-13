@@ -219,6 +219,10 @@ typedef struct
 
 #define SFG_GAME_STATE_MENU 0
 #define SFG_GAME_STATE_PLAYING 1
+#define SFG_GAME_STATE_WIN 2
+#define SFG_GAME_STATE_LOSE 3
+#define SFG_GAME_STATE_INTRO 4
+#define SFG_GAME_STATE_OUTRO 5
 
 #define SFG_MENU_ITEM_CONTINUE 0
 #define SFG_MENU_ITEM_MAP 1
@@ -241,6 +245,7 @@ typedef struct
 struct
 {
   uint8_t state;
+  uint16_t stateChangeTime;      ///< Time in ms at which the state was changed.
 
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
@@ -1190,11 +1195,18 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_initPlayer();
 }
 
+void SFG_setGameState(uint8_t state)
+{
+  SFG_game.state = state;
+  SFG_game.stateChangeTime = SFG_getTimeMs();
+}
+
 void SFG_init()
 {
   SFG_LOG("initializing game")
 
-  SFG_game.state = SFG_GAME_STATE_MENU;
+  SFG_setGameState(SFG_GAME_STATE_MENU);
+
   SFG_game.frame = 0;
   SFG_game.currentRandom = 0;
 
@@ -2822,7 +2834,7 @@ void SFG_gameStepMenu()
     {
       case SFG_MENU_ITEM_PLAY:
         SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
-        SFG_game.state = SFG_GAME_STATE_PLAYING;
+        SFG_setGameState(SFG_GAME_STATE_PLAYING);
         break;
 
       default:
