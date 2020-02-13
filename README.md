@@ -2,7 +2,7 @@
 
 # Anarch
 
-*suckless FPS, the best game ever made game, for the benefit of all living beings*
+*suckless FPS, the best game ever made, for the benefit of all living beings*
 
 ## This is going to likely be by far the best game in the universe.
 
