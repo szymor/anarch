@@ -36,6 +36,16 @@ SDL:
 
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
+## manifesto
+
+In today's world of capitalism and fascism no one even thinks about doing something without personal benefit, without expecting something in return. Complete selflessness is no longer considered, and if it appears by chance, it is ridiculed. Technology that we are using every day reflects this aggressive, hostile thinking.
+
+From engineering point of view our technology is the worst in history. Computer technology is unbelieveable bloated, ugly and inefficient, purposfuly designed to enslave people, to invade their lives, to be consumed, to resist tinkering and improvement, by law, forcre, obscurity or other means of oppression. Technology doesn't serve people, it serves corporations on the detriment of people. Principles of good, efficient design and focus on long term values have vanished in the capitalist selfish short sighted mentality of greed which has already infected the mentality of the masses who are no longer even able to see their own abuse and enslavement.
+
+This game is a result of my grief about this deeply sad and frightening state of the world, it is my desperate attempt at showing that something, or rather everything, is wrong. I have put great effort in creating it completely from the ground up so that I could waive my rights of it, give it away to everyone. I think it is a great shame of mankind that since now there has been no such a game completely in the public domain for all people to freely play, for students and techers to freely study and teach, for artists to freely improve and remix.
+
+this game is also designed to be truly good technology to the greatest extent possible, with as few burdens as possible to all people, both users and developers. It is designed to last for ceturies without maintenance -- by only relying on C compiler, which is relatively simple and perhaps the most essential piece of software, and by avoiding all unnecessary dependencies, both HW and SW, the game is almost certainly guaranteed to be trivially compileable any time in the future, probably even shortly after the technological collapse of our civilization, which will happen very soon. The game tries to practice the values of good design -- minimalism, simplicity, efficiency, ellegance, hackability, openness, effectiveness.
+
 ## code guide
 
 TODO
