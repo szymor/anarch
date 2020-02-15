@@ -60,16 +60,6 @@
 #define SFG_RESOLUTION_SCALEDOWN 1
 
 /**
-  Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
-*/
-#define SFG_PREVIEW_MODE 0
-
-/**
-  How much faster movement is in the preview mode.
-*/
-#define SFG_PREVIEW_MODE_SPEED_MULTIPLIER 2
-
-/**
   Hint as to whether run in fullscreen, if the platform allows it.
 */
 #define SFG_FULLSCREEN 0
@@ -188,8 +178,36 @@
 #define SFG_BACKGROUND_BLUR 0
 
 /**
+  Time in ms of the player death animation.
+*/
+#define SFG_LOSE_ANIMATION_DURATION 2000
+
+//------ developer/debug settings ------
+
+/**
   Developer cheat for having infinite ammo in all weapons.
 */
 #define SFG_INFINITE_AMMO 1
+
+/**
+  Developer cheat for immortality.
+*/
+#define SFG_IMMORTAL 1
+
+/**
+  Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
+*/
+#define SFG_PREVIEW_MODE 0
+
+/**
+  How much faster movement is in the preview mode.
+*/
+#define SFG_PREVIEW_MODE_SPEED_MULTIPLIER 2
+
+/**
+  Skips menu and starts given level immediatelly, for development. 0 means this
+  options is ignored, 1 means load level 1 etc.
+*/
+#define SFG_START_LEVEL 1
 
 #endif // guard

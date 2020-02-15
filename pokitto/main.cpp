@@ -1205,6 +1205,8 @@ void SFG_init()
 {
   SFG_LOG("initializing game")
 
+  SFG_setGameState(SFG_GAME_STATE_MENU);
+
   SFG_game.frame = 0;
   SFG_game.currentRandom = 0;
 
@@ -1225,13 +1227,6 @@ void SFG_init()
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
   SFG_player.freeLook = 0;
-
-#if SFG_START_LEVEL == 0
-  SFG_setGameState(SFG_GAME_STATE_MENU);
-#else
-  SFG_setAndInitLevel(&SFG_levels[SFG_START_LEVEL - 1]);
-  SFG_setGameState(SFG_GAME_STATE_PLAYING);
-#endif
 }
 
 void SFG_getPlayerWeaponInfo(
@@ -1958,326 +1953,6 @@ void SFG_getLevelElementSprite(
 }
 
 /**
-  Updates a frame of the currently loaded level, i.e. enemies, projectiles,
-  aimations etc., with the exception of player.
-*/
-void SFG_updateLevel()
-{
-  // update projectiles:
-
-  uint8_t substractFrames =
-    (SFG_game.frame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
-    // ^ only substract frames to live every other frame
-
-  for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
-  { // ^ has to be signed
-    SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
-
-    uint8_t attackType = 255;
-
-    if (p->type == SFG_PROJECTILE_BULLET)
-      attackType = SFG_WEAPON_FIRE_TYPE_BULLET;
-    else if (p->type == SFG_PROJECTILE_PLASMA)
-      attackType = SFG_WEAPON_FIRE_TYPE_PLASMA;
-
-    RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
-
-    uint8_t eliminate = 0;
-
-    for (uint8_t j = 0; j < 3; ++j) 
-    {
-      pos[j] = p->position[j];
-      pos[j] += p->direction[j];
-
-      if ( // projectile outside map?
-        (pos[j] < 0) ||
-        (pos[j] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
-      {
-        eliminate = 1;
-        break;
-      }
-    }
-
-    if (p->doubleFramesToLive == 0) // no more time to live?
-    {
-      eliminate = 1;
-    }
-    else if (
-      (p->type != SFG_PROJECTILE_EXPLOSION) &&
-      (p->type != SFG_PROJECTILE_DUST))
-    {
-      if (SFG_projectileCollides( // collides with player?
-            p,
-            SFG_player.camera.position.x,
-            SFG_player.camera.position.y,
-            SFG_player.camera.height))
-        {
-          eliminate = 1;
-          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
-        }
-
-      // check collision with the map
-
-      if (!eliminate &&
-          ((SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
-            RCL_UNITS_PER_SQUARE) >= pos[2])
-          ||
-          (SFG_ceilingHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] /
-            RCL_UNITS_PER_SQUARE) <= pos[2]))
-        )
-        eliminate = 1;
-
-      // check collision with active level elements
-
-      if (!eliminate) // monsters 
-        for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
-        {
-          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
-
-          if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
-          {
-            if (SFG_projectileCollides(p,
-                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
-                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
-                  SFG_floorHeightAt(
-                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
-                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
-                   ))
-            {
-              eliminate = 1;
-              SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
-              break;
-            }
-          }
-        }
-
-      if (!eliminate) // items
-        for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
-        {
-          const SFG_LevelElement *e = SFG_getActiveItemElement(j);
-
-          if (e != 0)
-          {
-            RCL_Unit x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
-            RCL_Unit y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
-            RCL_Unit z = SFG_floorHeightAt(e->coords[0],e->coords[1]);
-
-            if (SFG_projectileCollides(p,x,y,z))
-            {
-              if (
-                   (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
-                   (SFG_getDamageValue(attackType) >= 
-                     SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
-                 )
-              {
-                SFG_explodeBarrel(j,x,y,z);
-              }
-
-              eliminate = 1;
-              break;
-            }
-          }
-        }
-    }
-
-    if (eliminate)
-    {
-      if (p->type == SFG_PROJECTILE_FIREBALL)
-        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
-      else if (p->type == SFG_PROJECTILE_BULLET)
-        SFG_createDust(p->position[0],p->position[1],p->position[2]);
-      else if (p->type == SFG_PROJECTILE_PLASMA)
-        SFG_playSoundSafe(4,SFG_distantSoundVolume(pos[0],pos[1],pos[2]));
-
-      // remove the projectile
-
-      for (uint8_t j = i; j < SFG_currentLevel.projectileRecordCount - 1; ++j)
-        SFG_currentLevel.projectileRecords[j] =
-          SFG_currentLevel.projectileRecords[j + 1];
-
-      SFG_currentLevel.projectileRecordCount--;
-
-      i--;
-    }
-    else
-    {
-      p->position[0] = pos[0];
-      p->position[1] = pos[1];
-      p->position[2] = pos[2];
-    }
-
-    p->doubleFramesToLive -= substractFrames;
-  }
-
-  // handle door:
-  if (SFG_currentLevel.doorRecordCount > 0) // has to be here
-  {
-    /* Check one door on whether a player is standing nearby. For performance
-       reasons we only check a few doors and move to others in the next
-       frame. */
-
-    for (uint16_t i = 0;
-         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
-           SFG_currentLevel.doorRecordCount);
-         ++i) 
-    {
-      SFG_DoorRecord *door =
-        &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
-
-      uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
-
-      uint8_t lock = SFG_DOOR_LOCK(door->state);
-
-      uint8_t newUpDownState = 
-                (
-                  ((lock == 0) || (SFG_player.cards & (1 << (lock - 1)))) &&
-                  (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-                  (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-                  (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-                  (door->coords[1] <= (SFG_player.squarePosition[1] + 1))
-                ) ? SFG_DOOR_UP_DOWN_MASK : 0x00; 
-
-      if (upDownState != newUpDownState)
-        SFG_playSoundSafe(1,255);
-
-      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
-
-      SFG_currentLevel.checkedDoorIndex++;
-
-      if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
-        SFG_currentLevel.checkedDoorIndex = 0;
-    }
-
-    // move door up/down:
-    for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
-    {
-      SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
-
-      int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
-
-      height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
-            RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
-            RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
-
-      door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
-    }
-  }
-
-  // handle items, in a similar manner to door:
-  if (SFG_currentLevel.itemRecordCount > 0) // has to be here
-  {
-    // check item distances:
-
-    for (uint16_t i = 0;
-         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
-           SFG_currentLevel.itemRecordCount);
-         ++i) 
-    {
-      SFG_ItemRecord item =
-        SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex];
-
-      item &= ~SFG_ITEM_RECORD_ACTIVE_MASK;
-
-      SFG_LevelElement e =
-        SFG_currentLevel.levelPointer->elements[item];
-
-      if (
-        SFG_isInActiveDistanceFromPlayer(
-          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
-          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
-          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2)
-        )
-        item |= SFG_ITEM_RECORD_ACTIVE_MASK;
-
-      SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
-
-      SFG_currentLevel.checkedItemIndex++;
-
-      if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
-        SFG_currentLevel.checkedItemIndex = 0;
-    }
-  }
-
-  // similarly handle monsters:
-  if (SFG_currentLevel.monsterRecordCount > 0) // has to be here
-  {
-    // check monster distances:
-
-    for (uint16_t i = 0;
-         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
-           SFG_currentLevel.monsterRecordCount);
-         ++i) 
-    {
-      SFG_MonsterRecord *monster =
-      &(SFG_currentLevel.monsterRecords[SFG_currentLevel.checkedMonsterIndex]);
-
-      if ( // far away from the player?
-        !SFG_isInActiveDistanceFromPlayer(
-          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
-          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
-          SFG_floorHeightAt(
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
-            + RCL_UNITS_PER_SQUARE / 2
-          )
-        )
-      {
-        monster->stateType = 
-           (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-           SFG_MONSTER_STATE_INACTIVE;
-      }
-      else if (SFG_MR_STATE(*monster) == SFG_MONSTER_STATE_INACTIVE)
-      {
-        monster->stateType = 
-          (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-          SFG_MONSTER_STATE_IDLE;
-      }
-
-      SFG_currentLevel.checkedMonsterIndex++;
-
-      if (SFG_currentLevel.checkedMonsterIndex >=
-        SFG_currentLevel.monsterRecordCount)
-        SFG_currentLevel.checkedMonsterIndex = 0;
-    }
-  }
-
-  // update AI and handle dead monsters:
-  if ((SFG_game.frame - SFG_currentLevel.frameStart) %
-      SFG_AI_UPDATE_FRAME_INTERVAL == 0)
-  {
-    for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-    {
-      SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
-      uint8_t state = SFG_MR_STATE(*monster);
-
-      if (state == SFG_MONSTER_STATE_DYING)
-      {
-        // remove dead
-
-        for (uint16_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
-          SFG_currentLevel.monsterRecords[j] =
-            SFG_currentLevel.monsterRecords[j + 1];        
-
-        SFG_currentLevel.monsterRecordCount -= 1;
-
-        i--;
-      }
-      else if (monster->health == 0)
-      {
-        monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
-        SFG_playSoundSafe(2,255);
-      }
-      else if (state != SFG_MONSTER_STATE_INACTIVE)
-      {
-#if SFG_PREVIEW_MODE == 0
-        SFG_monsterPerformAI(monster);
-#endif
-      }
-    }
-  }
-}
-
-/**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
@@ -2811,15 +2486,318 @@ void SFG_gameStepPlaying()
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
 
-  SFG_updateLevel();
+  // update projectiles:
 
-#if SFG_IMMORTAL == 0
-  if (SFG_player.health == 0)
-  {
-    SFG_LOG("player dies");
-    SFG_setGameState(SFG_GAME_STATE_LOSE);
+  uint8_t substractFrames =
+    (SFG_game.frame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
+    // ^ only substract frames to live every other frame
+
+  for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
+  { // ^ has to be signed
+    SFG_ProjectileRecord *p = &(SFG_currentLevel.projectileRecords[i]);
+
+    uint8_t attackType = 255;
+
+    if (p->type == SFG_PROJECTILE_BULLET)
+      attackType = SFG_WEAPON_FIRE_TYPE_BULLET;
+    else if (p->type == SFG_PROJECTILE_PLASMA)
+      attackType = SFG_WEAPON_FIRE_TYPE_PLASMA;
+
+    RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
+
+    uint8_t eliminate = 0;
+
+    for (uint8_t j = 0; j < 3; ++j) 
+    {
+      pos[j] = p->position[j];
+      pos[j] += p->direction[j];
+
+      if ( // projectile outside map?
+        (pos[j] < 0) ||
+        (pos[j] >= (SFG_MAP_SIZE * RCL_UNITS_PER_SQUARE)))
+      {
+        eliminate = 1;
+        break;
+      }
+    }
+
+    if (p->doubleFramesToLive == 0) // no more time to live?
+    {
+      eliminate = 1;
+    }
+    else if (
+      (p->type != SFG_PROJECTILE_EXPLOSION) &&
+      (p->type != SFG_PROJECTILE_DUST))
+    {
+      if (SFG_projectileCollides( // collides with player?
+            p,
+            SFG_player.camera.position.x,
+            SFG_player.camera.position.y,
+            SFG_player.camera.height))
+        {
+          eliminate = 1;
+          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
+        }
+
+      // check collision with the map
+
+      if (!eliminate &&
+          ((SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
+            RCL_UNITS_PER_SQUARE) >= pos[2])
+          ||
+          (SFG_ceilingHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] /
+            RCL_UNITS_PER_SQUARE) <= pos[2]))
+        )
+        eliminate = 1;
+
+      // check collision with active level elements
+
+      if (!eliminate) // monsters 
+        for (uint16_t j = 0; j < SFG_currentLevel.monsterRecordCount; ++j)
+        {
+          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
+
+          if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
+          {
+            if (SFG_projectileCollides(p,
+                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
+                  SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]),
+                  SFG_floorHeightAt(
+                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+                    SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
+                   ))
+            {
+              eliminate = 1;
+              SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
+              break;
+            }
+          }
+        }
+
+      if (!eliminate) // items
+        for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+        {
+          const SFG_LevelElement *e = SFG_getActiveItemElement(j);
+
+          if (e != 0)
+          {
+            RCL_Unit x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
+            RCL_Unit y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
+            RCL_Unit z = SFG_floorHeightAt(e->coords[0],e->coords[1]);
+
+            if (SFG_projectileCollides(p,x,y,z))
+            {
+              if (
+                   (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
+                   (SFG_getDamageValue(attackType) >= 
+                     SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
+                 )
+              {
+                SFG_explodeBarrel(j,x,y,z);
+              }
+
+              eliminate = 1;
+              break;
+            }
+          }
+        }
+    }
+
+    if (eliminate)
+    {
+      if (p->type == SFG_PROJECTILE_FIREBALL)
+        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
+      else if (p->type == SFG_PROJECTILE_BULLET)
+        SFG_createDust(p->position[0],p->position[1],p->position[2]);
+      else if (p->type == SFG_PROJECTILE_PLASMA)
+        SFG_playSoundSafe(4,SFG_distantSoundVolume(pos[0],pos[1],pos[2]));
+
+      // remove the projectile
+
+      for (uint8_t j = i; j < SFG_currentLevel.projectileRecordCount - 1; ++j)
+        SFG_currentLevel.projectileRecords[j] =
+          SFG_currentLevel.projectileRecords[j + 1];
+
+      SFG_currentLevel.projectileRecordCount--;
+
+      i--;
+    }
+    else
+    {
+      p->position[0] = pos[0];
+      p->position[1] = pos[1];
+      p->position[2] = pos[2];
+    }
+
+    p->doubleFramesToLive -= substractFrames;
   }
+
+  // handle door:
+  if (SFG_currentLevel.doorRecordCount > 0) // has to be here
+  {
+    /* Check one door on whether a player is standing nearby. For performance
+       reasons we only check a few doors and move to others in the next
+       frame. */
+
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.doorRecordCount);
+         ++i) 
+    {
+      SFG_DoorRecord *door =
+        &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
+
+      uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
+
+      uint8_t lock = SFG_DOOR_LOCK(door->state);
+
+      uint8_t newUpDownState = 
+                (
+                  ((lock == 0) || (SFG_player.cards & (1 << (lock - 1)))) &&
+                  (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+                  (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+                  (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+                  (door->coords[1] <= (SFG_player.squarePosition[1] + 1))
+                ) ? SFG_DOOR_UP_DOWN_MASK : 0x00; 
+
+      if (upDownState != newUpDownState)
+        SFG_playSoundSafe(1,255);
+
+      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
+
+      SFG_currentLevel.checkedDoorIndex++;
+
+      if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
+        SFG_currentLevel.checkedDoorIndex = 0;
+    }
+
+    // move door up/down:
+    for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+    {
+      SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
+
+      int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+
+      height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
+            RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
+            RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
+
+      door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
+    }
+  }
+
+  // handle items, in a similar manner to door:
+  if (SFG_currentLevel.itemRecordCount > 0) // has to be here
+  {
+    // check item distances:
+
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.itemRecordCount);
+         ++i) 
+    {
+      SFG_ItemRecord item =
+        SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex];
+
+      item &= ~SFG_ITEM_RECORD_ACTIVE_MASK;
+
+      SFG_LevelElement e =
+        SFG_currentLevel.levelPointer->elements[item];
+
+      if (
+        SFG_isInActiveDistanceFromPlayer(
+          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2)
+        )
+        item |= SFG_ITEM_RECORD_ACTIVE_MASK;
+
+      SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
+
+      SFG_currentLevel.checkedItemIndex++;
+
+      if (SFG_currentLevel.checkedItemIndex >= SFG_currentLevel.itemRecordCount)
+        SFG_currentLevel.checkedItemIndex = 0;
+    }
+  }
+
+  // similarly handle monsters:
+  if (SFG_currentLevel.monsterRecordCount > 0) // has to be here
+  {
+    // check monster distances:
+
+    for (uint16_t i = 0;
+         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+           SFG_currentLevel.monsterRecordCount);
+         ++i) 
+    {
+      SFG_MonsterRecord *monster =
+      &(SFG_currentLevel.monsterRecords[SFG_currentLevel.checkedMonsterIndex]);
+
+      if ( // far away from the player?
+        !SFG_isInActiveDistanceFromPlayer(
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+          SFG_floorHeightAt(
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
+            + RCL_UNITS_PER_SQUARE / 2
+          )
+        )
+      {
+        monster->stateType = 
+           (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+           SFG_MONSTER_STATE_INACTIVE;
+      }
+      else if (SFG_MR_STATE(*monster) == SFG_MONSTER_STATE_INACTIVE)
+      {
+        monster->stateType = 
+          (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+          SFG_MONSTER_STATE_IDLE;
+      }
+
+      SFG_currentLevel.checkedMonsterIndex++;
+
+      if (SFG_currentLevel.checkedMonsterIndex >=
+        SFG_currentLevel.monsterRecordCount)
+        SFG_currentLevel.checkedMonsterIndex = 0;
+    }
+  }
+
+  // update AI and handle dead monsters:
+  if ((SFG_game.frame - SFG_currentLevel.frameStart) %
+      SFG_AI_UPDATE_FRAME_INTERVAL == 0)
+  {
+    for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    {
+      SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
+      uint8_t state = SFG_MR_STATE(*monster);
+
+      if (state == SFG_MONSTER_STATE_DYING)
+      {
+        // remove dead
+
+        for (uint16_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
+          SFG_currentLevel.monsterRecords[j] =
+            SFG_currentLevel.monsterRecords[j + 1];        
+
+        SFG_currentLevel.monsterRecordCount -= 1;
+
+        i--;
+      }
+      else if (monster->health == 0)
+      {
+        monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
+        SFG_playSoundSafe(2,255);
+      }
+      else if (state != SFG_MONSTER_STATE_INACTIVE)
+      {
+#if SFG_PREVIEW_MODE == 0
+        SFG_monsterPerformAI(monster);
 #endif
+      }
+    }
+  }
 }
 
 uint8_t SFG_getMenuItem(uint8_t index)
@@ -2906,25 +2884,6 @@ void SFG_gameStep()
     case SFG_GAME_STATE_MENU: 
       SFG_gameStepMenu();
       break;
-
-    case SFG_GAME_STATE_LOSE:
-    {
-      SFG_updateLevel();
-    
-      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
-
-      RCL_Unit h = SFG_floorHeightAt(
-        SFG_player.squarePosition[0],
-        SFG_player.squarePosition[1]) + RCL_CAMERA_COLL_HEIGHT_BELOW / 8; 
-
-      SFG_player.camera.height = 
-
-        RCL_max(
-          h,
-          h + ((SFG_LOSE_ANIMATION_DURATION - t) *
-            (RCL_CAMERA_COLL_HEIGHT_BELOW / 8)) / SFG_LOSE_ANIMATION_DURATION);
-      break;
-    }
 
     default:
       break;
