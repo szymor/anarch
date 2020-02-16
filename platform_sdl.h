@@ -145,6 +145,10 @@ int8_t SFG_keyPressed(uint8_t key)
       return sdlKeyboardState[SDL_SCANCODE_N];
       break;
 
+    case SFG_KEY_MENU:
+      return sdlKeyboardState[SDL_SCANCODE_X];
+      break;
+
     default: return 0; break;
   }
 }

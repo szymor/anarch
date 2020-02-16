@@ -208,6 +208,6 @@
   Skips menu and starts given level immediatelly, for development. 0 means this
   options is ignored, 1 means load level 1 etc.
 */
-#define SFG_START_LEVEL 1
+#define SFG_START_LEVEL 0
 
 #endif // guard

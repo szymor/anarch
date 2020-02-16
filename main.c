@@ -37,8 +37,9 @@
 #define SFG_KEY_TOGGLE_FREELOOK 11
 #define SFG_KEY_NEXT_WEAPON 12
 #define SFG_KEY_PREVIOUS_WEAPON 13
+#define SFG_KEY_MENU 14
 
-#define SFG_KEY_COUNT 14 ///< Number of keys.
+#define SFG_KEY_COUNT 15 ///< Number of keys.
 
 /* ============================= PORTING =================================== */
 
@@ -223,6 +224,7 @@ typedef struct
 #define SFG_GAME_STATE_LOSE 3
 #define SFG_GAME_STATE_INTRO 4
 #define SFG_GAME_STATE_OUTRO 5
+#define SFG_GAME_STATE_MAP 6
 
 #define SFG_MENU_ITEM_CONTINUE 0
 #define SFG_MENU_ITEM_MAP 1
@@ -2283,6 +2285,14 @@ void SFG_updateLevel()
 */
 void SFG_gameStepPlaying()
 {
+  if (
+    (SFG_keyIsDown(SFG_KEY_C) && SFG_keyIsDown(SFG_KEY_DOWN)) ||
+    SFG_keyIsDown(SFG_KEY_MENU))
+  {
+    SFG_setGameState(SFG_GAME_STATE_MENU);
+    return;
+  }
+
   int8_t recomputeDirection = 0;
 
   RCL_Vector2D moveOffset;
@@ -2825,8 +2835,10 @@ void SFG_gameStepPlaying()
 
 uint8_t SFG_getMenuItem(uint8_t index)
 {
-  if (index <= SFG_MENU_ITEM_EXIT)
-    return index;
+  uint8_t start = (SFG_currentLevel.levelPointer == 0) ? 2 : 0;
+
+  if (index <= (SFG_MENU_ITEM_EXIT - start))
+    return start + index;
 
   return SFG_MENU_ITEM_NONE;
 }
@@ -2858,6 +2870,14 @@ void SFG_gameStepMenu()
       case SFG_MENU_ITEM_PLAY:
         SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
         SFG_setGameState(SFG_GAME_STATE_PLAYING);
+        break;
+
+      case SFG_MENU_ITEM_CONTINUE:
+        SFG_setGameState(SFG_GAME_STATE_PLAYING);
+        break;
+
+      case SFG_MENU_ITEM_MAP:
+        SFG_setGameState(SFG_GAME_STATE_MAP);
         break;
 
       default:
@@ -2930,6 +2950,12 @@ void SFG_gameStep()
 
       break;
     }
+
+    case SFG_GAME_STATE_MAP:
+      if (SFG_keyIsDown(SFG_KEY_B))
+        SFG_setGameState(SFG_GAME_STATE_MENU);
+
+      break;
 
     default:
       break;
@@ -3292,7 +3318,7 @@ void SFG_draw()
     return;
   }
 
-  if (SFG_keyPressed(SFG_KEY_MAP))
+  if (SFG_keyPressed(SFG_KEY_MAP) || (SFG_game.state == SFG_GAME_STATE_MAP))
   {
     SFG_drawMap();
   } 
