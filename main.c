@@ -621,7 +621,8 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     uint8_t zValue = pixel->isWall ? SFG_RCLUnitToZBuffer(pixel->depth) : 255;
 
     for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
-      SFG_game.zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] = zValue;
+      SFG_game.zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] =
+        zValue;
   }
 
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
@@ -2908,21 +2909,22 @@ void SFG_gameStep()
       break;
 
     case SFG_GAME_STATE_LOSE:
-    {
+    { 
+      // player die animation
+
       SFG_updateLevel();
     
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
       RCL_Unit h = SFG_floorHeightAt(
         SFG_player.squarePosition[0],
-        SFG_player.squarePosition[1]) + RCL_CAMERA_COLL_HEIGHT_BELOW / 8; 
+        SFG_player.squarePosition[1]); 
 
       SFG_player.camera.height = 
 
-        RCL_max(
-          h,
-          h + ((SFG_LOSE_ANIMATION_DURATION - t) *
-            (RCL_CAMERA_COLL_HEIGHT_BELOW / 8)) / SFG_LOSE_ANIMATION_DURATION);
+        RCL_max(h,h + ((SFG_LOSE_ANIMATION_DURATION - t) *
+            RCL_CAMERA_COLL_HEIGHT_BELOW) / SFG_LOSE_ANIMATION_DURATION);
+
       break;
     }
 
@@ -3296,19 +3298,33 @@ void SFG_draw()
     for (uint16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
       SFG_game.zBuffer[i] = 255;
 
-    int16_t weaponBobOffset;
+    int16_t weaponBobOffset = 0;
 
 #if SFG_HEADBOB_ENABLED
-    RCL_Unit bobSin = RCL_sinInt(SFG_player.headBobFrame);
+    RCL_Unit headBobOffset = 0;
 
-    RCL_Unit headBobOffset =
-      (bobSin * SFG_HEADBOB_OFFSET) / RCL_UNITS_PER_SQUARE;
+    if (SFG_game.state != SFG_GAME_STATE_LOSE)
+    {
+      RCL_Unit bobSin = RCL_sinInt(SFG_player.headBobFrame);
 
-    weaponBobOffset =
-      (bobSin * SFG_WEAPONBOB_OFFSET_PIXELS) / (RCL_UNITS_PER_SQUARE) + 
-      SFG_WEAPONBOB_OFFSET_PIXELS;
+      headBobOffset = (bobSin * SFG_HEADBOB_OFFSET) / RCL_UNITS_PER_SQUARE;
 
+      weaponBobOffset =
+        (bobSin * SFG_WEAPONBOB_OFFSET_PIXELS) / (RCL_UNITS_PER_SQUARE) + 
+        SFG_WEAPONBOB_OFFSET_PIXELS;
+    }
+    else
+    {
+      // player die animation
+
+      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
+      
+      weaponBobOffset = (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE * t) /
+        SFG_LOSE_ANIMATION_DURATION;
+    }
+      
     // add head bob just for the rendering
+
     SFG_player.camera.height += headBobOffset;
 #endif
 
@@ -3450,7 +3466,7 @@ void SFG_draw()
     }
 
 #if SFG_HEADBOB_ENABLED
-    // substract head bob after rendering
+    // after rendering sprites substract back the head bob offset
     SFG_player.camera.height -= headBobOffset;
 #endif
 

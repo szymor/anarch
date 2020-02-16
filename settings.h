@@ -192,7 +192,7 @@
 /**
   Developer cheat for immortality.
 */
-#define SFG_IMMORTAL 1
+#define SFG_IMMORTAL 0
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
