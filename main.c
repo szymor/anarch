@@ -2921,9 +2921,12 @@ void SFG_gameStep()
         SFG_player.squarePosition[1]); 
 
       SFG_player.camera.height = 
-
         RCL_max(h,h + ((SFG_LOSE_ANIMATION_DURATION - t) *
             RCL_CAMERA_COLL_HEIGHT_BELOW) / SFG_LOSE_ANIMATION_DURATION);
+
+      SFG_player.camera.shear = 
+        RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS / 4,
+        (t * (SFG_CAMERA_MAX_SHEAR_PIXELS / 4)) / SFG_LOSE_ANIMATION_DURATION);
 
       break;
     }
@@ -3517,8 +3520,9 @@ void SFG_draw()
 
     // border indicator
 
-    if (SFG_game.frame - SFG_player.lastHurtFrame
-        <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
+    if ((SFG_game.frame - SFG_player.lastHurtFrame
+        <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES) ||
+        (SFG_game.state == SFG_GAME_STATE_LOSE))
       SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
       SFG_HUD_HURT_INDICATION_COLOR);
     else if (SFG_game.frame - SFG_player.lastItemTakenFrame
