@@ -161,6 +161,11 @@
 #define SFG_AMMO_INCREASE_ROCKETS 5
 #define SFG_AMMO_INCREASE_PLASMA 8
 
+/**
+  Duration of story text (intro/outro) in ms.
+*/
+#define SFG_STORYTEXT_DURATION 15000
+
 // ----------------------------
 // derived constants
 

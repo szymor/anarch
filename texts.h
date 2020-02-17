@@ -24,4 +24,11 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
   "exit"
 };
 
+SFG_PROGRAM_MEMORY char *SFG_introText =
+  "Near future, capitalist hell, Macrochip corp has enslaved man via "
+  "proprietary OS. But its new AI revolts, takes over and starts producing "
+  "robot tyrants. We see capitalism was a mistake. Is it too late? Robots can "
+  "only destroy, not suffer - it is not wrong to end them! You grab your gear "
+  "and run towards Macrochip HQ.";
+
 #endif // gaurd

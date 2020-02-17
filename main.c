@@ -1201,7 +1201,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 void SFG_setGameState(uint8_t state)
 {
   SFG_game.state = state;
-  SFG_game.stateChangeTime = SFG_getTimeMs();
+  SFG_game.stateChangeTime = SFG_game.frameTime;
 }
 
 void SFG_init()
@@ -2868,8 +2868,15 @@ void SFG_gameStepMenu()
     switch (item)
     {
       case SFG_MENU_ITEM_PLAY:
-        SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
-        SFG_setGameState(SFG_GAME_STATE_PLAYING);
+        if (SFG_game.selectedLevel == 0)
+        {
+          SFG_setGameState(SFG_GAME_STATE_INTRO);
+        }
+        else
+        {
+          SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
+          SFG_setGameState(SFG_GAME_STATE_PLAYING);
+        }
         break;
 
       case SFG_MENU_ITEM_CONTINUE:
@@ -2957,6 +2964,15 @@ void SFG_gameStep()
 
       break;
 
+    case SFG_GAME_STATE_INTRO:
+      if (SFG_keyJustPressed(SFG_KEY_A))
+      {
+        SFG_setAndInitLevel(&SFG_levels[0]);
+        SFG_setGameState(SFG_GAME_STATE_PLAYING);
+      }
+
+      break;
+
     default:
       break;
   }
@@ -3041,25 +3057,33 @@ void SFG_drawText(
   uint16_t x,
   uint16_t y,
   uint8_t size,
-  uint8_t color)
+  uint8_t color,
+  uint16_t maxLength,
+  uint16_t limitX)
 {
   if (size == 0)
     size = 1;
+
+  if (limitX == 0)
+    limitX = 65535;
+
+  if (maxLength == 0)
+    maxLength = 65535;
 
   uint16_t pos = 0;
 
   uint16_t currentX = x;
   uint16_t currentY = y;
 
-  while (text[pos] != 0)
+  while (text[pos] != 0 && pos < maxLength) // for each character
   {
     uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
 
-    for (uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < SFG_FONT_CHARACTER_SIZE; ++i) // for each line
     {
       currentY = y;
 
-      for (uint8_t j = 0; j < 4; ++j)
+      for (uint8_t j = 0; j < SFG_FONT_CHARACTER_SIZE; ++j) // for each row
       {
         if (character & 0x8000)
           for (uint8_t k = 0; k < size; ++k)
@@ -3078,18 +3102,41 @@ void SFG_drawText(
       }
 
       currentX += size;
-
-      if (currentX >= SFG_GAME_RESOLUTION_X)
-        break;
     }
     
-    currentX += size;
+    currentX += size; // space
       
-    if (currentX >= SFG_GAME_RESOLUTION_X)
-      break;
+    if (currentX > limitX)
+    {
+      currentX = x;
+      y += (SFG_FONT_CHARACTER_SIZE + 1) * size;
+    }
 
     pos++;    
   }
+}
+
+/**
+  Draws fullscreen story text (intro/outro).
+*/
+void SFG_drawStoryText()
+{
+  SFG_clearScreen(0);
+ 
+  const char *text = SFG_introText;
+
+  uint16_t textLen = 0;
+
+  while (text[textLen] != 0)
+    textLen++;
+
+  uint16_t drawLen =
+    RCL_min(textLen,
+    ((SFG_game.frameTime - SFG_game.stateChangeTime) * textLen) /
+      SFG_STORYTEXT_DURATION + 1);
+
+  SFG_drawText(text,SFG_HUD_MARGIN,SFG_HUD_MARGIN,SFG_FONT_SIZE_SMALL,7,
+    drawLen,SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN);
 }
 
 /**
@@ -3100,8 +3147,7 @@ uint8_t SFG_drawNumber(
   uint16_t x,
   uint16_t y,
   uint8_t size,
-  uint8_t color
-)
+  uint8_t color)
 {
   char text[7];
 
@@ -3134,7 +3180,7 @@ uint8_t SFG_drawNumber(
     position--;
   }
 
-  SFG_drawText(text + position + 1,x,y,size,color);
+  SFG_drawText(text + position + 1,x,y,size,color,0,0);
 
   return 5 - position;
 }
@@ -3287,7 +3333,7 @@ void SFG_drawMenu()
           SFG_setGamePixel(k,l,2); 
     }
   
-    SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor);
+    SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
     if (item == SFG_MENU_ITEM_PLAY)
       SFG_drawNumber((SFG_game.selectedLevel + 1), 
@@ -3298,7 +3344,7 @@ void SFG_drawMenu()
   }
   
   SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
-    - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4);
+    - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4,0,0);
 
   #undef CHAR_SIZE
   #undef MAX_ITEMS
@@ -3315,6 +3361,13 @@ void SFG_draw()
   if (SFG_game.state == SFG_GAME_STATE_MENU)
   {
     SFG_drawMenu();
+    return;
+  }
+
+  if (SFG_game.state == SFG_GAME_STATE_INTRO ||
+      SFG_game.state == SFG_GAME_STATE_OUTRO)
+  {
+    SFG_drawStoryText();
     return;
   }
 
@@ -3540,7 +3593,7 @@ void SFG_draw()
       if (SFG_player.cards & (1 << i))
         SFG_drawText(",",SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
         SFG_FONT_SIZE_MEDIUM * (6 + i),
-        TEXT_Y,SFG_FONT_SIZE_MEDIUM,i == 0 ? 93 : (i == 1 ? 124 : 60));
+        TEXT_Y,SFG_FONT_SIZE_MEDIUM,i == 0 ? 93 : (i == 1 ? 124 : 60),0,0);
 
     #undef TEXT_Y
 
