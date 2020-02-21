@@ -335,6 +335,9 @@ struct
   uint8_t backgroundImage;
 
   uint8_t teleportCount;
+
+  uint16_t mapRevealMask; /**< Bits say which parts of the map have been
+                               revealed. */
 } SFG_currentLevel;
 
 #if SFG_DITHERED_SHADOW
@@ -1080,12 +1083,10 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_LOG("initializing doors");
 
   SFG_currentLevel.checkedDoorIndex = 0;
-
   SFG_currentLevel.doorRecordCount = 0;
-
   SFG_currentLevel.projectileRecordCount = 0;
-
   SFG_currentLevel.teleportCount = 0;
+  SFG_currentLevel.mapRevealMask = 0;
 
   for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
   {
@@ -2281,6 +2282,14 @@ void SFG_updateLevel()
 }
 
 /**
+  Maps square position on the map to a bit in map reveal mask.
+*/
+static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
+{
+  return 1 << ((squareY / 16) * 4 + squareX / 16);
+}
+
+/**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
@@ -2822,6 +2831,11 @@ void SFG_gameStepPlaying()
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
 
+  SFG_currentLevel.mapRevealMask |= 
+    SFG_getMapRevealBit(
+      SFG_player.squarePosition[0],
+      SFG_player.squarePosition[1]);
+
   SFG_updateLevel();
 
 #if SFG_IMMORTAL == 0
@@ -3015,26 +3029,31 @@ void SFG_drawMap()
 
     for (uint16_t i = 0; i < maxI; ++i)
     {
-      uint8_t properties;
+      uint8_t color = 0; // init with non-revealed color
 
-      SFG_TileDefinition tile =
-        SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
-
-      uint8_t color = 94; // init with player color
-
-      if (i != SFG_player.squarePosition[0] ||
-          j != SFG_player.squarePosition[1])
+      if (SFG_currentLevel.mapRevealMask & SFG_getMapRevealBit(i,j)) 
       {
-        if (properties == SFG_TILE_PROPERTY_ELEVATOR)
-          color = 46;
-        else if (properties == SFG_TILE_PROPERTY_SQUEEZER)
-          color = 63;
-        else
-        {
-          color = SFG_TILE_FLOOR_HEIGHT(tile) / 8 + 2;
+        uint8_t properties;
 
-          if (properties == SFG_TILE_PROPERTY_DOOR)
-            color += 8;
+        SFG_TileDefinition tile =
+          SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
+
+        color = 94; // start with player color
+
+        if (i != SFG_player.squarePosition[0] ||
+            j != SFG_player.squarePosition[1])
+        {
+          if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+            color = 46;
+          else if (properties == SFG_TILE_PROPERTY_SQUEEZER)
+            color = 63;
+          else
+          {
+            color = SFG_TILE_FLOOR_HEIGHT(tile) / 8 + 2;
+
+            if (properties == SFG_TILE_PROPERTY_DOOR)
+              color += 8;
+          }
         }
       }
 
