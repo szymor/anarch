@@ -177,11 +177,6 @@
 */
 #define SFG_BACKGROUND_BLUR 0
 
-/**
-  Time in ms of the player death animation.
-*/
-#define SFG_LOSE_ANIMATION_DURATION 2000
-
 //------ developer/debug settings ------
 
 /**

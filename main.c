@@ -2730,6 +2730,11 @@ void SFG_gameStepPlaying()
             eliminate = 0;
             break;
 
+          case SFG_LEVEL_ELEMENT_FINISH:
+            SFG_setGameState(SFG_GAME_STATE_WIN);
+            eliminate = 0;
+            break;
+
           default:
             eliminate = 0;
             break;
@@ -2951,7 +2956,7 @@ void SFG_gameStep()
 
     case SFG_GAME_STATE_LOSE:
     { 
-      // player die animation
+      // player die animation (lose)
 
       SFG_updateLevel();
     
@@ -2968,6 +2973,20 @@ void SFG_gameStep()
       SFG_player.camera.shear = 
         RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS / 4,
         (t * (SFG_CAMERA_MAX_SHEAR_PIXELS / 4)) / SFG_LOSE_ANIMATION_DURATION);
+
+      break;
+    }
+
+    case SFG_GAME_STATE_WIN:
+    {
+      // win animation
+     
+      SFG_updateLevel();
+ 
+      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
+
+      if ((t > SFG_WIN_ANIMATION_DURATION) && SFG_keyIsDown(SFG_KEY_A))
+        SFG_setGameState(SFG_GAME_STATE_MENU);
 
       break;
     }
@@ -3371,6 +3390,22 @@ void SFG_drawMenu()
   #undef SCROLL_PIXELS_PER_FRAME
 }
 
+void SFG_drawWinOverlay()
+{
+  uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,
+     SFG_game.frameTime - SFG_game.stateChangeTime);
+
+  uint32_t l = (t * (SFG_GAME_RESOLUTION_Y / 4)) / SFG_WIN_ANIMATION_DURATION;
+
+
+for (uint16_t j = 0; j < l; ++j)
+  for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+  {
+    SFG_setPixel(i,j,0);
+    SFG_setPixel(i,SFG_GAME_RESOLUTION_Y - j - 1,0);
+  } 
+}
+
 void SFG_draw()
 {
 #if SFG_BACKGROUND_BLUR != 0
@@ -3627,6 +3662,9 @@ void SFG_draw()
         <= SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES)
       SFG_drawIndicationBorder(SFG_HUD_BORDER_INDICATOR_WIDTH_PIXELS,
       SFG_HUD_ITEM_TAKEN_INDICATION_COLOR);
+
+    if (SFG_game.state == SFG_GAME_STATE_WIN)
+      SFG_drawWinOverlay();
   }
 }
 

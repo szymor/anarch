@@ -166,6 +166,16 @@
 */
 #define SFG_STORYTEXT_DURATION 15000
 
+/**
+  Time in ms of the player death animation.
+*/
+#define SFG_LOSE_ANIMATION_DURATION 2000
+
+/**
+  Time in ms of the level win animation.
+*/
+#define SFG_WIN_ANIMATION_DURATION 500
+
 // ----------------------------
 // derived constants
 
