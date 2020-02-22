@@ -1,7 +1,8 @@
+general:
+
+- make enemies not move through items
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
-- GUI
-- menu
 - more level prop items
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
@@ -23,6 +24,48 @@
 - add universal corpse sprite?
 - easter egg(s)
 
+level ideas:
+
+- wall made of elevators (or squeezers), serving as a big auto-opening gate
+- a key spot to which the player can only get by jumping from a distant high
+  elevated place
+- player has to jump from one elevator to another, which can only be done when
+  they're both moving down
+- multiple doors in a row (can look interesting)
+- narrow (1 square wide) corridor filled with enemies blocking it
+- narrow (1 square wide) corridor blocked by barrels that have to be exploded
+- teleport on elevator?
+- narrow corridor with elevator
+- maze from walls and/or props
+- narrow bridge with platformer elements over a hole full of enemies
+- server room
+- window (low unpassable ceiling) through which finish can be seen from the
+  start location of the level
+- three locked doors in a row at the beginning of the level, the player has
+  to go to three different locations for each key -- a "hub" level
+- office building
+- plasma bots guarding a big stock (store) of plasma ammo
+- warrior (enemy) right before the player at the start of the level
+- T-shaped corridor in which two rocket-firing enemies stand facing each other
+  so that the player can kill them by stepping between them, letting them fire,
+  then stepping back, making them kill each other
+- enemy trapped between barrels
+- teleport that leads to another teleport which is on a single high elevated
+  square from which the player has to jump down and won't be able to return,
+  making it a de-facto one-way teleport
+- teleports placed so that the player can shoot himself with a rocket or plasma
+  (for fun)  
+- exploders in a maze, hiding behind corners
+- teleport leading to a center of big room full of enemies
+- easter egg -- a level that looks funny on the map, e.g. forms a text or a
+  picture
+- squeezers with low-elevated base (a hole), on a side of a corridor -- if the
+  player is curious and jumps in, he's doomed to die -- perhaps there can be
+  many of them while one is in fact an elevator, which the player has to spot
+  and take in order to advance
+- bullet-shooting enemies behing windows (low ceilings) in rooms that can't be
+  reached
+
 bugs:
 
 done:
@@ -41,4 +84,6 @@ done:
 - create tables for monster and weapon stats in constants.h and read from that
   instead of cheking with ifs
 - check if monsters are hit by bullets from completely up close
+- menu
+- GUI
 
