@@ -611,7 +611,7 @@ SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
   };
 #endif
 
-uint8_t static inline SFG_fogValueDiminish(RCL_Unit depth)
+static inline uint8_t SFG_fogValueDiminish(RCL_Unit depth)
 {
   return depth / SFG_FOG_DIMINISH_STEP;
 }
@@ -1984,8 +1984,8 @@ void SFG_updateLevel()
     else if (p->type == SFG_PROJECTILE_PLASMA)
       attackType = SFG_WEAPON_FIRE_TYPE_PLASMA;
 
-    RCL_Unit pos[3]; // we have to convert from uint16_t because under/overflows
-
+    RCL_Unit pos[3] = {0,0,0}; /* we have to convert from uint16_t because
+                                  under/overflows */
     uint8_t eliminate = 0;
 
     for (uint8_t j = 0; j < 3; ++j) 
@@ -3011,11 +3011,17 @@ void SFG_gameStep()
   }
 }
 
-void SFG_clearScreen(uint8_t color)
+void SFG_fillRectangle(
+  uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color)
 {
-  for (uint16_t j = 0; j < SFG_GAME_RESOLUTION_Y; ++j)
-    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+  for (uint16_t j = y; j < y + height; ++j)
+    for (uint16_t i = x; i < x + width; ++i)
       SFG_setGamePixel(i,j,color);
+}
+
+static inline void SFG_clearScreen(uint8_t color)
+{
+  SFG_fillRectangle(0,0,SFG_GAME_RESOLUTION_X,SFG_GAME_RESOLUTION_Y,color);
 }
 
 /**
@@ -3359,17 +3365,13 @@ void SFG_drawMenu()
     uint8_t textColor = 7;
 
     if (i != SFG_game.selectedMenuItem)
-    {
       textColor = 23;
-    }
     else
-    {
-
-      for (uint16_t l = y - SFG_FONT_SIZE_MEDIUM; l < y + CHAR_SIZE; ++l)
-        for (uint16_t k = SELECTION_START_X;
-          k < SFG_GAME_RESOLUTION_X - SELECTION_START_X; ++k)
-          SFG_setGamePixel(k,l,2); 
-    }
+      SFG_fillRectangle(  
+        SELECTION_START_X,
+        y - SFG_FONT_SIZE_MEDIUM,
+        SFG_GAME_RESOLUTION_X - SELECTION_START_X * 2,
+        CHAR_SIZE,2   );
   
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
@@ -3395,15 +3397,52 @@ void SFG_drawWinOverlay()
   uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,
      SFG_game.frameTime - SFG_game.stateChangeTime);
 
-  uint32_t l = (t * (SFG_GAME_RESOLUTION_Y / 4)) / SFG_WIN_ANIMATION_DURATION;
+uint32_t t2 = RCL_min(t,SFG_WIN_ANIMATION_DURATION / 4);
+
+  RCL_Unit l = 
+
+    (RCL_sinInt(
+    (t2 * RCL_UNITS_PER_SQUARE / 4) / (SFG_WIN_ANIMATION_DURATION / 4)) * SFG_GAME_RESOLUTION_Y)  
+    / RCL_UNITS_PER_SQUARE;
 
 
+uint8_t n = (t * 5) / SFG_WIN_ANIMATION_DURATION;
+
+for (uint16_t y = 0; y < l; ++y)
+  for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
+    if (x % 2 || (y > SFG_GAME_RESOLUTION_Y / 3 && y < SFG_GAME_RESOLUTION_Y * 2 / 3 ))
+      SFG_setPixel(x,y,0); 
+
+
+
+char textLine[] = "sasasa";
+
+#define putText(num) \
+  if (n >= num) SFG_drawText(textLine,SFG_HUD_MARGIN * 2,SFG_HUD_MARGIN * 2 \
+    + SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE * 2) * num,SFG_FONT_SIZE_MEDIUM,7,0,0);
+
+
+putText(0)
+putText(1)
+putText(2)
+putText(3)
+putText(4)
+
+
+/*
+for (uint16_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
+  for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
+    if ((SFG_random() ^ (x + y)) % 256 <= l)
+      SFG_setPixel(x,y,0);
+*/
+/*
 for (uint16_t j = 0; j < l; ++j)
   for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
   {
     SFG_setPixel(i,j,0);
     SFG_setPixel(i,SFG_GAME_RESOLUTION_Y - j - 1,0);
-  } 
+  }
+*/ 
 }
 
 void SFG_draw()
@@ -3610,7 +3649,7 @@ void SFG_draw()
     SFG_drawWeapon(weaponBobOffset);
 #endif
 
-    // draw the HUD:
+    // draw HUD:
 
     // bar
 
@@ -3645,9 +3684,13 @@ void SFG_draw()
 
     for (uint8_t i = 0; i < 3; ++i) // access cards
       if (SFG_player.cards & (1 << i))
-        SFG_drawText(",",SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
-        SFG_FONT_SIZE_MEDIUM * (6 + i),
-        TEXT_Y,SFG_FONT_SIZE_MEDIUM,i == 0 ? 93 : (i == 1 ? 124 : 60),0,0);
+        SFG_fillRectangle(
+          SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
+            SFG_FONT_SIZE_MEDIUM * (5 + i),
+          TEXT_Y,
+          SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
+          SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
+          i == 0 ? 93 : (i == 1 ? 124 : 60));
 
     #undef TEXT_Y
 

@@ -174,7 +174,7 @@
 /**
   Time in ms of the level win animation.
 */
-#define SFG_WIN_ANIMATION_DURATION 500
+#define SFG_WIN_ANIMATION_DURATION 2500
 
 // ----------------------------
 // derived constants
