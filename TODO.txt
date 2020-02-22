@@ -65,6 +65,24 @@ level ideas:
   and take in order to advance
 - bullet-shooting enemies behing windows (low ceilings) in rooms that can't be
   reached
+- locked door that cannot be unlocked at the beginning of the level as a
+  visual indication of entrance
+- elevator in a narrow (1 square) vertical hole with doors at the top and
+  bottom, looking like an actual elevator in buildings
+- player goes through a difficult platformer section and at the end has to make
+  a choice between going to the left and right by jumping in either direction,
+  takes card and has to go through the whole section again in order to also
+  take the other one
+- big platform made of elevators that moving in a short vertical distance,
+  giving an impression of a shaking, unstable platform
+- warrior and/or exploder right behing doors
+- tight maze made of barrels filled with warriors in which the player has to
+  only use knife in order not to explode the barrels and hurt himself
+- enemy on an elevator that doesn't stop at aligned with the floor, so that
+  the enemy is "trapped" on it and only appears briefly to shoot at the player
+- barrel on elevator
+- platforming vertical section in which the player is going upwards out of a big
+  hole
 
 bugs:
 
