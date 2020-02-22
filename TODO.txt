@@ -1,6 +1,9 @@
 general:
 
-- make enemies not move through items
+- make enemies not move through items:
+  create a 2D bit array saying at which squares there are colliding items, then
+  check collisions for both player and monsters against this array (elevate
+  these squares for collisions only) -- will also be faster
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
 - more level prop items
