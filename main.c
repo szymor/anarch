@@ -1945,6 +1945,10 @@ void SFG_getLevelElementSprite(
       *spriteSize = 2;
       break;
 
+    case SFG_LEVEL_ELEMENT_TERMINAL:
+      *spriteSize = 1;
+      break;
+
     case SFG_LEVEL_ELEMENT_TELEPORT:
     case SFG_LEVEL_ELEMENT_FINISH:
       *spriteSize = 3;
