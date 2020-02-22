@@ -338,7 +338,40 @@ struct
 
   uint16_t mapRevealMask; /**< Bits say which parts of the map have been
                                revealed. */
+
+  uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
+                          /**< Bit array, for each map square says whether there
+                               is a colliding item or not. */
 } SFG_currentLevel;
+
+void SFG_getItemCollisionMapIndex(
+  uint8_t x, uint8_t y, uint16_t *byte, uint8_t *bit)
+{
+  uint16_t index = y * SFG_MAP_SIZE + x;
+
+  *byte = index / 8;
+  *bit = index % 8;
+}
+
+void SFG_setItemCollisionMapBit(uint8_t x, uint8_t y, uint8_t value)
+{
+  uint16_t byte;
+  uint8_t bit;
+
+  SFG_getItemCollisionMapIndex(x,y,&byte,&bit);
+
+  SFG_currentLevel.itemCollisionMap[byte] &= ~(0x01 << bit);
+  SFG_currentLevel.itemCollisionMap[byte] |= (value & 0x01) << bit;
+}
+
+uint8_t SFG_getItemCollisionMapBit(uint8_t x, uint8_t y)
+{
+  uint16_t byte;
+  uint8_t bit;
+
+  SFG_getItemCollisionMapIndex(x,y,&byte,&bit);
+  return (SFG_currentLevel.itemCollisionMap[byte] >> bit) & 0x01;
+}
 
 #if SFG_DITHERED_SHADOW
 SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
@@ -994,6 +1027,12 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
            doorHeight * SFG_DOOR_HEIGHT_STEP;
 }
 
+RCL_Unit SFG_floorCollisionHeightAt(int16_t x, int16_t y)
+{
+  return SFG_floorHeightAt(x,y) +
+    SFG_getItemCollisionMapBit(x,y) * RCL_UNITS_PER_SQUARE; 
+}
+
 void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
@@ -1063,6 +1102,46 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
       SFG_game.frameTime - SFG_currentLevel.timeStart);
 }
 
+void SFG_getLevelElementSprite( // TODO: this is just for items -- rename?
+  uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
+{
+  *spriteSize = 0;
+  *spriteIndex = elementType - 1;
+
+  switch (elementType)
+  {
+    case SFG_LEVEL_ELEMENT_TREE:
+      *spriteSize = 2;
+      break;
+
+    case SFG_LEVEL_ELEMENT_TERMINAL:
+      *spriteSize = 1;
+      break;
+
+    case SFG_LEVEL_ELEMENT_TELEPORT:
+    case SFG_LEVEL_ELEMENT_FINISH:
+      *spriteSize = 3;
+      break;
+
+    case SFG_LEVEL_ELEMENT_CARD0:
+    case SFG_LEVEL_ELEMENT_CARD1:
+    case SFG_LEVEL_ELEMENT_CARD2:
+      *spriteIndex = SFG_LEVEL_ELEMENT_CARD0 - 1;
+      break;
+
+    default:
+      break;
+  }
+}
+
+uint8_t SFG_levelElementCollides(uint8_t elementType) // TODO: better name?
+{
+  return 
+    elementType == SFG_LEVEL_ELEMENT_BARREL ||
+    elementType == SFG_LEVEL_ELEMENT_TREE ||
+    elementType == SFG_LEVEL_ELEMENT_TERMINAL;
+}
+
 void SFG_setAndInitLevel(const SFG_Level *level)
 {
   SFG_LOG("setting and initializing level");
@@ -1129,6 +1208,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_MonsterRecord *monster;
 
+  for (uint16_t i = 0; i < ((SFG_MAP_SIZE * SFG_MAP_SIZE) / 8); ++i)
+    SFG_currentLevel.itemCollisionMap[i] = 0;
+
   for (uint8_t i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
   {
     const SFG_LevelElement *e = &(SFG_currentLevel.levelPointer->elements[i]);
@@ -1160,6 +1242,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
         if (e->type == SFG_LEVEL_ELEMENT_TELEPORT)
           SFG_currentLevel.teleportCount++;
+
+        if (SFG_levelElementCollides(e->type))
+          SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],1);
       }
       else
       {
@@ -1376,7 +1461,7 @@ uint8_t SFG_pushAway(
   c.position.y = pos[1];
   c.height = pos[2];
 
-  RCL_moveCameraWithCollision(&c,offset,0,SFG_floorHeightAt,
+  RCL_moveCameraWithCollision(&c,offset,0,SFG_floorCollisionHeightAt,
     SFG_ceilingHeightAt,1,1);
 
   pos[0] = c.position.x;
@@ -1473,11 +1558,36 @@ void SFG_removeItem(uint8_t index)
 
   SFG_currentLevel.itemRecordCount--; 
 }
+
+/**
+  Helper function, returns a pointer to level element representing item with
+  given index, but only if the item is active (otherwise 0 is returned).
+*/
+static inline const SFG_LevelElement *SFG_getActiveItemElement(uint8_t index)
+{
+  SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
+
+  if ((item & SFG_ITEM_RECORD_ACTIVE_MASK) == 0)
+    return 0;
+
+  return &(SFG_currentLevel.levelPointer->elements[item &
+           ~SFG_ITEM_RECORD_ACTIVE_MASK]);
+}
+
+static inline const SFG_LevelElement *SFG_getLevelElement(uint8_t index)
+{
+  SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
+
+  return &(SFG_currentLevel.levelPointer->elements[item &
+           ~SFG_ITEM_RECORD_ACTIVE_MASK]);
+}
   
 void SFG_createExplosion(RCL_Unit, RCL_Unit, RCL_Unit); // forward decl
 
 void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
+  const SFG_LevelElement *e = SFG_getLevelElement(itemIndex);
+  SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],0);
   SFG_removeItem(itemIndex);
   SFG_createExplosion(x,y,z);
 }
@@ -1852,10 +1962,10 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   else
   {
     RCL_Unit currentHeight =
-      SFG_floorHeightAt(monster->coords[0] / 4,monster->coords[1] / 4);
+      SFG_floorCollisionHeightAt(monster->coords[0] / 4,monster->coords[1] / 4);
 
     RCL_Unit newHeight =
-      SFG_floorHeightAt(newPos[0] / 4,newPos[1] / 4);
+      SFG_floorCollisionHeightAt(newPos[0] / 4,newPos[1] / 4);
 
     collision =
       RCL_absVal(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
@@ -1873,21 +1983,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   monster->stateType = state | type;
   monster->coords[0] = newPos[0];
   monster->coords[1] = newPos[1];;
-}
-
-/**
-  Helper function, returns a pointer to level element representing item with
-  given index, but only if the item is active (otherwise 0 is returned).
-*/
-static inline const SFG_LevelElement *SFG_getActiveItemElement(uint8_t index)
-{
-  SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
-
-  if ((item & SFG_ITEM_RECORD_ACTIVE_MASK) == 0)
-    return 0;
-
-  return &(SFG_currentLevel.levelPointer->elements[item &
-           ~SFG_ITEM_RECORD_ACTIVE_MASK]);
 }
 
 static inline uint8_t SFG_elementCollides(
@@ -1931,38 +2026,6 @@ uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
   toElement.y = y - projectile->position[1];
    
   return RCL_vectorsAngleCos(projDir,toElement) >= 0;
-}
-
-void SFG_getLevelElementSprite(
-  uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
-{
-  *spriteSize = 0;
-  *spriteIndex = elementType - 1;
-
-  switch (elementType)
-  {
-    case SFG_LEVEL_ELEMENT_TREE:
-      *spriteSize = 2;
-      break;
-
-    case SFG_LEVEL_ELEMENT_TERMINAL:
-      *spriteSize = 1;
-      break;
-
-    case SFG_LEVEL_ELEMENT_TELEPORT:
-    case SFG_LEVEL_ELEMENT_FINISH:
-      *spriteSize = 3;
-      break;
-
-    case SFG_LEVEL_ELEMENT_CARD0:
-    case SFG_LEVEL_ELEMENT_CARD1:
-    case SFG_LEVEL_ELEMENT_CARD2:
-      *spriteIndex = SFG_LEVEL_ELEMENT_CARD0 - 1;
-      break;
-
-    default:
-      break;
-  }
 }
 
 /**
@@ -2059,7 +2122,7 @@ void SFG_updateLevel()
           }
         }
 
-      if (!eliminate) // items
+      if (!eliminate) // items (can't check itemCollisionMap because of barrels)
         for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
         {
           const SFG_LevelElement *e = SFG_getActiveItemElement(j);
@@ -2753,54 +2816,47 @@ void SFG_gameStepPlaying()
           SFG_playSoundSafe(3,255);
 #endif
         }
-        else 
+        else if (
+          e->type == SFG_LEVEL_ELEMENT_TELEPORT &&
+          SFG_currentLevel.teleportCount > 1 &&
+          !SFG_player.justTeleported)
         {
-          if (e->type != SFG_LEVEL_ELEMENT_TELEPORT)
-          {
-            // collide
-            moveOffset = SFG_resolveCollisionWithElement(
-              SFG_player.camera.position,moveOffset,ePos);
-          }
-          else if ((SFG_currentLevel.teleportCount > 1) &&
-            !SFG_player.justTeleported)
-          {
-            // teleport to random destination teleport
+          // teleport to random destination teleport
 
-            uint8_t teleportNumber =
-              SFG_random() % (SFG_currentLevel.teleportCount - 1) + 1;
+          uint8_t teleportNumber =
+            SFG_random() % (SFG_currentLevel.teleportCount - 1) + 1;
 
-            for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+          for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+          {
+            SFG_LevelElement e2 = 
+              SFG_currentLevel.levelPointer->elements
+                [SFG_currentLevel.itemRecords[j] &
+                ~SFG_ITEM_RECORD_ACTIVE_MASK];
+
+            if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORT) && (j != i))
+              teleportNumber--;
+
+            if (teleportNumber == 0)
             {
-              SFG_LevelElement e2 = 
-                SFG_currentLevel.levelPointer->elements
-                  [SFG_currentLevel.itemRecords[j] &
-                  ~SFG_ITEM_RECORD_ACTIVE_MASK];
+              SFG_player.camera.position.x =
+                SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[0]);
 
-              if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORT) && (j != i))
-                teleportNumber--;
+              SFG_player.camera.position.y =
+                SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[1]);
 
-              if (teleportNumber == 0)
-              {
-                SFG_player.camera.position.x =
-                  SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[0]);
+              SFG_player.camera.height =
+                SFG_floorHeightAt(e2.coords[0],e2.coords[1]) +
+                RCL_CAMERA_COLL_HEIGHT_BELOW;
 
-                SFG_player.camera.position.y =
-                  SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[1]);
+              SFG_currentLevel.itemRecords[j] |= SFG_ITEM_RECORD_ACTIVE_MASK;
+              /* ^ we have to make the new teleport immediately active so
+                 that it will immediately collide */
 
-                SFG_player.camera.height =
-                  SFG_floorHeightAt(e2.coords[0],e2.coords[1]) +
-                  RCL_CAMERA_COLL_HEIGHT_BELOW;
+              SFG_player.justTeleported = 1;
 
-                SFG_currentLevel.itemRecords[j] |= SFG_ITEM_RECORD_ACTIVE_MASK;
-                /* ^ we have to make the new teleport immediately active so
-                   that it will immediately collide */
+              SFG_playSoundSafe(4,255);
 
-                SFG_player.justTeleported = 1;
-
-                SFG_playSoundSafe(4,255);
-
-                break;
-              }
+              break;
             }
           }
         }
@@ -2822,7 +2878,7 @@ void SFG_gameStepPlaying()
     SFG_PREVIEW_MODE_SPEED_MULTIPLIER * SFG_player.verticalSpeed;
 #else
   RCL_moveCameraWithCollision(&(SFG_player.camera),moveOffset,
-    verticalOffset,SFG_floorHeightAt,SFG_ceilingHeightAt,1,1);
+    verticalOffset,SFG_floorCollisionHeightAt,SFG_ceilingHeightAt,1,1);
 
   SFG_player.previousVerticalSpeed = SFG_player.verticalSpeed;
 
