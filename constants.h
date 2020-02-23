@@ -24,7 +24,7 @@
 /**
   How quickly player moves, in squares per second.
 */
-#define SFG_PLAYER_MOVE_SPEED 10
+#define SFG_PLAYER_MOVE_SPEED 7
 
 /**
   Gravity acceleration in squares / (second^2).
@@ -86,7 +86,7 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_DISTANCE 2500
+#define SFG_ELEMENT_COLLISION_RADIUS 1500
 
 /**
   Height, in RCL_Units, at which collisions happen with level elements
@@ -98,7 +98,7 @@
   Distance at which explosion does damage and throws away the player and
   monsters, in RCL_Units.
 */
-#define SFG_EXPLOSION_DISTANCE 2048 
+#define SFG_EXPLOSION_RADIUS 2048 
 
 /**
   How much damage triggers a barrel explosion.

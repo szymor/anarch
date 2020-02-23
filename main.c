@@ -1102,7 +1102,10 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
       SFG_game.frameTime - SFG_currentLevel.timeStart);
 }
 
-void SFG_getLevelElementSprite( // TODO: this is just for items -- rename?
+/**
+  Gets sprite (image and sprite size) for given item.
+*/
+void SFG_getItemSprite(
   uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
 {
   *spriteSize = 0;
@@ -1134,7 +1137,10 @@ void SFG_getLevelElementSprite( // TODO: this is just for items -- rename?
   }
 }
 
-uint8_t SFG_levelElementCollides(uint8_t elementType) // TODO: better name?
+/**
+  Says whether given item type collides, i.e. stops player from moving.
+*/
+uint8_t SFG_itemCollides(uint8_t elementType)
 {
   return 
     elementType == SFG_LEVEL_ELEMENT_BARREL ||
@@ -1243,7 +1249,7 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         if (e->type == SFG_LEVEL_ELEMENT_TELEPORT)
           SFG_currentLevel.teleportCount++;
 
-        if (SFG_levelElementCollides(e->type))
+        if (SFG_itemCollides(e->type))
           SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],1);
       }
       else
@@ -1628,7 +1634,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
 
-  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_DISTANCE))
+  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_RADIUS))
     SFG_playerChangeHealth(-1 * damage);
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
@@ -1647,7 +1653,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
     if (SFG_taxicabDistance(
       SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
       SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),monsterHeight,
-      x,y,z) <= SFG_EXPLOSION_DISTANCE)
+      x,y,z) <= SFG_EXPLOSION_RADIUS)
     {
       SFG_monsterChangeHealth(monster,
         -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL));
@@ -1679,7 +1685,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
         SFG_floorHeightAt(element.coords[0],element.coords[1]);
 
       if (SFG_taxicabDistance(
-        x,y,z,elementX,elementY,elementHeight) <= SFG_EXPLOSION_DISTANCE)
+        x,y,z,elementX,elementY,elementHeight) <= SFG_EXPLOSION_RADIUS)
       {
         SFG_explodeBarrel(i,elementX,elementY,elementHeight);
         i--;
@@ -1996,7 +2002,7 @@ static inline uint8_t SFG_elementCollides(
 {
   return
     SFG_taxicabDistance(pointX,pointY,pointZ,elementX,elementY,elementHeight)
-    <= SFG_ELEMENT_COLLISION_DISTANCE;
+    <= SFG_ELEMENT_COLLISION_RADIUS;
 }
 
 /**
@@ -2739,7 +2745,8 @@ void SFG_gameStepPlaying()
 
   uint8_t collidesWithTeleport = 0;
 
-  // items:
+  /* item collisions with player (only those that don't stop player's movement
+     -- these are handled differently, via itemCollisionMap): */
   for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
     // ^ has to be int16_t (signed)
   {
@@ -2755,15 +2762,14 @@ void SFG_gameStepPlaying()
       ePos.x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
       ePos.y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
 
-      if (
-           SFG_elementCollides(
-             SFG_player.camera.position.x,
-             SFG_player.camera.position.y,
-             SFG_player.camera.height,
-             ePos.x,
-             ePos.y,
-             SFG_floorHeightAt(e->coords[0],e->coords[1])
-           )
+      if (!SFG_itemCollides(e->type) &&
+          SFG_elementCollides(
+            SFG_player.camera.position.x,
+            SFG_player.camera.position.y,
+            SFG_player.camera.height,
+            ePos.x,
+            ePos.y,
+            SFG_floorHeightAt(e->coords[0],e->coords[1]))
          )
       {
         uint8_t eliminate = 1;
@@ -3636,7 +3642,7 @@ void SFG_draw()
         uint8_t spriteIndex;
         uint8_t spriteSize;
 
-        SFG_getLevelElementSprite(e.type,&spriteIndex,&spriteSize);
+        SFG_getItemSprite(e.type,&spriteIndex,&spriteSize);
 
         RCL_PixelInfo p =
           RCL_mapToScreen(
