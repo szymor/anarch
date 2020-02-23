@@ -344,6 +344,9 @@ struct
                                is a colliding item or not. */
 } SFG_currentLevel;
 
+/**
+  Helper function for accessing the itemCollisionMap bits.
+*/
 void SFG_getItemCollisionMapIndex(
   uint8_t x, uint8_t y, uint16_t *byte, uint8_t *bit)
 {
@@ -1027,6 +1030,11 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
            doorHeight * SFG_DOOR_HEIGHT_STEP;
 }
 
+/**
+  Like SFG_floorCollisionHeightAt, but takes into account colliding items on
+  the map, so the squares that have these items are higher. The former function
+  is for rendering, this one is for collision checking.
+*/
 RCL_Unit SFG_floorCollisionHeightAt(int16_t x, int16_t y)
 {
   return SFG_floorHeightAt(x,y) +
@@ -2093,7 +2101,9 @@ void SFG_updateLevel()
           SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
         }
 
-      // check collision with the map
+      /* check collision with the map (we don't use SFG_floorCollisionHeightAt
+         because collisio with items has to be done differently for
+         projectiles) */
 
       if (!eliminate &&
           ((SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
@@ -2133,7 +2143,7 @@ void SFG_updateLevel()
         {
           const SFG_LevelElement *e = SFG_getActiveItemElement(j);
 
-          if (e != 0)
+          if (e != 0 && SFG_itemCollides(e->type))
           {
             RCL_Unit x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
             RCL_Unit y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
