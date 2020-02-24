@@ -105,6 +105,7 @@ typedef struct
                                      access card. */
 #define SFG_LEVEL_ELEMENT_LOCK1 0x0e
 #define SFG_LEVEL_ELEMENT_LOCK2 0x0f
+#define SFG_LEVEL_ELEMENT_BLOCKER 0x10 ///< Invisible wall.
 
 /* 
   Monsters have lower 4 bits zero and are only distinguished by the 4 upper
@@ -304,7 +305,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_TELEPORT, {20, 40}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_TERMINAL, {11, 25}},     {SFG_LEVEL_ELEMENT_TERMINAL, {11, 26}},
       {SFG_LEVEL_ELEMENT_MONSTER_WARRIOR, {10, 45}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
-      {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
+      {SFG_LEVEL_ELEMENT_BLOCKER, {14, 26}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},

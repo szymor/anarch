@@ -1114,10 +1114,10 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
   Gets sprite (image and sprite size) for given item.
 */
 void SFG_getItemSprite(
-  uint8_t elementType, uint8_t *spriteIndex, uint8_t *spriteSize)
+  uint8_t elementType, const uint8_t **sprite, uint8_t *spriteSize)
 {
   *spriteSize = 0;
-  *spriteIndex = elementType - 1;
+  *sprite = (const uint8_t *) &(SFG_itemSprites[elementType - 1]);
 
   switch (elementType)
   {
@@ -1137,7 +1137,12 @@ void SFG_getItemSprite(
     case SFG_LEVEL_ELEMENT_CARD0:
     case SFG_LEVEL_ELEMENT_CARD1:
     case SFG_LEVEL_ELEMENT_CARD2:
-      *spriteIndex = SFG_LEVEL_ELEMENT_CARD0 - 1;
+      *sprite = 
+        (const uint8_t *) &(SFG_itemSprites[SFG_LEVEL_ELEMENT_CARD0 - 1]);
+      break;
+
+    case SFG_LEVEL_ELEMENT_BLOCKER:
+      *sprite = 0;
       break;
 
     default:
@@ -1153,7 +1158,8 @@ uint8_t SFG_itemCollides(uint8_t elementType)
   return 
     elementType == SFG_LEVEL_ELEMENT_BARREL ||
     elementType == SFG_LEVEL_ELEMENT_TREE ||
-    elementType == SFG_LEVEL_ELEMENT_TERMINAL;
+    elementType == SFG_LEVEL_ELEMENT_TERMINAL ||
+    elementType == SFG_LEVEL_ELEMENT_BLOCKER;
 }
 
 void SFG_setAndInitLevel(const SFG_Level *level)
@@ -3649,25 +3655,28 @@ void SFG_draw()
         worldPosition.y =
           SFG_ELEMENT_COORD_TO_RCL_UNITS(e.coords[1]);
 
-        uint8_t spriteIndex;
+        const uint8_t *sprite;
         uint8_t spriteSize;
 
-        SFG_getItemSprite(e.type,&spriteIndex,&spriteSize);
+        SFG_getItemSprite(e.type,&sprite,&spriteSize);
 
-        RCL_PixelInfo p =
-          RCL_mapToScreen(
-            worldPosition,
-            SFG_floorHeightAt(e.coords[0],e.coords[1])
-            + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
-            SFG_player.camera);
-
-        if (p.depth > 0)
+        if (sprite != 0)
         {
-          SFG_drawScaledSprite(
-            SFG_itemSprites[spriteIndex],
-            p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(SFG_SPRITE_SIZE(spriteSize),p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
+          RCL_PixelInfo p =
+            RCL_mapToScreen(
+              worldPosition,
+              SFG_floorHeightAt(e.coords[0],e.coords[1])
+              + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
+              SFG_player.camera);
+
+          if (p.depth > 0)
+          {
+            SFG_drawScaledSprite(
+              sprite,
+              p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+              RCL_perspectiveScale(SFG_SPRITE_SIZE(spriteSize),p.depth),
+              p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
+          }
         }
       }
 

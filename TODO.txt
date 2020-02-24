@@ -82,6 +82,9 @@ level ideas:
 - barrel on elevator
 - platforming vertical section in which the player is going upwards out of a big
   hole
+- invisible bridge (perhaps not straight) made of bleckers (invisible walls)
+  over a hole, leading to an easter egg
+- start of level: a corner blocked by an invisible wall, to indicate entrance
 
 bugs:
 
