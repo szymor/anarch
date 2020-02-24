@@ -34,6 +34,8 @@ level ideas:
 - narrow (1 square wide) corridor filled with enemies blocking it
 - narrow (1 square wide) corridor blocked by barrels that have to be exploded
 - teleport on elevator?
+- teleport at the bottom of a 1 square narrow hole, by jumping into the hole
+  the player gets teleported
 - narrow corridor with elevator
 - maze from walls and/or props
 - narrow bridge with platformer elements over a hole full of enemies
