@@ -1062,7 +1062,8 @@ void SFG_initPlayer()
       SFG_currentLevel.levelPointer->playerStart[1]);
 
   SFG_player.camera.direction = 
-    SFG_currentLevel.levelPointer->playerStart[2] * 4;
+    SFG_currentLevel.levelPointer->playerStart[2] *
+    (RCL_UNITS_PER_SQUARE / 256);
 
   SFG_recompurePLayerDirection(); 
  
