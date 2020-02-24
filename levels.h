@@ -96,16 +96,17 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_FINISH 0x07
 #define SFG_LEVEL_ELEMENT_TELEPORT 0x08
 #define SFG_LEVEL_ELEMENT_TERMINAL 0x09
-#define SFG_LEVEL_ELEMENT_CARD0 0x0a ///< Access card, unlocks doors with lock.
-#define SFG_LEVEL_ELEMENT_CARD1 0x0b
-#define SFG_LEVEL_ELEMENT_CARD2 0x0c
-#define SFG_LEVEL_ELEMENT_LOCK0 0x0d /**< Special level element that must be
+#define SFG_LEVEL_ELEMENT_COLUMN 0x0a
+#define SFG_LEVEL_ELEMENT_CARD0 0x0b ///< Access card, unlocks doors with lock.
+#define SFG_LEVEL_ELEMENT_CARD1 0x0c
+#define SFG_LEVEL_ELEMENT_CARD2 0x0d
+#define SFG_LEVEL_ELEMENT_LOCK0 0x0e /**< Special level element that must be
                                      placed on a tile with door. This door is
                                      then unlocked by taking the corresponding
                                      access card. */
-#define SFG_LEVEL_ELEMENT_LOCK1 0x0e
-#define SFG_LEVEL_ELEMENT_LOCK2 0x0f
-#define SFG_LEVEL_ELEMENT_BLOCKER 0x10 ///< Invisible wall.
+#define SFG_LEVEL_ELEMENT_LOCK1 0x0f
+#define SFG_LEVEL_ELEMENT_LOCK2 0x10
+#define SFG_LEVEL_ELEMENT_BLOCKER 0x11 ///< Invisible wall.
 
 /* 
   Monsters have lower 4 bits zero and are only distinguished by the 4 upper
@@ -306,7 +307,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_TERMINAL, {11, 25}},     {SFG_LEVEL_ELEMENT_TERMINAL, {11, 26}},
       {SFG_LEVEL_ELEMENT_MONSTER_WARRIOR, {10, 45}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_BLOCKER, {14, 26}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
-      {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
+      {SFG_LEVEL_ELEMENT_COLUMN, {21, 15}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
