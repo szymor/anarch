@@ -844,7 +844,7 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         RCL_Unit diff = h.position.x - ray.start.x;
 
         h.position.y = // avoid division by multiplying with reciprocal
-          ray.start.y + ((ray.direction.y * diff) * rayDirXRecip) / RECIP_SCALE;
+          ray.start.y + (ray.direction.y * diff * rayDirXRecip) / RECIP_SCALE;
 
 #if RCL_RECTILINEAR
         /* Here we compute the fish eye corrected distance (perpendicular to
@@ -876,7 +876,7 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
         RCL_Unit diff = h.position.y - ray.start.y;
 
         h.position.x =
-          ray.start.x + ((ray.direction.x * diff) * rayDirYRecip) / RECIP_SCALE;
+          ray.start.x + (ray.direction.x * diff * rayDirYRecip) / RECIP_SCALE;
 
 #if RCL_RECTILINEAR
         h.distance =
@@ -1202,6 +1202,20 @@ static inline int16_t _RCL_drawWall(
 
   RCL_Unit textureCoordScaled = pixelInfo->texCoords.y;
 
+#if RCL_RECTILINEAR
+  RCL_Unit tmp = pixelInfo->depth;
+  pixelInfo->depth = (pixelInfo->depth * 23) / 32;
+
+  /* ^ UGLY HACK
+
+     For some reason the computed distance with rectilinear is larger, the
+     correct distance is about 0.711 (~= 23/32) of the computed distance, so
+     we correct it here in this ugly way.
+
+     TODO: investigate why, fix nicely
+  */
+#endif
+
   for (RCL_Unit i = yCurrent + increment; 
        increment == -1 ? i >= limit : i <= limit; // TODO: is efficient?
        i += increment)
@@ -1217,7 +1231,11 @@ static inline int16_t _RCL_drawWall(
 
     RCL_PIXEL_FUNCTION(pixelInfo);
   }
-  
+
+#if RCL_RECTILINEAR
+  pixelInfo->depth = tmp;
+#endif  
+
   return limit;
 }
 

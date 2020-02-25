@@ -491,9 +491,9 @@ uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
 static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 {
-  x /= RCL_UNITS_PER_SQUARE;
+  x /= (RCL_UNITS_PER_SQUARE / 8);
 
-  uint8_t okay = x < 255;
+  uint8_t okay = x < 256;
 
   return okay * (x + 1) - 1;
 }
@@ -1123,7 +1123,6 @@ void SFG_getItemSprite(
   switch (elementType)
   {
     case SFG_LEVEL_ELEMENT_TREE:
-    case SFG_LEVEL_ELEMENT_COLUMN:
       *spriteSize = 2;
       break;
 
@@ -1133,6 +1132,7 @@ void SFG_getItemSprite(
 
     case SFG_LEVEL_ELEMENT_TELEPORT:
     case SFG_LEVEL_ELEMENT_FINISH:
+    case SFG_LEVEL_ELEMENT_COLUMN:
       *spriteSize = 3;
       break;
 
@@ -3678,7 +3678,7 @@ void SFG_draw()
               sprite,
               p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
               RCL_perspectiveScale(SFG_SPRITE_SIZE(spriteSize),p.depth),
-              p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth - 1000);
+              p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
           }
         }
       }
