@@ -941,25 +941,25 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
 /*49*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 49
 /*50*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 50
 /*51*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,AA,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 51
-/*52*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,2 ,2 ,2 ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 52
-/*53*/ o ,o ,o ,o ,o ,o ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,6 ,6 ,1 ,4 ,o ,o ,o ,o ,o ,4 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 53
-/*54*/ o ,o ,o ,o ,o ,o ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,6 ,6 ,1 ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 54
-/*55*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,2 ,1 ,2 ,o ,3 ,3 ,3 ,o ,2 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 55
-/*56*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,2 ,AA,2 ,o ,3 ,3 ,3 ,o ,2 ,AA,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 56
-/*57*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,6 ,2 ,1 ,2 ,o ,3 ,3 ,3 ,o ,2 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 57
-/*58*/ o ,o ,o ,o ,o ,o ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,1 ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 58
-/*59*/ o ,o ,o ,o ,o ,o ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,1 ,4 ,o ,o ,o ,o ,o ,4 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 59
+/*52*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,o ,2 ,2 ,2 ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 52
+/*53*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,5 ,1 ,4 ,o ,o ,o ,o ,o ,4 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 53
+/*54*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,5 ,1 ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 54
+/*55*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,2 ,1 ,2 ,o ,3 ,3 ,3 ,o ,2 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 55
+/*56*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,2 ,AA,2 ,o ,3 ,3 ,3 ,o ,2 ,AA,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 56
+/*57*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,2 ,1 ,2 ,o ,3 ,3 ,3 ,o ,2 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 57
+/*58*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,5 ,1 ,o ,o ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 58
+/*59*/ o ,o ,o ,o ,o ,o ,6 ,6 ,6 ,6 ,6 ,5 ,6 ,6 ,6 ,5 ,1 ,4 ,o ,o ,o ,o ,o ,4 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 59
 /*60*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,4 ,1 ,o ,o ,o ,o ,o ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 60
 /*61*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,1 ,1 ,2 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 61
-/*62*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,2 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 62
-/*63*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,AA,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 63
+/*62*/ o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,1 ,2 ,AA,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 62
+/*63*/ o ,o ,o ,o ,o ,o ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,7 ,1 ,1 ,1 ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o ,o , // 63
     // 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
     #undef o
     #undef AA
     },
     { // tileDictionary
       SFG_TD(8 ,6 ,1,1),SFG_TD(13,0 ,0,0),SFG_TD(9, 5 ,0,0),SFG_TD(8 ,8 ,0,0), // 0
-      SFG_TD(13,0 ,2,2),SFG_TD(13,0 ,3,3),SFG_TD(8 ,9 ,0,0),SFG_TD(0 ,31,0,0), // 4
+      SFG_TD(13,0 ,2,2),SFG_TD(13,0 ,3,3),SFG_TD(8 ,9 ,0,0),SFG_TD(11,3 ,4,0), // 4
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 8
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 12
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 16
@@ -975,7 +975,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0), // 56
       SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0),SFG_TD(0 ,31,0,0)  // 60
     },
-    {12, 3,11,14, 3, 12, 10},// textureIndices
+    {12, 3,11,14,4, 12, 10},// textureIndices
     13,                      // doorTextureIndex
     58,                      // floorColor
     2,                       // ceilingColor
@@ -983,7 +983,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
     0,                       // backgroundImage
     {                        // elements
       {SFG_LEVEL_ELEMENT_COLUMN, {22, 52}},     {SFG_LEVEL_ELEMENT_COLUMN, {18, 52}},
-      {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
+      {SFG_LEVEL_ELEMENT_TREE, {15, 60}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
       {SFG_LEVEL_ELEMENT_NONE, {0, 0}},     {SFG_LEVEL_ELEMENT_NONE, {0, 0}},
