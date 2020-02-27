@@ -86,7 +86,7 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_RADIUS 1500
+#define SFG_ELEMENT_COLLISION_RADIUS 1900
 
 /**
   Height, in RCL_Units, at which collisions happen with level elements
@@ -176,6 +176,11 @@
 */
 #define SFG_WIN_ANIMATION_DURATION 2500
 
+/**
+  Vertical sprite size, in RCL_Units.
+*/
+#define SFG_BASE_SPRITE_SIZE RCL_UNITS_PER_SQUARE
+
 // ----------------------------
 // derived constants
 
@@ -186,9 +191,6 @@
   (SFG_SCREEN_RESOLUTION_Y / SFG_RESOLUTION_SCALEDOWN)
 
 #define SFG_MS_PER_FRAME (1000 / SFG_FPS) // ms per frame with target FPS
-
-#define SFG_BASE_SPRITE_SIZE \
-  (SFG_GAME_RESOLUTION_Y)
 
 #if SFG_MS_PER_FRAME == 0
   #define SFG_MS_PER_FRAME 1

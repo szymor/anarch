@@ -187,7 +187,7 @@
 /**
   Developer cheat for immortality.
 */
-#define SFG_IMMORTAL 0
+#define SFG_IMMORTAL 1
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
@@ -203,6 +203,6 @@
   Skips menu and starts given level immediatelly, for development. 0 means this
   options is ignored, 1 means load level 1 etc.
 */
-#define SFG_START_LEVEL 5
+#define SFG_START_LEVEL 0
 
 #endif // guard

@@ -151,9 +151,11 @@ typedef struct
 #define SFG_SPRITE_SIZE(size0to3) \
   (((size0to3 + 3) * SFG_BASE_SPRITE_SIZE) / 4)
 
+#define SFG_SPRITE_SIZE_PIXELS(size0to3) \
+  ((SFG_SPRITE_SIZE(size0to3) * SFG_GAME_RESOLUTION_Y) / RCL_UNITS_PER_SQUARE)
+
 #define SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(size0to3) \
-  ((SFG_SPRITE_SIZE(size0to3) * 2) / 3)
-  // ^TODO: why 3/4 and not 1/2?
+  (SFG_SPRITE_SIZE(size0to3) / 2)
 
 /**
   Holds information about one instance of a level item (a type of level element,
@@ -3636,7 +3638,7 @@ void SFG_draw()
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScale(
-            SFG_SPRITE_SIZE(spriteSize),
+            SFG_SPRITE_SIZE_PIXELS(spriteSize),
             p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
         }
@@ -3678,7 +3680,7 @@ void SFG_draw()
             SFG_drawScaledSprite(
               sprite,
               p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-              RCL_perspectiveScale(SFG_SPRITE_SIZE(spriteSize),p.depth),
+              RCL_perspectiveScale(SFG_SPRITE_SIZE_PIXELS(spriteSize),p.depth),
               p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
           }
         }
@@ -3702,7 +3704,7 @@ void SFG_draw()
        
       const uint8_t *s = SFG_effectSprites[proj->type];
 
-      int16_t spriteSize = SFG_SPRITE_SIZE(0);
+      int16_t spriteSize = SFG_SPRITE_SIZE_PIXELS(0);
 
       if (proj->type == SFG_PROJECTILE_EXPLOSION ||
           proj->type == SFG_PROJECTILE_DUST)
@@ -3710,10 +3712,10 @@ void SFG_draw()
         int16_t doubleFramesToLive =
           RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(proj->type) / 2);
 
-        // grow the explosion sprite as an animation
+        // grow the explosion/dust sprite as an animation
         spriteSize =
           (
-            SFG_BASE_SPRITE_SIZE *
+            SFG_SPRITE_SIZE_PIXELS(2) *
             RCL_sinInt(          
               ((doubleFramesToLive -
                proj->doubleFramesToLive) * RCL_UNITS_PER_SQUARE / 4)
