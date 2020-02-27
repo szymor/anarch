@@ -1,7 +1,8 @@
 /**
   @file platform_pokitto.h
 
-  This is Pokitto implementation of the game front end.
+  This is Pokitto implementation of the game front end, using the official
+  PokittoLib.
 
   by Miloslav Ciz (drummyfish), 2019
 
@@ -44,7 +45,11 @@
 #define SFG_RAYCASTING_SUBSAMPLE 2
 
 #include "Pokitto.h"
+#include "clock_11u6x.h"
+#include "timer_11u6x.h"
 #include "palette.h"
+
+#include "sounds.h"
 
 Pokitto::Core pokitto;
 
@@ -85,13 +90,66 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
   *y = 0;
 }
 
+uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
+uint16_t audioPos = 0;
+
+void onTimer() // for sound
+{
+  if (Chip_TIMER_MatchPending(LPC_TIMER32_0, 1))
+  {
+    Chip_TIMER_ClearMatch(LPC_TIMER32_0, 1);
+
+    Pokitto::dac_write(audioBuff[audioPos]);
+
+    audioBuff[audioPos] = 127;
+
+    audioPos = (audioPos + 1) % SFG_SFX_SAMPLE_COUNT;
+  }
+}
+
+void timerInit(uint32_t samplingRate)
+{
+  Chip_TIMER_Init(LPC_TIMER32_0);
+  Chip_TIMER_Reset(LPC_TIMER32_0);
+  Chip_TIMER_MatchEnableInt(LPC_TIMER32_0, 1);
+  Chip_TIMER_SetMatch(LPC_TIMER32_0, 1, 
+    (Chip_Clock_GetSystemClockRate() / samplingRate));
+  Chip_TIMER_ResetOnMatchEnable(LPC_TIMER32_0, 1);
+  Chip_TIMER_Enable(LPC_TIMER32_0);
+
+  #define weirdNumber ((IRQn_Type) 18)
+  NVIC_ClearPendingIRQ(weirdNumber);
+  NVIC_SetVector(weirdNumber, (uint32_t) &onTimer);
+  NVIC_EnableIRQ(weirdNumber);
+  #undef weirdNumber
+}
+
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
+  uint8_t volumeStep = volume / 16;
+
+  uint16_t pos = audioPos;
+
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+  {
+    int16_t mixedValue =
+      audioBuff[pos] - 127 + SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
+
+    mixedValue = (mixedValue > 0) ? ((mixedValue < 255) ? mixedValue : 255) : 0;
+
+    audioBuff[pos] = mixedValue;// SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
+
+    pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
+  }
 }
 
 int main()
 {
   pokitto.begin(); 
+  timerInit(8000);
+
+  for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+    audioBuff[i] = 127;
 
   pokitto.setFrameRate(255);
   pokitto.display.setFont(fontTiny);
@@ -115,3 +173,4 @@ int main()
 }
 
 #endif // guard
+

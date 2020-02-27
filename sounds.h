@@ -22,6 +22,9 @@
 #define SFG_SFX_SAMPLE_COUNT 2048
 #define SFG_SFX_SIZE (SFG_SFX_SAMPLE_COUNT / 2)
 
+/**
+  Gets a 4-bit sound sample.
+*/
 #define SFG_GET_SFX_SAMPLE(soundIndex,sampleIndex) \
   ((sampleIndex % 2 == 0) ? \
    (SFG_sounds[soundIndex][sampleIndex / 2] >> 4) : \

@@ -2436,7 +2436,7 @@ void SFG_gameStepPlaying()
       {
         case SFG_WEAPON_KNIFE:           sound = 255; break;
         case SFG_WEAPON_ROCKET_LAUNCHER: 
-        case SFG_WEAPON_SHOTGUN:         sound = 2; break;
+        case SFG_WEAPON_SHOTGUN:         sound = 2; break; 
         case SFG_WEAPON_PLASMAGUN:
         case SFG_WEAPON_SOLUTION:        sound = 4; break;
         default:                         sound = 0; break;
@@ -2444,11 +2444,6 @@ void SFG_gameStepPlaying()
 
       if (sound != 255)
         SFG_playSoundSafe(sound,255);
-
-      if (SFG_player.weapon != SFG_WEAPON_KNIFE)
-        SFG_playSoundSafe(
-          (SFG_player.weapon == SFG_WEAPON_SHOTGUN ||
-           SFG_player.weapon == SFG_WEAPON_MACHINE_GUN) ? 0 : 4,255);
 
       if (ammo != SFG_AMMO_NONE)
         SFG_player.ammo[ammo] -= projectileCount;
