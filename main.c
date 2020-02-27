@@ -151,8 +151,9 @@ typedef struct
 #define SFG_SPRITE_SIZE(size0to3) \
   (((size0to3 + 3) * SFG_BASE_SPRITE_SIZE) / 4)
 
-#define SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(size0to3) \
-  ((((size0to3) + 3) * (RCL_UNITS_PER_SQUARE / 2)) / 4)
+#define SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(size0to3) \
+  ((SFG_SPRITE_SIZE(size0to3) * 2) / 3)
+  // ^TODO: why 3/4 and not 1/2?
 
 /**
   Holds information about one instance of a level item (a type of level element,
@@ -3621,7 +3622,7 @@ void SFG_draw()
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
               SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
               + 
-              SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
+              SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
               SFG_player.camera);
 
         if (p.depth > 0)
@@ -3669,7 +3670,7 @@ void SFG_draw()
             RCL_mapToScreen(
               worldPosition,
               SFG_floorHeightAt(e.coords[0],e.coords[1])
-              + SFG_SPRITE_SIZE_TO_HEIGH_ABOVE_GROUND(spriteSize),
+              + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
               SFG_player.camera);
 
           if (p.depth > 0)

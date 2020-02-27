@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.902
+  version: 0.903
 */
 
 #include <stdint.h>
@@ -107,8 +107,10 @@
 #endif
 
 #ifndef RCL_VERTICAL_FOV
-#define RCL_VERTICAL_FOV (RCL_UNITS_PER_SQUARE / 2)
+#define RCL_VERTICAL_FOV (RCL_UNITS_PER_SQUARE / 5)
 #endif
+
+#define RCL_VERTICAL_FOV_TAN (RCL_VERTICAL_FOV * 4) ///< tan approximation
 
 #ifndef RCL_HORIZONTAL_FOV
 #define RCL_HORIZONTAL_FOV (RCL_UNITS_PER_SQUARE / 4)
@@ -890,8 +892,18 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 #if !RCL_RECTILINEAR
       h.distance = RCL_dist(h.position,ray.start);
-#endif
+#else
+      h.distance = (h.distance * 23) / 32;
 
+      /* ^ UGLY HACK
+
+         For some reason the computed distance with rectilinear is larger, the
+         correct distance is about 0.711 (~= 23/32) of the computed distance, so
+         we correct it here in this ugly way.
+
+         TODO: investigate why, fix nicely
+      */
+#endif
       if (typeFunc != 0)
         h.type = typeFunc(currentSquare.x,currentSquare.y);
 
@@ -1202,20 +1214,6 @@ static inline int16_t _RCL_drawWall(
 
   RCL_Unit textureCoordScaled = pixelInfo->texCoords.y;
 
-#if RCL_RECTILINEAR
-  RCL_Unit tmp = pixelInfo->depth;
-  pixelInfo->depth = (pixelInfo->depth * 23) / 32;
-
-  /* ^ UGLY HACK
-
-     For some reason the computed distance with rectilinear is larger, the
-     correct distance is about 0.711 (~= 23/32) of the computed distance, so
-     we correct it here in this ugly way.
-
-     TODO: investigate why, fix nicely
-  */
-#endif
-
   for (RCL_Unit i = yCurrent + increment; 
        increment == -1 ? i >= limit : i <= limit; // TODO: is efficient?
        i += increment)
@@ -1231,10 +1229,6 @@ static inline int16_t _RCL_drawWall(
 
     RCL_PIXEL_FUNCTION(pixelInfo);
   }
-
-#if RCL_RECTILINEAR
-  pixelInfo->depth = tmp;
-#endif  
 
   return limit;
 }
@@ -1697,10 +1691,11 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
   result.position.x =
     middleColumn + (-1 * toPoint.y * middleColumn) / RCL_nonZero(result.depth);
 
-  result.position.y = camera.resolution.y / 2 -
-     (((3 * camera.resolution.y) / 4 ) *
-     RCL_perspectiveScale(height - camera.height,result.depth))
-     / RCL_UNITS_PER_SQUARE + camera.shear;
+  result.position.y =
+    camera.resolution.y / 2 -
+    (RCL_perspectiveScale(height - camera.height,result.depth)
+     * camera.resolution.y) / RCL_UNITS_PER_SQUARE
+    + camera.shear;
 
   return result;
 }
@@ -1716,7 +1711,7 @@ RCL_Unit RCL_perspectiveScale(RCL_Unit originalSize, RCL_Unit distance)
 
   return distance != 0 ?
    (originalSize * RCL_UNITS_PER_SQUARE) /
-      ((RCL_VERTICAL_FOV * 2 * distance) / RCL_UNITS_PER_SQUARE)
+      ((RCL_VERTICAL_FOV_TAN * 2 * distance) / RCL_UNITS_PER_SQUARE)
    : 0;
 }
 
@@ -1726,7 +1721,7 @@ RCL_Unit RCL_perspectiveScaleInverse(RCL_Unit originalSize,
   return scaledSize != 0 ?
     (originalSize * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2) /
                                            // ^ take the middle
-      ((RCL_VERTICAL_FOV * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
+      ((RCL_VERTICAL_FOV_TAN * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
     : RCL_INFINITY;
 }
 
