@@ -1,5 +1,10 @@
 general:
 
+- Add blinking:
+  - In menu, the selected level number should blink to indicate it can be
+    changed.
+  - Near locked door the specific unlocking card should blink on the HUD bar.
+  - Add setting SFG_BLINK_PERIOD to control blinking speed.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
 - more level prop items
