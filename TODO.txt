@@ -92,6 +92,7 @@ level ideas:
 - invisible bridge (perhaps not straight) made of bleckers (invisible walls)
   over a hole, leading to an easter egg
 - start of level: a corner blocked by an invisible wall, to indicate entrance
+- small pyramid from diffetently elevated floor tiles
 
 bugs:
 
