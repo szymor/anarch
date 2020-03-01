@@ -1,5 +1,7 @@
 general:
 
+- Let player start with 100 HP, but allow for collecting a higher amount, e.g.
+  up to 150.
 - Add blinking:
   - In menu, the selected level number should blink to indicate it can be
     changed.
@@ -7,7 +9,6 @@ general:
   - Add setting SFG_BLINK_PERIOD to control blinking speed.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
-- more level prop items
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional)
@@ -118,4 +119,5 @@ done:
   create a 2D bit array saying at which squares there are colliding items, then
   check collisions for both player and monsters against this array (elevate
   these squares for collisions only) -- will also be faster
+- more level prop items
 
