@@ -19,6 +19,7 @@ elementTypes = [
     "TELEPORT",
     "TERMINAL",
     "COLUMN",
+    "RUIN",
     "CARD0",
     "CARD1",
     "CARD2",
@@ -102,7 +103,7 @@ for y in range(64):
     n = getPixel(70 + x,5 + y)
 
     if n < 64:
-      levelMap[x][y] = (n,False)
+      levelMap[63 - x][y] = (n,False)
     else:
       # tile with special property, create a define for it
 
@@ -120,7 +121,7 @@ for y in range(64):
         defNum = len(defines)
         defines.append((tile,prop))
 
-      levelMap[x][y] = (defNum,True)
+      levelMap[63 - x][y] = (defNum,True)
 
 # load elements
 
@@ -131,12 +132,12 @@ for y in range(64):
     n = getPixel(x + 70, y + 70)
 
     if n < len(elementTypes):
-      elements.append((n,x,y)) 
+      elements.append((n,63 - x,y)) 
     elif n >= 240:
       if playerFound:
         raise(Exception("Multiple player starting positions specified."))
 
-      playerStart = [x,y,(n - 240) * 16]
+      playerStart = [63 - x,y,(n - 240) * 16]
       playerFound = True
 
 if not playerFound:
@@ -153,7 +154,7 @@ for i in range(128 - len(elements)):
 x = 41
 y = 114
 
-for i in range(6):
+for i in range(7):
   textures.append(getPixel(x,y))
   x += 4
 
@@ -211,7 +212,7 @@ def printC():
     if (i + 1) % 4 == 0:
       result += " // " + str(i - 3) + " \n      "
 
-  result += "},                 // tileDictionary\n"
+  result += "},                    // tileDictionary\n"
 
   s = ""
   first = True
@@ -225,12 +226,12 @@ def printC():
     s += str(t).ljust(2)
 
   result += "    {" + s + "}, // textureIndices\n"
-  result += "    " + numAlign(doorTex) + "                  // doorTextureIndex\n"
-  result += "    " + numAlign(floorColor) + "                  // floorColor\n"
-  result += "    " + numAlign(ceilColor) + "                  // ceilingColor\n"
-  result += "    {" + str(playerStart[0]).ljust(2) + ", " + str(playerStart[1]).ljust(2) + ", " + str(playerStart[2]).ljust(3) + "},       // player start: x, y, direction\n"
-  result += "    " + numAlign(backgroundTex) + "                  // backgroundImage\n"
-  result += "    {                    // elements\n"
+  result += "    " + numAlign(doorTex) + "                     // doorTextureIndex\n"
+  result += "    " + numAlign(floorColor) + "                     // floorColor\n"
+  result += "    " + numAlign(ceilColor) + "                     // ceilingColor\n"
+  result += "    {" + str(playerStart[0]).ljust(2) + ", " + str(playerStart[1]).ljust(2) + ", " + str(playerStart[2]).ljust(3) + "},          // player start: x, y, direction\n"
+  result += "    " + numAlign(backgroundTex) + "                     // backgroundImage\n"
+  result += "    {                       // elements\n"
 
   even = True
 
