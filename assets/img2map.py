@@ -23,7 +23,10 @@ elementTypes = [
     "CARD0",
     "CARD1",
     "CARD2",
-    "LOCK0"
+    "LOCK0",
+    "LOCK1",
+    "LOCK2",
+    "BLOCKER"
   ]
 
 propertyTypes = [

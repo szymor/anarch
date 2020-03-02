@@ -1023,9 +1023,12 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
   }
   else if (properties == SFG_TILE_PROPERTY_ELEVATOR)
   {
+    RCL_Unit height =
+      SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP;
+
     return SFG_movingWallHeight(
-      SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
-      SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+      height,
+      height + SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
       SFG_game.frameTime - SFG_currentLevel.timeStart);
   }
  
