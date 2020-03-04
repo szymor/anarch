@@ -28,6 +28,8 @@ general:
 - add "pletivo" transparent wall texture?
 - add universal corpse sprite?
 - easter egg(s)
+- optioal graphics enhance: vertical wall shading ("ambient occlusions")?
+- option for disabling wall transparency, for performance?
 
 level ideas:
 
@@ -90,6 +92,8 @@ level ideas:
 - barrel on elevator
 - platforming vertical section in which the player is going upwards out of a big
   hole
+- level with a lot of closed doors, done by including a door texture in the
+  level wall textures and then sing it for "fake" doors
 - invisible bridge (perhaps not straight) made of bleckers (invisible walls)
   over a hole, leading to an easter egg
 - start of level: a corner blocked by an invisible wall, to indicate entrance
