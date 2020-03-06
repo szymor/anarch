@@ -1,6 +1,13 @@
 general:
 
-- Let player start with 100 HP, but allow for collecting a higher amount, e.g.
+- try to make z-buffer 3 line instead of 1D, possibly like this (to keep
+  performance):
+  - at compile time selct X = power of 2 closest to vertical resolution
+    (or something like that)
+  - in pixel funct do something like
+      if (pixel->y % X == 0 && pixel->y != 0)
+        write to z-buffer
+- let player start with 100 HP, but allow for collecting a higher amount, e.g.
   up to 150.
 - Add blinking:
   - In menu, the selected level number should blink to indicate it can be
