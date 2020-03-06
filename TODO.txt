@@ -33,6 +33,9 @@ general:
 
 level ideas:
 
+- two levels could partially overlap, e.g. level one, a city, could overlap
+  with a later city level, the player could recognize he's e.g. on the other
+  side of a channel or a wall that he was before
 - wall made of elevators (or squeezers), serving as a big auto-opening gate
 - a key spot to which the player can only get by jumping from a distant high
   elevated place
