@@ -3136,11 +3136,11 @@ void SFG_drawMap()
   uint16_t x;
   uint16_t y = topLeftY;
 
-  for (int16_t j = maxJ - 1; j >= 0; --j)
+  for (int16_t j = 0; j < maxJ; ++j)
   {
     x = topLeftX;
 
-    for (uint16_t i = 0; i < maxI; ++i)
+    for (int16_t i = maxI - 1; i >= 0; --i)
     {
       uint8_t color = 0; // init with non-revealed color
 
@@ -3162,7 +3162,9 @@ void SFG_drawMap()
             color = 63;
           else
           {
-            color = SFG_TILE_FLOOR_HEIGHT(tile) / 8 + 2;
+            color =
+              (SFG_TILE_FLOOR_HEIGHT(tile) - SFG_TILE_CEILING_HEIGHT(tile))
+              / 8 + 2;
 
             if (properties == SFG_TILE_PROPERTY_DOOR)
               color += 8;
