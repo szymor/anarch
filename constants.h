@@ -101,6 +101,11 @@
 #define SFG_EXPLOSION_RADIUS 2048 
 
 /**
+  Distance in RCL_Units which the player is pushed away by an explosion.
+*/
+#define SFG_EXPLOSION_PUSH_AWAY_DISTANCE 1200
+
+/**
   How much damage triggers a barrel explosion.
 */
 

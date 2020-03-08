@@ -40,6 +40,31 @@ general:
 
 level ideas:
 
+- outline:
+  1.  City, player sees the big Macrochip building (a smaller one) in the
+      distance and has to get to its entrance. Beginning of the level is linear
+      and serves as a tutorial, things like exploding barrels or acess cards are
+      explained.
+  2.  Inside Macrochip smaller building. End leads to an elevator that goes
+      under the ground.
+  3.  Warehouse:
+  4.  Factory:
+  5.  Small boss level:
+  6.  City, player is on the other side of the smaller Macrochip building, the
+      level partially overlaps with level 1, but the player can now go further.
+      Big Macrochip HQ (skyscraper) is seen in the distance, player has to get
+      to its entrance.
+  7.  Inside skyscraper, 1st floor.
+  8.  Inside skyscraper, higher floor.
+  9.
+  10. Final boss level: on top of the skyscraper, player climbs up in a spiral
+      towards the roof. There is a boss (or two) on the top with a few smaller
+      ones, the exit is blocked by a lot of trapped warriors which the player
+      has to slowly kill, which means he has to first get rid of the other
+      monsters.
+
+- boss level: skyscraper top, player goes upwards in a spiral along the OUTSIDE
+  side of the skyscraper
 - two levels could partially overlap, e.g. level one, a city, could overlap
   with a later city level, the player could recognize he's e.g. on the other
   side of a channel or a wall that he was before

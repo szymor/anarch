@@ -1659,7 +1659,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
 
-  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_RADIUS))
+  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_PUSH_AWAY_DISTANCE))
     SFG_playerChangeHealth(-1 * damage);
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)

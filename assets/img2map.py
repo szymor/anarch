@@ -67,8 +67,8 @@ def loadTileDict(x,y):
   for i in range(64):
     texture = getPixel(x + i,y + 31)
 
-    if texture > 6:
-      raise(Exception("Texture index can't be higher than 6."))
+    if texture > 7:
+      raise(Exception("Texture index can't be higher than 7."))
 
     height = 0
 
