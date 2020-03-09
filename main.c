@@ -1006,7 +1006,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
   SFG_TileDefinition tile =
     SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
-  uint8_t doorHeight = 0;
+  RCL_Unit doorHeight = 0;
 
   if (properties == SFG_TILE_PROPERTY_DOOR)
   {
@@ -1017,6 +1017,11 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
       if ((door->coords[0] == x) && (door->coords[1] == y))
       {
         doorHeight = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+
+        doorHeight = doorHeight != (0xff & SFG_DOOR_VERTICAL_POSITION_MASK)    ? 
+          doorHeight * SFG_DOOR_HEIGHT_STEP : RCL_UNITS_PER_SQUARE;
+
+
         break;
       }
     }
@@ -1032,8 +1037,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
       SFG_game.frameTime - SFG_currentLevel.timeStart);
   }
  
-  return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP -
-           doorHeight * SFG_DOOR_HEIGHT_STEP;
+  return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
 }
 
 /**

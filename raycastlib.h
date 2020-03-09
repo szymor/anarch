@@ -1755,12 +1755,17 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
     RCL_Unit bottomLimit = -1 * RCL_INFINITY;
     RCL_Unit topLimit = RCL_INFINITY;
 
+    RCL_Unit currCeilHeight = RCL_INFINITY;
+
     if (computeHeight)
     {
       bottomLimit = camera->height - RCL_CAMERA_COLL_HEIGHT_BELOW +
         RCL_CAMERA_COLL_STEP_HEIGHT;
 
       topLimit = camera->height + RCL_CAMERA_COLL_HEIGHT_ABOVE;
+
+      if (ceilingHeightFunc != 0)
+        currCeilHeight = ceilingHeightFunc(xSquare,ySquare);
     }
 
     // checks a single square for collision against the camera
@@ -1768,7 +1773,9 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
     if (computeHeight)\
     {\
       RCL_Unit height = floorHeightFunc(s1,s2);\
-      if (height > bottomLimit)\
+      if (height > bottomLimit || \
+          currCeilHeight - height < \
+            RCL_CAMERA_COLL_HEIGHT_BELOW + RCL_CAMERA_COLL_HEIGHT_ABOVE)\
         dir##Collides = 1;\
       else if (ceilingHeightFunc != 0)\
       {\
