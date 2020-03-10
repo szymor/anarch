@@ -17,8 +17,12 @@
 
 #include "settings.h"
 
+#define SFG_LOG(str) printf("game: %s\n",str); // for debug only
+
+#define SFG_TEXTURE_DISTANCE 5000
+
 #undef SFG_FPS
-#define SFG_FPS 50
+#define SFG_FPS 35
 
 #undef SFG_SCREEN_RESOLUTION_X
 #define SFG_SCREEN_RESOLUTION_X 110

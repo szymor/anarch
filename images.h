@@ -44,7 +44,10 @@ static inline uint8_t SFG_getTexel(const uint8_t *texture, uint8_t x, uint8_t y)
     & 0x0f];
 }
 
-SFG_PROGRAM_MEMORY uint8_t SFG_wallTextures[][SFG_TEXTURE_STORE_SIZE] =
+#define SFG_WALL_TEXTURE_COUNT 16
+
+SFG_PROGRAM_MEMORY uint8_t
+  SFG_wallTextures[SFG_WALL_TEXTURE_COUNT][SFG_TEXTURE_STORE_SIZE] =
 {
   { // 0, white wooden planks
 4,21,5,3,20,0,2,26,6,18,57,65,1,16,17,49,0,1,0,3,32,1,33,0,161,64,1,16,64,3,3,

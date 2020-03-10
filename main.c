@@ -125,6 +125,10 @@ void SFG_init();
 #define RCL_CAMERA_COLL_HEIGHT_BELOW 800
 #define RCL_CAMERA_COLL_HEIGHT_ABOVE 200
 
+#if SFG_TEXTURE_DISTANCE == 0
+  #define RCL_COMPUTE_WALL_TEXCOORDS 0
+#endif
+
 #include "raycastlib.h" 
 
 #include "texts.h"
@@ -261,6 +265,10 @@ struct
                                     stores the number of frames for which the
                                     key has been held. */
   uint8_t zBuffer[SFG_Z_BUFFER_SIZE];
+
+  uint8_t textureAverageColors[SFG_WALL_TEXTURE_COUNT]; /**< Contains average
+                                    color for each wall texture. */
+
   int8_t backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
   uint16_t backgroundScroll;
   uint8_t spriteSamplingPoints[SFG_MAX_SPRITE_SIZE]; /**< Helper for
@@ -655,6 +663,32 @@ static inline uint8_t SFG_fogValueDiminish(RCL_Unit depth)
   return depth / SFG_FOG_DIMINISH_STEP;
 }
 
+
+static inline uint8_t SFG_getTexelFull(uint8_t textureIndex,RCL_Unit u, RCL_Unit v)
+{
+  return
+    SFG_getTexel(
+      textureIndex != 255 ?
+        SFG_currentLevel.textures[textureIndex] :
+        SFG_wallTextures[SFG_currentLevel.levelPointer->doorTextureIndex],
+      u / 32,
+      v / 32); 
+}
+
+static inline uint8_t SFG_getTexelAverage(uint8_t textureIndex)
+{
+  return
+    textureIndex != 255 ?
+      SFG_game.textureAverageColors[
+        SFG_currentLevel.levelPointer->textureIndices[textureIndex]]
+      :
+      (
+        SFG_game.textureAverageColors[
+          SFG_currentLevel.levelPointer->doorTextureIndex]
+        + 1 // to distinguish from normal walls
+      );
+}
+
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
 {
   uint8_t color;
@@ -688,21 +722,28 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       ):
       ((pixel->hit.type & 0x38) >> 3); 
 
+#if SFG_TEXTURE_DISTANCE != 0
     RCL_Unit textureV = pixel->texCoords.y;
 
     if ((pixel->hit.type & SFG_TILE_PROPERTY_MASK) ==
       SFG_TILE_PROPERTY_SQUEEZER)
       textureV += pixel->wallHeight;
+#endif
 
     color =
       textureIndex != SFG_TILE_TEXTURE_TRANSPARENT ?
-      (SFG_getTexel(
-        textureIndex != 255 ?
-          SFG_currentLevel.textures[textureIndex]:
-          SFG_wallTextures[SFG_currentLevel.levelPointer->doorTextureIndex],
-        pixel->texCoords.x / 32,
-        textureV / 32)
-      ) :
+      (
+#if SFG_TEXTURE_DISTANCE >= 65535
+      SFG_getTexelFull(textureIndex,pixel->texCoords.x,textureV)
+#elif SFG_TEXTURE_DISTANCE == 0 
+      SFG_getTexelAverage(textureIndex)
+#else
+      pixel->depth <= SFG_TEXTURE_DISTANCE ?
+        SFG_getTexelFull(textureIndex,pixel->texCoords.x,textureV) :
+        SFG_getTexelAverage(textureIndex)
+#endif
+      )
+      :
       SFG_TRANSPARENT_COLOR;
 
     shadow = pixel->hit.direction >> 1;
@@ -1335,6 +1376,47 @@ void SFG_init()
   RCL_initRayConstraints(&SFG_game.rayConstraints);
   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
+
+
+  SFG_LOG("computing average texture colors")
+
+  for (uint8_t i = 0; i < SFG_WALL_TEXTURE_COUNT; ++i)
+  {
+    /** For simplicity, we round colors so that there is only 64 of them, and
+      we count them up to 256. */
+
+    uint8_t colorHistogram[64];
+
+    for (uint8_t j = 0; j < 64; ++j)
+      colorHistogram[j] = 0;
+
+    for (uint8_t y = 0; y < SFG_TEXTURE_SIZE; ++y)
+      for (uint8_t x = 0; x < SFG_TEXTURE_SIZE; ++x)
+      {
+        uint8_t color = SFG_getTexel(SFG_wallTextures[i],x,y) / 4;
+
+        colorHistogram[color] += 1;
+
+        if (colorHistogram[color] == 255)
+          break;
+      }
+
+    uint8_t maxIndex = 0;
+
+    for (uint8_t j = 0; j < 64; ++j)
+    {
+      if (colorHistogram[j] == 255)
+      {
+        maxIndex = j;
+        break;
+      }
+
+      if (colorHistogram[j] > colorHistogram[maxIndex])
+        maxIndex = j;
+    }
+
+    SFG_game.textureAverageColors[i] = maxIndex * 4;
+  }
 
   for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_Y; ++i)
     SFG_game.backgroundScaleMap[i] =

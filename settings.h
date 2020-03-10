@@ -54,6 +54,15 @@
 #define SFG_SCREEN_RESOLUTION_Y 768
 
 /**
+  Distance, in RCL_Units, to which textures will be drawn. Textures behind this
+  distance will be replaced by an average constant color, which can help
+  performance. Value 0 turns texturing completely off, which is much faster than
+  having just a low value, values >= 65535 activate texturing completely, which
+  can be a little faster than setting having a high value lower than this limit.
+*/
+#define SFG_TEXTURE_DISTANCE 100000
+
+/**
   How many times the screen resolution will be divided (how many times a game
   pixel will be bigger than the screen pixel).
 */
