@@ -53,6 +53,9 @@
 */
 #define SFG_SCREEN_RESOLUTION_Y 768
 
+
+#define SFG_Z_BUFFER_BAND 
+
 /**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
   distance will be replaced by an average constant color, which can help
@@ -83,7 +86,7 @@
   Depth step (in RCL_Units) after which fog diminishes a color by one value
   point. For performance reasons this number should be kept a power of two!
 */
-#define SFG_FOG_DIMINISH_STEP 4096
+#define SFG_FOG_DIMINISH_STEP 2048
 
 /**
   Maximum number of squares that will be traversed by any cast ray. Smaller
