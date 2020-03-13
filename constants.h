@@ -432,6 +432,8 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
 #define SFG_GET_WEAPON_PROJECTILE_COUNT(weaponNumber) \
   (((SFG_weaponAttributeTable[weaponNumber] >> 2) & 0x03) + 1)
 
+#define SFG_MIN_WEAPON_COOLDOWN_FRAMES 8
+
 #define SFG_WEAPON_FIRE_TYPE_MELEE 0
 #define SFG_WEAPON_FIRE_TYPE_BULLET 1
 #define SFG_WEAPON_FIRE_TYPE_FIREBALL 2
@@ -447,7 +449,7 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
   ff:     fire type
   nn:     number of projectiles - 1
   cccc:   fire cooldown in frames, i.e. time after which the next shot can be
-          shot again, ccccc has to be multiplied by 16 to ge the real value
+          shot again, ccccc has to be multiplied by 16 to get the real value
 */
 SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 {

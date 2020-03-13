@@ -2502,7 +2502,8 @@ void SFG_gameStepPlaying()
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
     (SFG_game.frame - SFG_player.weaponCooldownStartFrame >
-    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon)))
+    RCL_max(SFG_MIN_WEAPON_COOLDOWN_FRAMES,
+      SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon))))
   {
     // player: attack, shoot, fire
 
@@ -3440,7 +3441,8 @@ void SFG_drawWeapon(int16_t bobOffset)
     SFG_game.frame - SFG_player.weaponCooldownStartFrame;
 
   uint32_t animationLength =
-    SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon);
+    RCL_max(SFG_MIN_WEAPON_COOLDOWN_FRAMES,
+      SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon));
 
   bobOffset -= SFG_HUD_BAR_HEIGHT;
      
@@ -3477,6 +3479,27 @@ void SFG_drawWeapon(int16_t bobOffset)
   SFG_WEAPON_IMAGE_SCALE);
 }
 
+uint16_t SFG_textLen(const char *text)
+{
+  uint16_t result = 0;
+
+  while (text[result] != 0)
+    result++;
+
+  return result;
+}
+
+static inline uint16_t SFG_characterSize(uint8_t textSize)
+{
+  return (SFG_FONT_CHARACTER_SIZE + 1) * textSize;
+}
+
+static inline uint16_t
+  SFG_textHorizontalSize(const char *text, uint8_t textSize)
+{
+  return (SFG_textLen(text) * SFG_characterSize(textSize));
+}
+
 void SFG_drawMenu()
 {
   #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE ) )
@@ -3491,8 +3514,6 @@ void SFG_drawMenu()
     #define SCROLL_PIXELS_PER_FRAME 1
   #endif
 
-  #define CHAR_SIZE (SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE + 1))
-
   #define SELECTION_START_X (SFG_GAME_RESOLUTION_X / 5)
 
   uint16_t scroll = (SFG_game.frame * SCROLL_PIXELS_PER_FRAME) / 64;
@@ -3504,13 +3525,13 @@ void SFG_drawMenu()
         SFG_getTexel(SFG_backgroundImages[0],((x + scroll) / BACKGROUND_SCALE)
           % SFG_TEXTURE_SIZE,y / BACKGROUND_SCALE));
 
-  uint16_t y = CHAR_SIZE;
+  uint16_t y = SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
 
   SFG_blitImage(SFG_logoImage,
     SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,
     SFG_FONT_SIZE_MEDIUM);
 
-  y += 32 * SFG_FONT_SIZE_MEDIUM + CHAR_SIZE;
+  y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
 
   uint8_t i = 0;
 
@@ -3523,12 +3544,11 @@ void SFG_drawMenu()
 
     const char *text = SFG_menuItemTexts[item];
 
-    uint8_t textLen = 0;
+    uint8_t textLen = SFG_textLen(text);
 
-    while (text[textLen] != 0)
-      textLen++;
+    uint16_t drawX = (SFG_GAME_RESOLUTION_X -
+      SFG_textHorizontalSize(text,SFG_FONT_SIZE_MEDIUM)) / 2;
 
-    uint16_t drawX = (SFG_GAME_RESOLUTION_X - textLen * CHAR_SIZE) / 2;
     uint8_t textColor = 7;
 
     if (i != SFG_game.selectedMenuItem)
@@ -3538,22 +3558,22 @@ void SFG_drawMenu()
         SELECTION_START_X,
         y - SFG_FONT_SIZE_MEDIUM,
         SFG_GAME_RESOLUTION_X - SELECTION_START_X * 2,
-        CHAR_SIZE,2   );
+        SFG_characterSize(SFG_FONT_SIZE_MEDIUM),2);
   
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
     if (item == SFG_MENU_ITEM_PLAY)
       SFG_drawNumber((SFG_game.selectedLevel + 1), 
-      drawX + CHAR_SIZE * (textLen + 1) ,y,SFG_FONT_SIZE_MEDIUM,93);
+      drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1),
+      y,SFG_FONT_SIZE_MEDIUM,93);
 
-    y += CHAR_SIZE + SFG_FONT_SIZE_MEDIUM;
+    y += SFG_characterSize(SFG_FONT_SIZE_MEDIUM) + SFG_FONT_SIZE_MEDIUM;
     i++;
   }
   
   SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
     - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4,0,0);
 
-  #undef CHAR_SIZE
   #undef MAX_ITEMS
   #undef BACKGROUND_SCALE
   #undef SCROLL_PIXELS_PER_FRAME
@@ -3564,52 +3584,33 @@ void SFG_drawWinOverlay()
   uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,
      SFG_game.frameTime - SFG_game.stateChangeTime);
 
-uint32_t t2 = RCL_min(t,SFG_WIN_ANIMATION_DURATION / 4);
+  uint32_t t2 = RCL_min(t,SFG_WIN_ANIMATION_DURATION / 4);
 
-  RCL_Unit l = 
+  #define STRIP_HEIGHT (SFG_GAME_RESOLUTION_Y / 2)
+  #define INNER_STRIP_HEIGHT ((STRIP_HEIGHT * 3) / 4)
+  #define STRIP_START ((SFG_GAME_RESOLUTION_Y - STRIP_HEIGHT) / 2)
 
-    (RCL_sinInt(
-    (t2 * RCL_UNITS_PER_SQUARE / 4) / (SFG_WIN_ANIMATION_DURATION / 4)) * SFG_GAME_RESOLUTION_Y)  
-    / RCL_UNITS_PER_SQUARE;
+  RCL_Unit l = (t2 * STRIP_HEIGHT * 4) / SFG_WIN_ANIMATION_DURATION;
 
+  uint8_t n = (t * 5) / SFG_WIN_ANIMATION_DURATION;
 
-uint8_t n = (t * 5) / SFG_WIN_ANIMATION_DURATION;
+  for (uint16_t y = STRIP_START; y < STRIP_START + l; ++y)
+    for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
+      SFG_setGamePixel(x,y, 
+        RCL_absVal(y - (SFG_GAME_RESOLUTION_Y / 2)) <= (INNER_STRIP_HEIGHT / 2) ?
+          0 : 172);
 
-for (uint16_t y = 0; y < l; ++y)
-  for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
-    if (x % 2 || (y > SFG_GAME_RESOLUTION_Y / 3 && y < SFG_GAME_RESOLUTION_Y * 2 / 3 ))
-      SFG_setPixel(x,y,0); 
+  char textLine[] = "level done";
 
+  SFG_drawText(textLine,
+    (SFG_GAME_RESOLUTION_X - SFG_textHorizontalSize(textLine,SFG_FONT_SIZE_BIG))
+      / 2,
+    SFG_GAME_RESOLUTION_Y / 2 - ((STRIP_HEIGHT + INNER_STRIP_HEIGHT) / 2) / 2,
+    SFG_FONT_SIZE_BIG,7,255,0);
 
-
-char textLine[] = "sasasa";
-
-#define putText(num) \
-  if (n >= num) SFG_drawText(textLine,SFG_HUD_MARGIN * 2,SFG_HUD_MARGIN * 2 \
-    + SFG_FONT_SIZE_MEDIUM * (SFG_FONT_CHARACTER_SIZE * 2) * num,SFG_FONT_SIZE_MEDIUM,7,0,0);
-
-
-putText(0)
-putText(1)
-putText(2)
-putText(3)
-putText(4)
-
-
-/*
-for (uint16_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
-  for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
-    if ((SFG_random() ^ (x + y)) % 256 <= l)
-      SFG_setPixel(x,y,0);
-*/
-/*
-for (uint16_t j = 0; j < l; ++j)
-  for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
-  {
-    SFG_setPixel(i,j,0);
-    SFG_setPixel(i,SFG_GAME_RESOLUTION_Y - j - 1,0);
-  }
-*/ 
+  #undef STRIP_HEIGHT
+  #undef STRIP_START
+  #undef INNER_STRIP_HEIGHT
 }
 
 /**
