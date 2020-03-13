@@ -62,6 +62,12 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
+### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
+
+No, all these are optional. The core doesn't have any dependencies other than a C99 compiler. Frontends do depend on external libraries, but I've designed the frontend interface so that it's extremely easy to write one, so if let's say SDL dies, it's no problem to write a new frontend using another library.
+
+Python scripts are only simple helpers for converting resources, which aren't required during compilation or code modification. In case python ceases to exist, the scripts can easily be rewritten to another languages, they're fairly simple.
+
 ### Why aren't you writing in assembly?
 
 Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
