@@ -694,15 +694,6 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   uint8_t color;
   uint8_t shadow = 0;
 
-  if (pixel->position.y == SFG_GAME_RESOLUTION_Y / 2)
-  {
-    uint8_t zValue = pixel->isWall ? SFG_RCLUnitToZBuffer(pixel->depth) : 255;
-
-    for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
-      SFG_game.zBuffer[pixel->position.x * SFG_RAYCASTING_SUBSAMPLE + i] =
-        zValue;
-  }
-
   if (pixel->isHorizon && pixel->depth > RCL_UNITS_PER_SQUARE * 16)
   {
     color = SFG_TRANSPARENT_COLOR;
@@ -3621,6 +3612,25 @@ for (uint16_t j = 0; j < l; ++j)
 */ 
 }
 
+/**
+  Checks a 3D point visibility from player's position (WITHOUT considering
+  facing direction).
+*/
+static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height,
+  uint8_t spriteSize)
+{
+  return
+    RCL_castRay3D(
+      SFG_player.camera.position,
+      SFG_player.camera.height,
+      pos,
+      height,
+      SFG_floorHeightAt,
+      SFG_ceilingHeightAt,
+      SFG_game.rayConstraints
+    ) == RCL_UNITS_PER_SQUARE;
+}
+
 void SFG_draw()
 {
 #if SFG_BACKGROUND_BLUR != 0
@@ -3705,17 +3715,18 @@ void SFG_draw()
         uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
           SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
 
-        RCL_PixelInfo p =
-          RCL_mapToScreen(
-            worldPosition,
-            SFG_floorHeightAt(
-              SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
-              SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
-              + 
-              SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
-              SFG_player.camera);
+        RCL_Unit worldHeight = 
+          SFG_floorHeightAt(
+            SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
+            SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
+            + 
+            SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
 
-        if (p.depth > 0)
+        RCL_PixelInfo p =
+          RCL_mapToScreen(worldPosition,worldHeight,SFG_player.camera);
+
+        if (p.depth > 0 &&
+          SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
         {
           const uint8_t *s =
             SFG_getMonsterSprite(
@@ -3725,7 +3736,7 @@ void SFG_draw()
 
           SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(
+            RCL_perspectiveScaleVertical(
             SFG_SPRITE_SIZE_PIXELS(spriteSize),
             p.depth),
             p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
@@ -3756,21 +3767,19 @@ void SFG_draw()
 
         if (sprite != 0)
         {
-          RCL_PixelInfo p =
-            RCL_mapToScreen(
-              worldPosition,
-              SFG_floorHeightAt(e.coords[0],e.coords[1])
-              + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
-              SFG_player.camera);
+          RCL_Unit worldHeight = SFG_floorHeightAt(e.coords[0],e.coords[1])
+            + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
 
-          if (p.depth > 0)
-          {
+          RCL_PixelInfo p =
+            RCL_mapToScreen(worldPosition,worldHeight,SFG_player.camera);
+
+          if (p.depth > 0 &&
+            SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
             SFG_drawScaledSprite(
               sprite,
               p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-              RCL_perspectiveScale(SFG_SPRITE_SIZE_PIXELS(spriteSize),p.depth),
+              RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),p.depth),
               p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
-          }
         }
       }
 
@@ -3811,10 +3820,11 @@ void SFG_draw()
           ) / RCL_UNITS_PER_SQUARE;
       }
 
-      if (p.depth > 0)
+      if (p.depth > 0 && 
+        SFG_spriteIsVisible(worldPosition,proj->position[2],spriteSize))
         SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-            RCL_perspectiveScale(spriteSize,p.depth),
+            RCL_perspectiveScaleVertical(spriteSize,p.depth),
             SFG_fogValueDiminish(p.depth),
             p.depth);  
     }

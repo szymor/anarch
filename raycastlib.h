@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.903
+  version: 0.904
 */
 
 #include <stdint.h>
@@ -115,6 +115,8 @@
 #ifndef RCL_HORIZONTAL_FOV
 #define RCL_HORIZONTAL_FOV (RCL_UNITS_PER_SQUARE / 4)
 #endif
+
+#define RCL_HORIZONTAL_FOV_TAN (RCL_VERTICAL_FOV * 4)
 
 #define RCL_HORIZONTAL_FOV_HALF (RCL_HORIZONTAL_FOV / 2)
 
@@ -242,7 +244,7 @@ typedef struct
 typedef struct
 {
   RCL_Vector2D position;
-  RCL_Unit     direction;
+  RCL_Unit     direction;  // TODO: rename to "angle" to keep consistency
   RCL_Vector2D resolution;
   int16_t      shear; /**< Shear offset in pixels (0 => no shear), can simulate
                            looking up/down. */
@@ -305,9 +307,23 @@ typedef void
 
 /**
   Simple-interface function to cast a single ray.
+
   @return          The first collision result.
 */
 RCL_HitResult RCL_castRay(RCL_Ray ray, RCL_ArrayFunction arrayFunc);
+
+/**
+  Casts a 3D ray in 3D environment with floor and optional ceiling
+  (ceilingHeightFunc can be 0). This can be useful for hitscan shooting,
+  visibility checking etc.
+
+  @return normalized ditance (0 to RCL_UNITS_PER_SQUARE) along the ray at which
+          the environment was hit, RCL_UNITS_PER_SQUARE means nothing was hit
+*/
+RCL_Unit RCL_castRay3D(
+  RCL_Vector2D pos1, RCL_Unit height1, RCL_Vector2D pos2, RCL_Unit height2,
+  RCL_ArrayFunction floorHeightFunc, RCL_ArrayFunction ceilingHeightFunc,
+  RCL_RayConstraints constraints);
 
 /**
   Maps a single point in the world to the screen (2D position + depth).
@@ -352,6 +368,10 @@ RCL_Unit RCL_cosInt(RCL_Unit input);
 
 RCL_Unit RCL_sinInt(RCL_Unit input);
 
+RCL_Unit RCL_tanInt(RCL_Unit input);
+
+RCL_Unit RCL_ctgInt(RCL_Unit input);
+
 /// Normalizes given vector to have RCL_UNITS_PER_SQUARE length.
 RCL_Vector2D RCL_normalize(RCL_Vector2D v);
 
@@ -368,10 +388,16 @@ RCL_Unit RCL_len(RCL_Vector2D v);
 */   
 RCL_Unit RCL_degreesToUnitsAngle(int16_t degrees);
 
-///< Computes the change in size of an object due to perspective.
-RCL_Unit RCL_perspectiveScale(RCL_Unit originalSize, RCL_Unit distance);
+///< Computes the change in size of an object due to perspective (vertical FOV).
+RCL_Unit RCL_perspectiveScaleVertical(RCL_Unit originalSize, RCL_Unit distance);
 
-RCL_Unit RCL_perspectiveScaleInverse(RCL_Unit originalSize,
+RCL_Unit RCL_perspectiveScaleVerticalInverse(RCL_Unit originalSize,
+  RCL_Unit scaledSize);
+
+RCL_Unit
+  RCL_perspectiveScaleHorizontal(RCL_Unit originalSize, RCL_Unit distance);
+
+RCL_Unit RCL_perspectiveScaleHorizontalInverse(RCL_Unit originalSize,
   RCL_Unit scaledSize);
 
 /**
@@ -502,7 +528,7 @@ RCL_Unit *_RCL_floorPixelDistances = 0;
   uint32_t profile_RCL_absVal = 0;
   uint32_t profile_RCL_normalize = 0;
   uint32_t profile_RCL_vectorsAngleCos = 0;
-  uint32_t profile_RCL_perspectiveScale = 0;
+  uint32_t profile_RCL_perspectiveScaleVertical = 0;
   uint32_t profile_RCL_wrap = 0;
   uint32_t profile_RCL_divRoundDown = 0;
   #define RCL_profileCall(c) profile_##c += 1
@@ -521,7 +547,7 @@ RCL_Unit *_RCL_floorPixelDistances = 0;
     printf("  RCL_normalize: %d\n",profile_RCL_normalize);\
     printf("  RCL_vectorsAngleCos: %d\n",profile_RCL_vectorsAngleCos);\
     printf("  RCL_absVal: %d\n",profile_RCL_absVal);\
-    printf("  RCL_perspectiveScale: %d\n",profile_RCL_perspectiveScale);\
+    printf("  RCL_perspectiveScaleVertical: %d\n",profile_RCL_perspectiveScaleVertical);\
     printf("  RCL_wrap: %d\n",profile_RCL_wrap);\
     printf("  RCL_divRoundDown: %d\n",profile_RCL_divRoundDown); }
 #else
@@ -635,6 +661,16 @@ RCL_Unit RCL_cosInt(RCL_Unit input)
 RCL_Unit RCL_sinInt(RCL_Unit input)
 {
   return RCL_cosInt(input - RCL_UNITS_PER_SQUARE / 4);
+}
+
+RCL_Unit RCL_tanInt(RCL_Unit input)
+{
+  return (RCL_sinInt(input) * RCL_UNITS_PER_SQUARE) / RCL_cosInt(input);
+}
+
+RCL_Unit RCL_ctgInt(RCL_Unit input)
+{
+  return (RCL_cosInt(input) * RCL_UNITS_PER_SQUARE) / RCL_sinInt(input);
 }
 
 RCL_Vector2D RCL_angleToDirection(RCL_Unit angle)
@@ -892,17 +928,6 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 #if !RCL_RECTILINEAR
       h.distance = RCL_dist(h.position,ray.start);
-#else
-      h.distance = (h.distance * 23) / 32;
-
-      /* ^ UGLY HACK
-
-         For some reason the computed distance with rectilinear is larger, the
-         correct distance is about 0.711 (~= 23/32) of the computed distance, so
-         we correct it here in this ugly way.
-
-         TODO: investigate why, fix nicely
-      */
 #endif
       if (typeFunc != 0)
         h.type = typeFunc(currentSquare.x,currentSquare.y);
@@ -992,6 +1017,17 @@ void RCL_castRaysMultiHit(RCL_Camera cam, RCL_ArrayFunction arrayFunc,
 
   RCL_Vector2D dir2 =
     RCL_angleToDirection(cam.direction + RCL_HORIZONTAL_FOV_HALF);
+
+  /* We scale the side distances so that the middle one is
+     RCL_UNITS_PER_SQUARE, which has to be this way. */
+
+  RCL_Unit cos = RCL_nonZero(RCL_cosInt(RCL_HORIZONTAL_FOV_HALF));
+
+  dir1.x = (dir1.x * RCL_UNITS_PER_SQUARE) / cos;
+  dir1.y = (dir1.y * RCL_UNITS_PER_SQUARE) / cos;
+
+  dir2.x = (dir2.x * RCL_UNITS_PER_SQUARE) / cos;
+  dir2.y = (dir2.y * RCL_UNITS_PER_SQUARE) / cos;
 
   RCL_Unit dX = dir2.x - dir1.x;
   RCL_Unit dY = dir2.y - dir1.y;
@@ -1288,10 +1324,10 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
 
       fWallHeight = _RCL_floorFunction(hit.square.x,hit.square.y);
       fZ2World = fWallHeight - _RCL_camera.height;
-      fZ1Screen = _RCL_middleRow - RCL_perspectiveScale(
+      fZ1Screen = _RCL_middleRow - RCL_perspectiveScaleVertical(
         (fZ1World * _RCL_camera.resolution.y) /
         RCL_UNITS_PER_SQUARE,distance);
-      fZ2Screen = _RCL_middleRow - RCL_perspectiveScale(
+      fZ2Screen = _RCL_middleRow - RCL_perspectiveScaleVertical(
         (fZ2World * _RCL_camera.resolution.y) /
         RCL_UNITS_PER_SQUARE,distance);
 
@@ -1299,10 +1335,10 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
       {
         cWallHeight = _RCL_ceilFunction(hit.square.x,hit.square.y);
         cZ2World = cWallHeight - _RCL_camera.height;
-        cZ1Screen = _RCL_middleRow - RCL_perspectiveScale(
+        cZ1Screen = _RCL_middleRow - RCL_perspectiveScaleVertical(
           (cZ1World * _RCL_camera.resolution.y) /
           RCL_UNITS_PER_SQUARE,distance);
-        cZ2Screen = _RCL_middleRow - RCL_perspectiveScale(
+        cZ2Screen = _RCL_middleRow - RCL_perspectiveScaleVertical(
           (cZ2World * _RCL_camera.resolution.y) /
           RCL_UNITS_PER_SQUARE,distance);
       }
@@ -1490,13 +1526,13 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
 
       int16_t wallHeightWorld = _RCL_floorFunction(hit.square.x,hit.square.y);
 
-      wallHeightScreen = RCL_perspectiveScale((wallHeightWorld *
+      wallHeightScreen = RCL_perspectiveScaleVertical((wallHeightWorld *
         _RCL_camera.resolution.y) / RCL_UNITS_PER_SQUARE,dist);
 
       int16_t RCL_normalizedWallHeight = wallHeightWorld != 0 ?
         ((RCL_UNITS_PER_SQUARE * wallHeightScreen) / wallHeightWorld) : 0;
 
-      heightOffset = RCL_perspectiveScale(_RCL_cameraHeightScreen,dist);
+      heightOffset = RCL_perspectiveScaleVertical(_RCL_cameraHeightScreen,dist);
 
       wallStart = _RCL_middleRow - wallHeightScreen + heightOffset +
                   RCL_normalizedWallHeight;
@@ -1562,7 +1598,7 @@ static inline void _RCL_precomputeFloorDistances(RCL_Camera camera,
     (camera.height * camera.resolution.y) / RCL_UNITS_PER_SQUARE;
 
   for (uint16_t i = startIndex; i < camera.resolution.y; ++i)
-    dest[i] = RCL_perspectiveScaleInverse(camHeightScreenSize,
+    dest[i] = RCL_perspectiveScaleVerticalInverse(camHeightScreenSize,
              RCL_absVal(i - _RCL_middleRow));
 }
 
@@ -1693,7 +1729,7 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
 
   result.position.y =
     camera.resolution.y / 2 -
-    (RCL_perspectiveScale(height - camera.height,result.depth)
+    (RCL_perspectiveScaleVertical(height - camera.height,result.depth)
      * camera.resolution.y) / RCL_UNITS_PER_SQUARE
     + camera.shear;
 
@@ -1705,9 +1741,9 @@ RCL_Unit RCL_degreesToUnitsAngle(int16_t degrees)
   return (degrees * RCL_UNITS_PER_SQUARE) / 360;
 }
 
-RCL_Unit RCL_perspectiveScale(RCL_Unit originalSize, RCL_Unit distance)
+RCL_Unit RCL_perspectiveScaleVertical(RCL_Unit originalSize, RCL_Unit distance)
 {
-  RCL_profileCall(RCL_perspectiveScale);
+  RCL_profileCall(RCL_perspectiveScaleVertical);
 
   return distance != 0 ?
    (originalSize * RCL_UNITS_PER_SQUARE) /
@@ -1715,7 +1751,7 @@ RCL_Unit RCL_perspectiveScale(RCL_Unit originalSize, RCL_Unit distance)
    : 0;
 }
 
-RCL_Unit RCL_perspectiveScaleInverse(RCL_Unit originalSize,
+RCL_Unit RCL_perspectiveScaleVerticalInverse(RCL_Unit originalSize,
   RCL_Unit scaledSize)
 {
   return scaledSize != 0 ?
@@ -1723,6 +1759,95 @@ RCL_Unit RCL_perspectiveScaleInverse(RCL_Unit originalSize,
                                            // ^ take the middle
       ((RCL_VERTICAL_FOV_TAN * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
     : RCL_INFINITY;
+}
+
+RCL_Unit
+  RCL_perspectiveScaleHorizontal(RCL_Unit originalSize, RCL_Unit distance)
+{
+  return distance != 0 ?
+   (originalSize * RCL_UNITS_PER_SQUARE) /
+      ((RCL_HORIZONTAL_FOV_TAN * 2 * distance) / RCL_UNITS_PER_SQUARE)
+   : 0;
+}
+
+RCL_Unit RCL_perspectiveScaleHorizontalInverse(RCL_Unit originalSize,
+  RCL_Unit scaledSize)
+{
+  return scaledSize != 0 ?
+    (originalSize * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2) /
+      ((RCL_HORIZONTAL_FOV_TAN * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
+    : RCL_INFINITY;
+}
+
+RCL_Unit RCL_castRay3D(
+  RCL_Vector2D pos1, RCL_Unit height1, RCL_Vector2D pos2, RCL_Unit height2,
+  RCL_ArrayFunction floorHeightFunc, RCL_ArrayFunction ceilingHeightFunc,
+  RCL_RayConstraints constraints)
+{
+  RCL_HitResult hits[constraints.maxHits];
+  uint16_t numHits;
+
+  RCL_Ray ray;
+
+  ray.start = pos1;
+
+  RCL_Unit distance;
+
+  ray.direction.x = pos2.x - pos1.x;
+  ray.direction.y = pos2.y - pos1.y;
+
+  distance = RCL_len(ray.direction);
+
+  ray.direction = RCL_normalize(ray.direction); 
+
+  RCL_Unit heightDiff = height2 - height1;
+
+  RCL_castRayMultiHit(ray,floorHeightFunc,0,hits,&numHits,constraints);
+
+  RCL_Unit result = RCL_UNITS_PER_SQUARE;
+
+  int16_t squareX = RCL_divRoundDown(pos1.x,RCL_UNITS_PER_SQUARE);
+  int16_t squareY = RCL_divRoundDown(pos1.y,RCL_UNITS_PER_SQUARE);
+
+  RCL_Unit startHeight = floorHeightFunc(squareX,squareY);
+
+  #define checkHits(comp,res) \
+  { \
+    RCL_Unit currentHeight = startHeight; \
+    for (uint16_t i = 0; i < numHits; ++i) \
+    { \
+      if (hits[i].distance > distance) \
+        break;\
+      RCL_Unit h = hits[i].arrayValue; \
+      if ((currentHeight comp h ? currentHeight : h) \
+         comp (height1 + (hits[i].distance * heightDiff) / distance)) \
+      { \
+        res = (hits[i].distance * RCL_UNITS_PER_SQUARE) / distance; \
+        break; \
+      } \
+      currentHeight = h; \
+    } \
+  }
+
+  checkHits(>,result)
+
+  if (ceilingHeightFunc != 0)
+  {
+    RCL_Unit result2 = RCL_UNITS_PER_SQUARE;
+  
+    startHeight = ceilingHeightFunc(squareX,squareY);
+
+    RCL_castRayMultiHit(ray,ceilingHeightFunc,0,hits,&numHits,constraints);
+
+    checkHits(<,result2)
+
+    if (result2 < result)
+      result = result2;
+  }
+
+  #undef checkHits
+
+  return result;
 }
 
 void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,

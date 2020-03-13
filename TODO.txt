@@ -37,6 +37,7 @@ general:
 - easter egg(s)
 - optioal graphics enhance: vertical wall shading ("ambient occlusions")?
 - option for disabling wall transparency, for performance?
+- open door by shooting at them?
 
 level ideas:
 
