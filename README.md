@@ -50,6 +50,12 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ## FAQ
 
+### Isn't this backwards? The graphics looks like shit.
+
+I wouldn't call this backwards, but rather a different, better direction than which the mainstream technology is taking, though this involves taking some steps back to before the things started to go wrong, which is why the result looks like from early 90s, but from there I am trying to go forwards in the new  direction.
+
+The new direction is towards minimalism, simplicity, accessibility ("openness", portability, low HW demands, low education demands, ...), low maintenance cost, being future-proof, helpful to people at large and so on. Such SW is sometimes called suckless or countercomplex.
+
 ### Why aren't you using "modern" programming (C++17, Rust, OOP etc.)?
 
 Because this "modern" technology is an extremely bad choice for building long-lasting, accessible programs. New languages are a product of capitalism, evolved by the markets to serve corporations to make quick profit, not fulfilling the values that are good for the people.
@@ -58,11 +64,11 @@ This game is suppost to be accessible, i.e. require only as many resources as ne
 
 ### Why aren't you writing in assembly?
 
-Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction that is needed.
+Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
 
 ### You sound like an insane persone, are you crazy?
 
-I do have mental issues, but they don't affect my reasoning. If you are interested in truth, you should always critically judge ideas in themselves without dismissign them based on their originator.
+I do have mental issues, but they don't affect my reasoning. If you are interested in truth, you should always critically judge ideas in themselves without dismissing them based on their originator.
 
 ## code guide
 
