@@ -56,7 +56,11 @@ I wouldn't call this backwards, but rather a different, better direction than wh
 
 The new direction is towards minimalism, simplicity, accessibility ("openness", portability, low HW demands, low education demands, ...), low maintenance cost, being future-proof, helpful to people at large and so on. Such SW is sometimes called suckless or countercomplex.
 
-### Why aren't you using "modern" programming (C++17, Rust, OOP etc.)?
+### Shouldn't games simply be fun? You're complicating everything with ideological bullshit when it's really just about entertainment.
+
+Games should definitely be fun to play, but they are still technology and engineering art. We have more than enough games that are trying to be just fun before everything else, but practically none putting a little more emphasis also on other aspects -- projects that don't spend all the effort on the shallow shell, but care equally about the insides and the wider context of the world they exist in. I think we need many more games like this one.
+
+### Why aren't you using "modern" programming (C++17, Rust, OOP etc.) or "advanced" engines?
 
 Because this "modern" technology is an extremely bad choice for building long-lasting, accessible programs. New languages are a product of capitalism, evolved by the markets to serve corporations to make quick profit, not fulfilling the values that are good for the people.
 
