@@ -48,6 +48,22 @@ this game is also designed to be truly good technology to the greatest extent po
 
 Besides support my project has also gotten a lot of hate, being called backwards, utilizing wrong programming practice, being a bad game to play. Nevertheless it has only been made with love and sincere rational belief in its philosophies. I do not see it as a step backwards, but rather a step in a different, better direction. I believe in my work and that if you judge it with an open mind, you may find something new and revise your view of technology, its philosophy and its future. This game has been made for you and I hope you will find it useful.
 
+## FAQ
+
+### Why aren't you using "modern" programming (C++17, Rust, OOP etc.)?
+
+Because this "modern" technology is an extremely bad choice for building long-lasting, accessible programs. New languages are a product of capitalism, evolved by the markets to serve corporations to make quick profit, not fulfilling the values that are good for the people.
+
+This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
+
+### Why aren't you writing in assembly?
+
+Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction that is needed.
+
+### You sound like an insane persone, are you crazy?
+
+I do have mental issues, but they don't affect my reasoning. If you are interested in truth, you should always critically judge ideas in themselves without dismissign them based on their originator.
+
 ## code guide
 
 TODO
