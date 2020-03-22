@@ -958,9 +958,9 @@ void SFG_drawScaledSprite(
   precompFrom = RCL_max(0,precompFrom);
   precompTo = RCL_min(SFG_MAX_SPRITE_SIZE - 1,precompTo);
 
-  #define PRECOMP_SCALE 2048
+  #define PRECOMP_SCALE 512
 
-  int16_t precompStepScaled = ((SFG_TEXTURE_SIZE - 1) * PRECOMP_SCALE) / size;
+  int16_t precompStepScaled = ((SFG_TEXTURE_SIZE) * PRECOMP_SCALE) / size;
   int16_t precompPosScaled = precompFrom * precompStepScaled;
 
   for (int16_t i = precompFrom; i <= precompTo; ++i)
@@ -1166,6 +1166,7 @@ void SFG_getItemSprite(
   {
     case SFG_LEVEL_ELEMENT_TREE:
     case SFG_LEVEL_ELEMENT_RUIN:
+    case SFG_LEVEL_ELEMENT_LAMP:
       *spriteSize = 2;
       break;
 
