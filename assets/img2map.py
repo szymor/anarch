@@ -20,6 +20,7 @@ elementTypes = [
     "TERMINAL",
     "COLUMN",
     "RUIN",
+    "LAMP",
     "CARD0",
     "CARD1",
     "CARD2",

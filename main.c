@@ -1166,6 +1166,7 @@ void SFG_getItemSprite(
   {
     case SFG_LEVEL_ELEMENT_TREE:
     case SFG_LEVEL_ELEMENT_RUIN:
+    case SFG_LEVEL_ELEMENT_LAMP:
       *spriteSize = 2;
       break;
 
@@ -1206,7 +1207,8 @@ uint8_t SFG_itemCollides(uint8_t elementType)
     elementType == SFG_LEVEL_ELEMENT_TERMINAL ||
     elementType == SFG_LEVEL_ELEMENT_COLUMN ||
     elementType == SFG_LEVEL_ELEMENT_RUIN ||
-    elementType == SFG_LEVEL_ELEMENT_BLOCKER;
+    elementType == SFG_LEVEL_ELEMENT_BLOCKER ||
+    elementType == SFG_LEVEL_ELEMENT_LAMP;
 }
 
 void SFG_setAndInitLevel(const SFG_Level *level)
