@@ -621,7 +621,7 @@ static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 }
 #endif
 
-void SFG_recompurePLayerDirection()
+void SFG_recomputePLayerDirection()
 {
   SFG_player.camera.direction =
     RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
@@ -1107,8 +1107,8 @@ void SFG_initPlayer()
     SFG_currentLevel.levelPointer->playerStart[2] *
     (RCL_UNITS_PER_SQUARE / 256);
 
-  SFG_recompurePLayerDirection(); 
- 
+  SFG_recomputePLayerDirection(); 
+
   SFG_player.previousVerticalSpeed = 0;
 
   SFG_player.headBobFrame = 0;
@@ -1166,7 +1166,6 @@ void SFG_getItemSprite(
   {
     case SFG_LEVEL_ELEMENT_TREE:
     case SFG_LEVEL_ELEMENT_RUIN:
-    case SFG_LEVEL_ELEMENT_LAMP:
       *spriteSize = 2;
       break;
 
@@ -2716,7 +2715,7 @@ void SFG_gameStepPlaying()
     }
 
     if (recomputeDirection)
-      SFG_recompurePLayerDirection();
+      SFG_recomputePLayerDirection();
 
     if (SFG_keyIsDown(SFG_KEY_UP))
     {
