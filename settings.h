@@ -189,12 +189,17 @@
 */
 #define SFG_BACKGROUND_BLUR 0
 
+/**
+  Defines the period, in ms, of things that blink, such as text.
+*/
+#define SFG_BLINK_PERIOD 500
+
 //------ developer/debug settings ------
 
 /**
   Developer cheat for having infinite ammo in all weapons.
 */
-#define SFG_INFINITE_AMMO 1
+#define SFG_INFINITE_AMMO 0
 
 /**
   Developer cheat for immortality.

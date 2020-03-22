@@ -1,21 +1,8 @@
 general:
 
-- try to make z-buffer 3 line instead of 1D, possibly like this (to keep
-  performance):
-  - at compile time selct X = power of 2 closest to vertical resolution
-    (or something like that)
-  - in pixel funct do something like
-      if (pixel->y % X == 0 && pixel->y != 0)
-        write to z-buffer
-- let player start with 100 HP, but allow for collecting a higher amount, e.g.
-  up to 150.
-- Add blinking:
-  - In menu, the selected level number should blink to indicate it can be
-    changed.
-  - Near locked door the specific unlocking card should blink on the HUD bar.
-  - Add setting SFG_BLINK_PERIOD to control blinking speed.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
+- add enemy moving/dying sound
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional)
@@ -64,6 +51,9 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
+- ceiling with "holes" through which sky (background) can be seen -- can be done
+  by having the ceiling texture set transparent and then alternating ceiling and
+  no ceiling
 - boss level: skyscraper top, player goes upwards in a spiral along the OUTSIDE
   side of the skyscraper
 - two levels could partially overlap, e.g. level one, a city, could overlap
@@ -141,6 +131,7 @@ bugs:
 done:
 
 - add headbob
+- add blinking
 - make zBuffer 8bit only?
 - texture coords of floor walls should start from the floor? NO, CAUSES ISSUES
 - vertical visual noise when standing on elevator
@@ -161,4 +152,15 @@ done:
   check collisions for both player and monsters against this array (elevate
   these squares for collisions only) -- will also be faster
 - more level prop items
+- let player start with 100 HP, but allow for collecting a higher amount, e.g.
+  up to 150.
+- limit maximum ammo amounts
 
+scratched:
+- try to make z-buffer 3 line instead of 1D, possibly like this (to keep
+  performance):
+  - at compile time selct X = power of 2 closest to vertical resolution
+    (or something like that)
+  - in pixel funct do something like
+      if (pixel->y % X == 0 && pixel->y != 0)
+        write to z-buffer

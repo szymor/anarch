@@ -114,7 +114,12 @@
 /**
   Maximum player health.
 */
-#define SFG_PLAYER_MAX_HEALTH 100
+#define SFG_PLAYER_MAX_HEALTH 150
+
+/**
+  Start health of player.
+*/
+#define SFG_PLAYER_START_HEALTH 100
 
 /**
   At which value health indicator shows a warning (red color).
@@ -165,6 +170,10 @@
 #define SFG_AMMO_INCREASE_BULLETS 10
 #define SFG_AMMO_INCREASE_ROCKETS 5
 #define SFG_AMMO_INCREASE_PLASMA 8
+
+#define SFG_AMMO_MAX_BULLETS 200
+#define SFG_AMMO_MAX_ROCKETS 100
+#define SFG_AMMO_MAX_PLASMA 150
 
 /**
   Duration of story text (intro/outro) in ms.
@@ -354,6 +363,8 @@
 #if SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES == 0
   #define SFG_HUD_BORDER_INDICATOR_DURATION_FRAMES 1
 #endif
+
+#define SFG_BLINK_PERIOD_FRAMES (SFG_BLINK_PERIOD / SFG_MS_PER_FRAME)
 
 #define SFG_HUD_BAR_HEIGHT \
   (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)

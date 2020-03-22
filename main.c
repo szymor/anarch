@@ -1119,7 +1119,7 @@ void SFG_initPlayer()
   SFG_player.lastHurtFrame = SFG_game.frame;
   SFG_player.lastItemTakenFrame = SFG_game.frame;
 
-  SFG_player.health = SFG_PLAYER_MAX_HEALTH;
+  SFG_player.health = SFG_PLAYER_START_HEALTH;
 
   SFG_player.cards = 0;
 
@@ -2479,7 +2479,7 @@ void SFG_gameStepPlaying()
     return;
   }
 
-  int8_t recomputeDirection = 0;
+  int8_t recomputeDirection = SFG_currentLevel.frameStart == SFG_game.frame;
 
   RCL_Vector2D moveOffset;
 
@@ -2877,20 +2877,32 @@ void SFG_gameStepPlaying()
         switch (e->type)
         {
           case SFG_LEVEL_ELEMENT_HEALTH:
-            SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+            if (SFG_player.health < SFG_PLAYER_MAX_HEALTH)
+              SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+            else
+              eliminate = 0;
             break;
-          
+
+#define addAmmo(type) \
+  if (SFG_player.ammo[SFG_AMMO_##type] < SFG_AMMO_MAX_##type) \
+    SFG_player.ammo[SFG_AMMO_##type] = RCL_min(SFG_AMMO_MAX_##type,\
+      SFG_player.ammo[SFG_AMMO_##type] + SFG_AMMO_INCREASE_##type);\
+  else\
+    eliminate = 0;
+
           case SFG_LEVEL_ELEMENT_BULLETS:
-            SFG_player.ammo[SFG_AMMO_BULLETS] += SFG_AMMO_INCREASE_BULLETS;
+            addAmmo(BULLETS)
             break;
 
           case SFG_LEVEL_ELEMENT_ROCKETS:
-            SFG_player.ammo[SFG_AMMO_ROCKETS] += SFG_AMMO_INCREASE_ROCKETS;
+            addAmmo(ROCKETS)
             break;
 
           case SFG_LEVEL_ELEMENT_PLASMA:
-            SFG_player.ammo[SFG_AMMO_PLASMA] += SFG_AMMO_INCREASE_PLASMA;
+            addAmmo(PLASMA)
             break;
+
+#undef addAmmo
 
           case SFG_LEVEL_ELEMENT_CARD0:
           case SFG_LEVEL_ELEMENT_CARD1:
@@ -3562,7 +3574,9 @@ void SFG_drawMenu()
   
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
-    if (item == SFG_MENU_ITEM_PLAY)
+    if (item == SFG_MENU_ITEM_PLAY &&
+        (((i != SFG_game.selectedMenuItem) ||
+          (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2)))
       SFG_drawNumber((SFG_game.selectedLevel + 1), 
       drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1),
       y,SFG_FONT_SIZE_MEDIUM,93);
