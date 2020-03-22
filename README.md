@@ -50,6 +50,10 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ## FAQ
 
+### Is this running on Doom engine or what?
+
+No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine). I've made the engine with the same philosophy in mind as the game itself.
+
 ### Isn't this backwards? The graphics looks like shit.
 
 I wouldn't call this backwards, but rather a different, better direction than which the mainstream technology is taking, though this involves taking some steps back to before the things started to go wrong, which is why the result looks like from early 90s, but from there I am trying to go forwards in the new  direction.
