@@ -54,6 +54,12 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine). I've made the engine with the same philosophy in mind as the game itself.
 
+### How is this different from the trillion other retro shooters?
+
+Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style, in a custom efficient SW rendering engine, just like in the old days, meaning this will run anywhere.
+
+Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and art are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
+
 ### Isn't this backwards? The graphics looks like shit.
 
 I wouldn't call this backwards, but rather a different, better direction than which the mainstream technology is taking, though this involves taking some steps back to before the things started to go wrong, which is why the result looks like from early 90s, but from there I am trying to go forwards in the new  direction.
