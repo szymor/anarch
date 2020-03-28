@@ -280,6 +280,7 @@ struct
   uint32_t lastFrameTimeMs;
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
+  uint8_t antiSpam;  ///< Prevents log message spamming.
 } SFG_game;
 
 /**
@@ -1370,6 +1371,7 @@ void SFG_init()
   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
 
+  SFG_game.antiSpam = 0;
 
   SFG_LOG("computing average texture colors")
 
@@ -2763,7 +2765,7 @@ void SFG_gameStepPlaying()
       ) &&
       (SFG_player.verticalSpeed == 0) &&
       (SFG_player.previousVerticalSpeed == 0)) ?
-    SFG_PLAYER_JUMP_SPEED :
+    SFG_PLAYER_JUMP_OFFSET_PER_FRAME : // jump
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
@@ -3020,6 +3022,18 @@ void SFG_gameStepPlaying()
     SFG_getMapRevealBit(
       SFG_player.squarePosition[0],
       SFG_player.squarePosition[1]);
+
+  if ( // squeezer check
+    (SFG_ceilingHeightAt(
+       SFG_player.squarePosition[0],SFG_player.squarePosition[1]) -
+     SFG_floorHeightAt(
+       SFG_player.squarePosition[0],SFG_player.squarePosition[1]))
+     <
+     (RCL_CAMERA_COLL_HEIGHT_ABOVE + RCL_CAMERA_COLL_HEIGHT_BELOW))
+  {
+    SFG_LOG("player is squeezed");
+    SFG_player.health = 0;
+  }
 
   SFG_updateLevel();
 
@@ -3944,8 +3958,14 @@ void SFG_mainLoopBody()
       steps++;
     }
 
-    if (steps > 1)
+    if ((steps > 1) && (SFG_game.antiSpam == 0))
+    {
       SFG_LOG("Failed to reach target FPS! Consider setting a lower value.")
+      SFG_game.antiSpam = 30;
+    }
+
+    if (SFG_game.antiSpam > 0)
+      SFG_game.antiSpam--;
 
     // render noly once
     SFG_draw();

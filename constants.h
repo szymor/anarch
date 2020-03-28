@@ -34,7 +34,7 @@
 /**
   Initial upwards speed of player's jump, in squares per second. 
 */
-#define SFG_PLAYER_JUMP_SPEED 80
+#define SFG_PLAYER_JUMP_SPEED 5
 
 /**
   Melee and close-up attack range, in RCL_Units.
@@ -259,6 +259,13 @@
 
 #if SFG_GRAVITY_SPEED_INCREASE_PER_FRAME == 0
   #define SFG_GRAVITY_SPEED_INCREASE_PER_FRAME 1
+#endif
+
+#define SFG_PLAYER_JUMP_OFFSET_PER_FRAME \
+  ((SFG_PLAYER_JUMP_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS)
+
+#if SFG_PLAYER_JUMP_OFFSET_PER_FRAME == 0
+  #define SFG_PLAYER_JUMP_OFFSET_PER_FRAME 1
 #endif
 
 #define SFG_HEADBOB_FRAME_INCREASE_PER_FRAME \
