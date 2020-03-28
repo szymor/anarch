@@ -27,7 +27,26 @@ elementTypes = [
     "LOCK0",
     "LOCK1",
     "LOCK2",
-    "BLOCKER"
+    "BLOCKER",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "MONSTER_SPIDER",
+    "MONSTER_DESTROYER",
+    "MONSTER_WARRIOR",
+    "MONSTER_PLASMABOT",
+    "MONSTER_ENDER",
+    "MONSTER_TURRET",
+    "MONSTER_EXPLODER"
   ]
 
 propertyTypes = [

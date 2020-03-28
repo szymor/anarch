@@ -86,7 +86,7 @@ typedef struct
   unused because that will be used by the game engine, so the values must be
   lower than 128.
 */
-#define SFG_LEVEL_ELEMENT_NONE 255
+#define SFG_LEVEL_ELEMENT_NONE 0
 #define SFG_LEVEL_ELEMENT_BARREL 0x01
 #define SFG_LEVEL_ELEMENT_HEALTH 0x02
 #define SFG_LEVEL_ELEMENT_BULLETS 0x03
@@ -110,24 +110,24 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_LOCK2 0x12
 #define SFG_LEVEL_ELEMENT_BLOCKER 0x13 ///< Invisible wall.
 
-/* 
-  Monsters have lower 4 bits zero and are only distinguished by the 4 upper
-  bits, as this is convenient for the code.
-*/
-#define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x00
-#define SFG_LEVEL_ELEMENT_MONSTER_DESTROYER 0x10
-#define SFG_LEVEL_ELEMENT_MONSTER_WARRIOR 0x20
-#define SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT 0x30
-#define SFG_LEVEL_ELEMENT_MONSTER_ENDER 0x40
-#define SFG_LEVEL_ELEMENT_MONSTER_TURRET 0x50
-#define SFG_LEVEL_ELEMENT_MONSTER_EXPLODER 0x60
+#define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x20
+#define SFG_LEVEL_ELEMENT_MONSTER_DESTROYER 0x21
+#define SFG_LEVEL_ELEMENT_MONSTER_WARRIOR 0x22
+#define SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT 0x23
+#define SFG_LEVEL_ELEMENT_MONSTER_ENDER 0x24
+#define SFG_LEVEL_ELEMENT_MONSTER_TURRET 0x25
+#define SFG_LEVEL_ELEMENT_MONSTER_EXPLODER 0x26
 
 #define SFG_MONSTERS_TOTAL 7
 
 #define SFG_MONSTER_TYPE_TO_INDEX(monsterType) \
-  ((monsterType) >> 4)
+  ((monsterType) - SFG_LEVEL_ELEMENT_MONSTER_SPIDER)
 
-#define SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(t) (((t) & 0x0f) == 0)
+#define SFG_MONSTER_INDEX_TO_TYPE(monsterIndex) \
+  ((monsterIndex) + SFG_LEVEL_ELEMENT_MONSTER_SPIDER)
+
+#define SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(t) \
+  ((t) >= SFG_LEVEL_ELEMENT_MONSTER_SPIDER)
 
 typedef struct
 {

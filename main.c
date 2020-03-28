@@ -188,7 +188,8 @@ typedef struct
 } SFG_MonsterRecord;
 
 #define SFG_MR_STATE(mr) ((mr).stateType & SFG_MONSTER_MASK_STATE)
-#define SFG_MR_TYPE(mr) ((mr).stateType & SFG_MONSTER_MASK_TYPE)
+#define SFG_MR_TYPE(mr) \
+  (SFG_MONSTER_INDEX_TO_TYPE(((mr).stateType & SFG_MONSTER_MASK_TYPE) >> 4))
 
 #define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
 #define SFG_MONSTER_COORD_TO_SQUARES(c) (c / 4)
@@ -1294,7 +1295,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
-        monster->stateType = e->type | SFG_MONSTER_STATE_INACTIVE;
+        monster->stateType = (SFG_MONSTER_TYPE_TO_INDEX(e->type) << 4)
+          | SFG_MONSTER_STATE_INACTIVE;
+ 
         monster->health =
           SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
 
@@ -2092,7 +2095,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     newPos[1] = monster->coords[1];
   }
 
-  monster->stateType = state | type;
+  monster->stateType = state | (monsterNumber << 4);
   monster->coords[0] = newPos[0];
   monster->coords[1] = newPos[1];;
 }
@@ -2449,7 +2452,9 @@ void SFG_updateLevel()
       }
       else if (monster->health == 0)
       {
-        monster->stateType = SFG_MR_TYPE(*monster) | SFG_MONSTER_STATE_DYING;
+        monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+          SFG_MONSTER_STATE_DYING;
+
         SFG_playSoundSafe(2,255);
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
