@@ -194,12 +194,17 @@
 */
 #define SFG_BLINK_PERIOD 500
 
+/**
+  Probability (0 - 255) of how often a monster makes sound during movement.
+*/
+#define SFG_MONSTER_SOUND_PROBABILITY 64
+
 //------ developer/debug settings ------
 
 /**
   Developer cheat for having infinite ammo in all weapons.
 */
-#define SFG_INFINITE_AMMO 0
+#define SFG_INFINITE_AMMO 1
 
 /**
   Developer cheat for immortality.

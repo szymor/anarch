@@ -261,6 +261,8 @@ struct
   uint8_t spriteAnimationFrame;
   uint8_t explosionSoundPlayed;  /**< Prevents playing too many explosion sounds
                                  at once */
+  uint8_t monsterSoundPlayed;
+
   RCL_RayConstraints rayConstraints;
   uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, each value
                                     stores the number of frames for which the
@@ -447,6 +449,13 @@ void SFG_playSoundSafe(uint8_t soundIndex, uint8_t volume)
       SFG_playSound(soundIndex,volume);
     
     SFG_game.explosionSoundPlayed = 1;
+  }
+  else if (soundIndex == 5) // monster sound
+  {
+    if (!SFG_game.monsterSoundPlayed)
+      SFG_playSound(soundIndex,volume);
+ 
+    SFG_game.monsterSoundPlayed = 1;
   }
   else
     SFG_playSound(soundIndex,volume);
@@ -1717,7 +1726,9 @@ uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   if (distance >= SFG_SFX_MAX_DISTANCE)
     return 0;
 
-  return 255 - (distance * 255) / SFG_SFX_MAX_DISTANCE;
+  uint32_t result = 255 - (distance * 255) / SFG_SFX_MAX_DISTANCE;
+
+  return (result * result) / 256;
 }
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -2058,6 +2069,16 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         state == SFG_MONSTER_STATE_GOING_SE ||
         state == SFG_MONSTER_STATE_GOING_SW)
       coordAdd[1] = add;
+
+    if ((coordAdd[0] != 0 || coordAdd[1] != 0) && SFG_random() <
+        SFG_MONSTER_SOUND_PROBABILITY)
+      SFG_playSoundSafe(5,
+          SFG_distantSoundVolume( 
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+          SFG_floorHeightAt(
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))) / 2);
 
     if (add)
       state = SFG_MONSTER_STATE_IDLE;
@@ -2455,7 +2476,15 @@ void SFG_updateLevel()
         monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
           SFG_MONSTER_STATE_DYING;
 
-        SFG_playSoundSafe(2,255);
+        uint8_t volume = SFG_distantSoundVolume( 
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+          SFG_floorHeightAt(
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])));
+
+        SFG_playSoundSafe(2,volume);
+        SFG_playSoundSafe(5,volume);
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
@@ -3132,6 +3161,7 @@ void SFG_gameStepMenu()
 void SFG_gameStep()
 {
   SFG_game.explosionSoundPlayed = 0;
+  SFG_game.monsterSoundPlayed = 0;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     if (!SFG_keyPressed(i))
