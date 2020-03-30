@@ -86,6 +86,14 @@ Python scripts are only simple helpers for converting resources, which aren't re
 
 Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
 
+### So I can do anything with this for free? Even like sell it and stuff?
+
+Basically yes, since I have given up all my IP rights, legally you can do anything with this which is not otherwise illegal, without needing any permission from me, which means you can play this, modify this, sell this, without even crediting me. That is all legal, however that doesn't mean it's automatically moral or that I endorse everything you do. As an anarchist I don't want law involved and I feel it is your responsibility to decide what is moral behavior.
+
+If you for example start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this, I trust you and leave all this to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
+
+Am I so stupid as to trust complete strangers to not abuse this? No, I know some will probably "abuse" my work, but it's a price I am willing to pay and I think the good will be greater than the bad.
+
 ### You sound like an insane persone, are you crazy?
 
 I do have mental issues, but they don't affect my reasoning. If you are interested in truth, you should always critically judge ideas in themselves without dismissing them based on their originator.
