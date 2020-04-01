@@ -259,9 +259,10 @@ struct
 
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
-  uint8_t explosionSoundPlayed;  /**< Prevents playing too many explosion sounds
-                                 at once */
-  uint8_t monsterSoundPlayed;
+
+  uint8_t soundsPlayedThisFrame; /**< Each bit says whether given sound was
+                                    played this frame, prevents playing too many
+                                    sounds at once. */
 
   RCL_RayConstraints rayConstraints;
   uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, each value
@@ -443,22 +444,13 @@ uint8_t SFG_random()
 
 void SFG_playSoundSafe(uint8_t soundIndex, uint8_t volume)
 {
-  if (soundIndex == 2) // explosion?
+  uint8_t mask = 0x01 << soundIndex;
+
+  if (!(SFG_game.soundsPlayedThisFrame & mask))
   {
-    if (!SFG_game.explosionSoundPlayed)
-      SFG_playSound(soundIndex,volume);
-    
-    SFG_game.explosionSoundPlayed = 1;
-  }
-  else if (soundIndex == 5) // monster sound
-  {
-    if (!SFG_game.monsterSoundPlayed)
-      SFG_playSound(soundIndex,volume);
- 
-    SFG_game.monsterSoundPlayed = 1;
-  }
-  else
     SFG_playSound(soundIndex,volume);
+    SFG_game.soundsPlayedThisFrame |= mask;
+  }
 }
 
 /**
@@ -3160,8 +3152,7 @@ void SFG_gameStepMenu()
 */
 void SFG_gameStep()
 {
-  SFG_game.explosionSoundPlayed = 0;
-  SFG_game.monsterSoundPlayed = 0;
+  SFG_game.soundsPlayedThisFrame = 0;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     if (!SFG_keyPressed(i))
