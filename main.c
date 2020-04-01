@@ -1653,15 +1653,48 @@ void SFG_playerChangeHealth(int8_t healthAdd)
     SFG_player.lastHurtFrame = SFG_game.frame;
 }
 
+uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+{
+  RCL_Unit distance = SFG_taxicabDistance(x,y,z,
+                        SFG_player.camera.position.x,
+                        SFG_player.camera.position.y,
+                        SFG_player.camera.height);
+
+  if (distance >= SFG_SFX_MAX_DISTANCE)
+    return 0;
+
+  uint32_t result = 255 - (distance * 255) / SFG_SFX_MAX_DISTANCE;
+
+  return (result * result) / 256;
+}
+
 /**
   Same as SFG_playerChangeHealth but for monsters.
 */
 void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
 {
   int16_t health = monster->health;
+
   health += healthAdd;
   health = RCL_clamp(health,0,255);
   monster->health = health;
+
+  if (healthAdd < 0)
+  {
+    // play hurt sound
+    
+    uint8_t volume = SFG_distantSoundVolume( 
+      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+      SFG_floorHeightAt(
+        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])));
+    
+      SFG_playSoundSafe(5,volume);
+    
+    if (monster->health == 0)
+      SFG_playSoundSafe(2,volume);
+  }
 }
 
 void SFG_removeItem(uint8_t index)
@@ -1706,21 +1739,6 @@ void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
   SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],0);
   SFG_removeItem(itemIndex);
   SFG_createExplosion(x,y,z);
-}
-
-uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
-{
-  RCL_Unit distance = SFG_taxicabDistance(x,y,z,
-                        SFG_player.camera.position.x,
-                        SFG_player.camera.position.y,
-                        SFG_player.camera.height);
-
-  if (distance >= SFG_SFX_MAX_DISTANCE)
-    return 0;
-
-  uint32_t result = 255 - (distance * 255) / SFG_SFX_MAX_DISTANCE;
-
-  return (result * result) / 256;
 }
 
 void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -2467,16 +2485,6 @@ void SFG_updateLevel()
       {
         monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
           SFG_MONSTER_STATE_DYING;
-
-        uint8_t volume = SFG_distantSoundVolume( 
-          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
-          SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
-          SFG_floorHeightAt(
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])));
-
-        SFG_playSoundSafe(2,volume);
-        SFG_playSoundSafe(5,volume);
       }
       else if (state != SFG_MONSTER_STATE_INACTIVE)
       {
@@ -2642,8 +2650,6 @@ void SFG_gameStepPlaying()
                 -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
 
               SFG_createDust(pX,pY,pZ);
-
-              SFG_playSoundSafe(3,255);
 
               break;
             }
