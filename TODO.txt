@@ -5,7 +5,12 @@ general:
 - add enemy moving/dying sound
 - sounds (music?)
 - level 2D map (with revealing, bitmap), special key for quick displaying map
-- save/load (optional)
+- save/load (optional):
+  When a level is finished, the state at the beginning of the next one (health,
+  ammo, time, ...) is automatically saved and can be restored via load option in
+  the menu. This save as well as some other things (game progress, inagme
+  settings, ...) will be preserved even adter game restart if the platform
+  implements a saving function.
 - more levels
 - disable transparency for walls for performance (setting)?
 - replace textures in distace with constant color for performance (setting)?
