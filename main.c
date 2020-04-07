@@ -1086,6 +1086,44 @@ RCL_Unit SFG_floorCollisionHeightAt(int16_t x, int16_t y)
     SFG_getItemCollisionMapBit(x,y) * RCL_UNITS_PER_SQUARE; 
 }
 
+void SFG_getPlayerWeaponInfo(
+  uint8_t *ammoType, uint8_t *projectileCount, uint8_t *canShoot)
+{
+  *ammoType = SFG_weaponAmmo(SFG_player.weapon);
+
+  *projectileCount = SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
+
+#if SFG_INFINITE_AMMO
+  *canShoot = 1;
+#else
+  *canShoot = 
+    (*ammoType == SFG_AMMO_NONE || 
+     SFG_player.ammo[*ammoType] >= *projectileCount);
+#endif
+}
+
+void SFG_playerRotateWeapon(uint8_t next)
+{
+  RCL_Unit initialWeapon = SFG_player.weapon;
+  RCL_Unit increment = next ? 1 : -1;
+
+  while (1)
+  {
+    SFG_player.weapon = 
+      RCL_wrap(SFG_player.weapon + increment,SFG_WEAPONS_TOTAL);
+
+    if (SFG_player.weapon == initialWeapon)
+      break;
+
+    uint8_t ammo, projectileCount, canShoot;
+
+    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+ 
+    if (canShoot)
+      break;
+  }
+}
+
 void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
@@ -1117,6 +1155,9 @@ void SFG_initPlayer()
   SFG_player.headBobFrame = 0;
 
   SFG_player.weapon = 2;
+
+  SFG_playerRotateWeapon(1); // this chooses weapon with ammo available
+  SFG_playerRotateWeapon(0);
 
   SFG_player.weaponCooldownStartFrame = SFG_game.frame;
   SFG_player.lastHurtFrame = SFG_game.frame;
@@ -1437,44 +1478,6 @@ void SFG_init()
   SFG_setAndInitLevel(&SFG_levels[SFG_START_LEVEL - 1]);
   SFG_setGameState(SFG_GAME_STATE_PLAYING);
 #endif
-}
-
-void SFG_getPlayerWeaponInfo(
-  uint8_t *ammoType, uint8_t *projectileCount, uint8_t *canShoot)
-{
-  *ammoType = SFG_weaponAmmo(SFG_player.weapon);
-
-  *projectileCount = SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_player.weapon);
-
-#if SFG_INFINITE_AMMO
-  *canShoot = 1;
-#else
-  *canShoot = 
-    (*ammoType == SFG_AMMO_NONE || 
-     SFG_player.ammo[*ammoType] >= *projectileCount);
-#endif
-}
-
-void SFG_playerRotateWeapon(uint8_t next)
-{
-  RCL_Unit initialWeapon = SFG_player.weapon;
-  RCL_Unit increment = next ? 1 : -1;
-
-  while (1)
-  {
-    SFG_player.weapon = 
-      RCL_wrap(SFG_player.weapon + increment,SFG_WEAPONS_TOTAL);
-
-    if (SFG_player.weapon == initialWeapon)
-      break;
-
-    uint8_t ammo, projectileCount, canShoot;
-
-    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
- 
-    if (canShoot)
-      break;
-  }
 }
 
 /**
