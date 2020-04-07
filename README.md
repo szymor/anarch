@@ -112,7 +112,7 @@ portability, only backend, avoiding dependencies
 
 how to port to new platform, frontend, configs in files
 
-All **images** in the game (textures, sprites, backgrounds, ... with just a few exceptions such as font) are stored in the same format: 32 x 32 pixels with 16 color subpalette of the main palette (4 bits per pixel). Each one therefore takes 16 + (32 * 32) / 2 = 528 bytes. This makes working with images easy and the code faster than with arbitrary size images. One color (red) is used for transparency.
+All **images** in the game such as textures, sprites and backgrounds (with just a few exceptions such as font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
 
 font
 
