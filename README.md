@@ -50,7 +50,7 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ### Is this running on Doom engine or what?
 
-No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine). I've made the engine with the same philosophy in mind as the game itself.
+No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine, i.e. a principle completely different from raycasting). I've made the engine with the same philosophy in mind as the game itself.
 
 ### How is this different from the trillion other retro shooters?
 
@@ -84,7 +84,7 @@ No, all these are optional. The core doesn't have any dependencies other than a 
 
 Python scripts are only simple helpers for converting resources, which aren't required during compilation or code modification. In case python ceases to exist, the scripts can easily be rewritten to another languages, they're fairly simple.
 
-### Why aren't you writing in assembly?
+### Why aren't you writing in assembly then?
 
 Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
 
@@ -94,11 +94,11 @@ Basically yes, since I have given up all my IP rights, legally you can do anythi
 
 If you for example start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this, I trust you and leave all this to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
 
-Am I so stupid as to trust complete strangers to not abuse this? No, I know some will probably "abuse" my work, but it's a price I am willing to pay and I think the good will be greater than the bad.
+Am I so stupid as to trust complete strangers to not abuse this? No, I know some will probably "abuse" my work, but it's a price I am willing to pay and I think the good will be greater than the bad. I believe no one should be able to own information.
 
 ### You sound like an insane person, are you crazy?
 
-I do have mental issues, but they don't affect my reasoning. If you are interested in truth, you should always critically judge ideas in themselves without dismissing them based on their originator.
+I do have mental issues, but they don't affect my reasoning. I ask you to critically think about ideas I present.
 
 ## code guide
 
@@ -106,19 +106,21 @@ TODO
 
 source files
 
-raycastlib, 1D zbuffer
-
 portability, only backend, avoiding dependencies
 
 how to port to new platform, frontend, configs in files
 
-All **images** in the game such as textures, sprites and backgrounds (with just a few exceptions such as font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
-
-font
+The **engine** -- raycastlib -- works on the principle of **raycasting** on a square grid and handles the rendering of the 3D environment (minus sprites). There is a copy of raycastlib in this repository but I maintain raycastlib as a separate project in a different repository, which you can see for more details about it. For us, the important functions interfacing with the engine are e.g. `SFG_floorHeightAt`, `SFG_ceilingHeightAt` (functions the engine uses to retirieve floor and ceiling height) and `SFG_pixelFunc` (function the engine uses to write pixels to the screen during rendering, which in turn uses each platform's specific `SFG_setPixel`).
 
 integer math
 
-palette
+sprites 1D zbuffer
+
+The game uses a custom general purpose HSV-based 256 color **palette** which I again maintain as a separate project in a different repository as well (see it for more details). The advantage of the palette is the arrangement of colors that allows increasing/decreasing color value (brightness) by incrementing/decrementing the color index, which is used for dimming environment and sprites in the distance into shadow/fog without needing color mapping tables (which is what e.g. Doom did), saving memory and CPU cycles for memory access.
+
+All **images** in the game such as textures, sprites and backgrounds (with just a few exceptions such as font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
+
+font
 
 rng, produces all byte values
 
