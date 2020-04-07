@@ -66,6 +66,8 @@ The new direction is towards minimalism, simplicity, accessibility ("openness", 
 
 Why go back to the 90s and not further? Early 90s is roughly right before PCs and games started becoming "too popular" and before comsumerism started deeply infecting and destroying the technology itself, i.e. before programming languages such as Java or platforms like MS Windows became wide spread. At this time games were still written in C (a language invented by science, not capitalism), used software rendering even for 3D, didn't use bloat such as multithreading etc.
 
+What we perceive as good graphics is heavily dependant on what we've learned to perceive as good graphics, and it's more about aesthetics than things like resolution or polygon count. Doom looked amazing when it came out and it still does today to people who didn't let the industry teach them that good graphics equals super HD with realistic shaders requiring the latest and most expensive GPU.
+
 ### Shouldn't games simply be fun? You're complicating everything with ideological bullshit when it's really just about entertainment.
 
 Games should definitely be fun to play, but they are still technology and engineering art. We have more than enough games that are trying to be just fun before everything else, but practically none putting a little more emphasis also on other aspects -- projects that don't spend all the effort on the shallow shell, but care equally about the insides and the wider context of the world they exist in. I think we need many more games like this one.
