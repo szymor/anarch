@@ -1,5 +1,8 @@
 general:
 
+- weapon autoswitch: when a stronger weapon becomes available via picking up
+  ammo, maybe it should automatically be switched to (could have disable
+  setting)
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
 - add enemy moving/dying sound
