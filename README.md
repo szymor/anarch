@@ -110,6 +110,8 @@ portability, only backend, avoiding dependencies
 
 how to port to new platform, frontend, configs in files
 
+All global identifiers of the game code start with the prefix `SFG_` (meaning *suckless FPS game*).
+
 The **engine** -- raycastlib -- works on the principle of **raycasting** on a square grid and handles the rendering of the 3D environment (minus sprites). There is a copy of raycastlib in this repository but I maintain raycastlib as a separate project in a different repository, which you can see for more details about it. For us, the important functions interfacing with the engine are e.g. `SFG_floorHeightAt`, `SFG_ceilingHeightAt` (functions the engine uses to retirieve floor and ceiling height) and `SFG_pixelFunc` (function the engine uses to write pixels to the screen during rendering, which in turn uses each platform's specific `SFG_setPixel`).
 
 integer math

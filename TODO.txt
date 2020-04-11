@@ -5,8 +5,10 @@ general:
   setting)
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - port to GB Meta
-- add enemy moving/dying sound
-- sounds (music?)
+- music:
+  Probably just one long music track playing over and over -- KISS. The frontend
+  could have a callback function play_music_bar(n) which would be called by the
+  backend, the music track would be in sounds.h.
 - level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional):
   When a level is finished, the state at the beginning of the next one (health,
@@ -147,9 +149,11 @@ done:
 - try to compress images: store images as 4 bits per pixel + 16 color palette
   (subset of the 256 color palette), check if performance stays ok
 - custom font
-- make barrels explode.
+- make barrels explode
 - enemies
 - weapons
+- sounds
+- add enemy moving/dying sound
 - create tables for monster and weapon stats in constants.h and read from that
   instead of cheking with ifs
 - check if monsters are hit by bullets from completely up close
