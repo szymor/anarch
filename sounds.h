@@ -37,13 +37,10 @@
 
 struct
 { // all should be initialized to 0
-  // TODO: leave only those needed here
   uint8_t track;
   uint32_t t;
   uint32_t t2;
-  uint32_t n3t;
-  uint32_t n5t;
-  uint32_t n7t;
+  uint32_t n11t;
 } SFG_MusicState;
 
 /**
@@ -56,28 +53,28 @@ uint8_t SFG_getNextMusicSample()
   {
     SFG_MusicState.track++;
 
-    if (SFG_MusicState.track >= 4)
+    if (SFG_MusicState.track >= 5)
       SFG_MusicState.track = 0;
 
     SFG_MusicState.t = 0;
     SFG_MusicState.t2 = 0;
-    SFG_MusicState.n3t = 0;
-    SFG_MusicState.n5t = 0;
-    SFG_MusicState.n7t = 0;
+    SFG_MusicState.n11t = 0;
   }
 
   uint8_t result;
 
   #define t SFG_MusicState.t
   #define t2 SFG_MusicState.t2
-  #define n3t SFG_MusicState.n3t
+  #define n11t SFG_MusicState.n11t
 
   switch (SFG_MusicState.track) // individual music tracks
   {
     case 0:
     {
       uint32_t a = ((t >> 7) | (t >> 9) | (~t << 1) | t);
-      result = ((t) & 65536 ? (a & (((t * t) >> 16) & 0x09)) : ~a);
+      result = ((t) & 65536 ? (a & (((t2) >> 16) & 0x09)) : ~a);
+
+      t2 += t;
 
       break;
     }
@@ -105,6 +102,17 @@ uint8_t SFG_getNextMusicSample()
       break;
     }
 
+    case 4:
+    {
+      result =
+        ((0x47 >> (t >> 9)) & (t >> t)) | (0x57 >> (t >> 7)) |
+        (0x06 >> (t >> (((n11t) >> 14) & 0x0e)));
+
+      n11t += 11;
+
+      break;
+    }
+
     default:
       result = 127;
       break;
@@ -112,13 +120,9 @@ uint8_t SFG_getNextMusicSample()
 
   #undef t
   #undef t2
-  #undef n3t
+  #undef n11t
 
   SFG_MusicState.t += 1;
-  SFG_MusicState.t2 += SFG_MusicState.t;
-  SFG_MusicState.n3t += 3;
-  SFG_MusicState.n5t += 5;
-  SFG_MusicState.n7t += 7;
 
   return result;
 }

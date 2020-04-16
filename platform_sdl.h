@@ -179,13 +179,9 @@ void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infin
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
-static inline uint8_t addSamples(uint8_t sample1, uint8_t sample2)
+static inline uint8_t mixSamples(uint8_t sample1, uint8_t sample2)
 {
-  int16_t mixed = sample1;
-  mixed -= 127;
-  mixed += sample2;
-  mixed = (mixed > 0) ? ((mixed < 255) ? mixed : 255) : 0;
-  return mixed;
+  return (((uint16_t) sample1) + ((uint16_t) sample2)) / 2;
 }
 
 uint8_t musicOn = 1;
@@ -195,7 +191,7 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   for (int i = 0; i < l; ++i)
   {
     s[i] = musicOn ?
-      addSamples(audioBuff[audioPos],SFG_getNextMusicSample()) :
+      mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() / 2) :
       audioBuff[audioPos];
 
     audioBuff[audioPos] = 127;
@@ -217,7 +213,7 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
     audioBuff[pos] =
-      addSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep);
+      mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep);
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
