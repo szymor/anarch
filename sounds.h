@@ -30,6 +30,84 @@
    (SFG_sounds[soundIndex][sampleIndex / 2] >> 4) : \
    (SFG_sounds[soundIndex][sampleIndex / 2] & 0x0f))
 
+#define SFG_TRACK_SAMPLES (512 * 1024)
+
+struct
+{ // all should be initialized to 0
+  uint8_t track;
+  uint32_t t;
+  uint32_t t2;
+  uint32_t n3t;
+  uint32_t n5t;
+  uint32_t n7t;
+} SFG_MusicState;
+
+uint8_t SFG_getNextMusicSample()
+{
+  if (SFG_MusicState.t >= SFG_TRACK_SAMPLES)
+  {
+    SFG_MusicState.track++;
+
+    if (SFG_MusicState.track >= 3)
+      SFG_MusicState.track = 0;
+
+    SFG_MusicState.t = 0;
+    SFG_MusicState.t2 = 0;
+    SFG_MusicState.n3t = 0;
+    SFG_MusicState.n5t = 0;
+    SFG_MusicState.n7t = 0;
+  }
+
+  uint8_t result;
+
+  #define t SFG_MusicState.t
+  #define t2 SFG_MusicState.t2
+  #define n3t SFG_MusicState.n3t
+
+  switch (SFG_MusicState.track)
+  {
+    case 0:
+    {
+      uint32_t a = ((t >> 7) | (t >> 9) | (~t << 1) | t);
+      result = ((t) & 65536 ? (a & (((t * t) >> 16) & 0x09)) : ~a);
+
+      break;
+    }
+
+    case 1:
+    {
+      result = (t & (3 << (((t >> 10) ^ ((t >> 10) << (t >> 6))))));
+
+      break;
+    }
+
+    case 2:
+    {
+      result =
+        ((((t >> (t >> 2)) + (t >> (t >> 7)))) & 0x3f | (t >> 5) | (t >> 11))
+        & (t & (32768 | 8192) ? 0xf0 : 0x30);
+
+      break;
+    }
+
+    default:
+      result = 127;
+      break;
+  }
+
+  #undef t
+  #undef t2
+  #undef n3t
+
+  SFG_MusicState.t += 1;
+  SFG_MusicState.t2 += SFG_MusicState.t;
+  SFG_MusicState.n3t += 3;
+  SFG_MusicState.n5t += 5;
+  SFG_MusicState.n7t += 7;
+
+  return result;
+}
+
 SFG_PROGRAM_MEMORY uint8_t SFG_sounds[][SFG_SFX_SIZE] =
 {
   { // 0, bullet shot
