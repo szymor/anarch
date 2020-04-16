@@ -101,6 +101,14 @@ static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 */
 void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
+
+/**
+  Informs the frontend whether music should get enabled/disabled. Playing music
+  is optional and the frontend can ignore it. If a frontend wants to implement
+  music, it can use the one provided in sounds.h or use its own.
+*/
+void SFG_enableMusic(uint8_t enable);
+
 /* ========================================================================= */
 
 /**
@@ -285,6 +293,9 @@ struct
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
   uint8_t antiSpam;  ///< Prevents log message spamming.
+
+  uint8_t soundSettings;   /**< Sound settings: LSB says whether SFX is on,
+                             second LSB says whether music is on. */
 } SFG_game;
 
 /**
@@ -442,8 +453,11 @@ uint8_t SFG_random()
   return SFG_game.currentRandom;
 }
 
-void SFG_playSoundSafe(uint8_t soundIndex, uint8_t volume)
+void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
 {
+  if (!(SFG_game.soundSettings & 0x01))
+    return;
+
   uint8_t mask = 0x01 << soundIndex;
 
   if (!(SFG_game.soundsPlayedThisFrame & mask))
@@ -1418,6 +1432,9 @@ void SFG_init()
 
   SFG_game.antiSpam = 0;
 
+  SFG_game.soundSettings = 0xff;
+  SFG_enableMusic(1);
+
   SFG_LOG("computing average texture colors")
 
   for (uint8_t i = 0; i < SFG_WALL_TEXTURE_COUNT; ++i)
@@ -1693,10 +1710,10 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
         SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
         SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])));
     
-      SFG_playSoundSafe(5,volume);
+      SFG_playGameSound(5,volume);
     
     if (monster->health == 0)
-      SFG_playSoundSafe(2,volume);
+      SFG_playGameSound(2,volume);
   }
 }
 
@@ -1748,7 +1765,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   SFG_ProjectileRecord explosion;
 
-  SFG_playSound(2,SFG_distantSoundVolume(x,y,z));
+  SFG_playGameSound(2,SFG_distantSoundVolume(x,y,z));
 
   explosion.type = SFG_PROJECTILE_EXPLOSION;
 
@@ -1926,7 +1943,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         }
 
         if (projectile == SFG_PROJECTILE_BULLET)
-          SFG_playSoundSafe(0,
+          SFG_playGameSound(0,
             SFG_distantSoundVolume( 
               SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
               SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
@@ -2014,7 +2031,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_playerChangeHealth(
             -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
               
-          SFG_playSoundSafe(3,255);
+          SFG_playGameSound(3,255);
         }
         else // SFG_MONSTER_ATTACK_EXPLODE
         {
@@ -2085,7 +2102,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
     if ((coordAdd[0] != 0 || coordAdd[1] != 0) && SFG_random() <
         SFG_MONSTER_SOUND_PROBABILITY)
-      SFG_playSoundSafe(5,
+      SFG_playGameSound(5,
           SFG_distantSoundVolume( 
           SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
           SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
@@ -2309,7 +2326,7 @@ void SFG_updateLevel()
       else if (p->type == SFG_PROJECTILE_BULLET)
         SFG_createDust(p->position[0],p->position[1],p->position[2]);
       else if (p->type == SFG_PROJECTILE_PLASMA)
-        SFG_playSoundSafe(4,SFG_distantSoundVolume(pos[0],pos[1],pos[2]));
+        SFG_playGameSound(4,SFG_distantSoundVolume(pos[0],pos[1],pos[2]));
 
       // remove the projectile
 
@@ -2360,7 +2377,7 @@ void SFG_updateLevel()
                 ) ? SFG_DOOR_UP_DOWN_MASK : 0x00; 
 
       if (upDownState != newUpDownState)
-        SFG_playSoundSafe(1,255);
+        SFG_playGameSound(1,255);
 
       door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
 
@@ -2567,7 +2584,7 @@ void SFG_gameStepPlaying()
       }
 
       if (sound != 255)
-        SFG_playSoundSafe(sound,255);
+        SFG_playGameSound(sound,255);
 
       if (ammo != SFG_AMMO_NONE)
         SFG_player.ammo[ammo] -= projectileCount;
@@ -2970,7 +2987,7 @@ void SFG_gameStepPlaying()
           SFG_removeItem(i);
           SFG_player.lastItemTakenFrame = SFG_game.frame;
           i--;
-          SFG_playSoundSafe(3,255);
+          SFG_playGameSound(3,255);
 #endif
         }
         else if (
@@ -3011,7 +3028,7 @@ void SFG_gameStepPlaying()
 
               SFG_player.justTeleported = 1;
 
-              SFG_playSoundSafe(4,255);
+              SFG_playGameSound(4,255);
 
               break;
             }
@@ -3104,12 +3121,12 @@ void SFG_gameStepMenu()
     (SFG_game.selectedMenuItem < menuItems - 1))
   {
     SFG_game.selectedMenuItem++;
-    SFG_playSoundSafe(3,64);
+    SFG_playGameSound(3,64);
   }
   else if (SFG_keyRegisters(SFG_KEY_UP) && (SFG_game.selectedMenuItem > 0))
   {
     SFG_game.selectedMenuItem--;
-    SFG_playSoundSafe(3,64);
+    SFG_playGameSound(3,64);
   }
   else if (SFG_keyJustPressed(SFG_KEY_A))
   {
@@ -3135,6 +3152,23 @@ void SFG_gameStepMenu()
         SFG_setGameState(SFG_GAME_STATE_MAP);
         break;
 
+      case SFG_MENU_ITEM_SOUND:
+        SFG_LOG("sound changed");
+
+        SFG_game.soundSettings++;
+        SFG_playGameSound(3,64);
+
+        if ((SFG_game.soundSettings & 0x02) !=
+            ((SFG_game.soundSettings - 1) & 0x02))
+        {
+          if (SFG_game.soundSettings & 0x02)
+            SFG_enableMusic(1);
+          else
+            SFG_enableMusic(0);
+        }
+
+        break;
+
       default:
         break;
     }
@@ -3145,12 +3179,12 @@ void SFG_gameStepMenu()
       (SFG_game.selectedLevel < SFG_NUMBER_OF_LEVELS - 1))
     {
       SFG_game.selectedLevel++;
-      SFG_playSoundSafe(3,64);
+      SFG_playGameSound(3,64);
     }
     else if (SFG_keyRegisters(SFG_KEY_LEFT) && SFG_game.selectedLevel > 0)
     {
       SFG_game.selectedLevel--;
-      SFG_playSoundSafe(3,64);
+      SFG_playGameSound(3,64);
     }
   }
 }
@@ -3625,12 +3659,29 @@ void SFG_drawMenu()
   
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
-    if (item == SFG_MENU_ITEM_PLAY &&
-        (((i != SFG_game.selectedMenuItem) ||
-          (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2)))
-      SFG_drawNumber((SFG_game.selectedLevel + 1), 
-      drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1),
-      y,SFG_FONT_SIZE_MEDIUM,93);
+    if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND) &&
+        ((i != SFG_game.selectedMenuItem) ||
+         ((SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2)))
+    {
+      //uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+
+      uint32_t x =
+        drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1);
+
+      uint8_t c = 93;
+
+      if (item == SFG_MENU_ITEM_PLAY)
+        SFG_drawNumber((SFG_game.selectedLevel + 1),x,y,SFG_FONT_SIZE_MEDIUM,c);
+      else
+      {
+        char settingText[3] = "  ";
+
+        settingText[0] = (SFG_game.soundSettings & 0x01) ? 'S' : ' ';
+        settingText[1] = (SFG_game.soundSettings & 0x02) ? 'M' : ' ';
+
+        SFG_drawText(settingText,x,y,SFG_FONT_SIZE_MEDIUM,c,0,0);
+      }
+    }
 
     y += SFG_characterSize(SFG_FONT_SIZE_MEDIUM) + SFG_FONT_SIZE_MEDIUM;
     i++;

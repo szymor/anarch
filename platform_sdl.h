@@ -188,14 +188,24 @@ static inline uint8_t addSamples(uint8_t sample1, uint8_t sample2)
   return mixed;
 }
 
+uint8_t musicOn = 1;
+
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
   for (int i = 0; i < l; ++i)
   {
-    s[i] = addSamples(audioBuff[audioPos],SFG_getNextMusicSample());
+    s[i] = musicOn ?
+      addSamples(audioBuff[audioPos],SFG_getNextMusicSample()) :
+      audioBuff[audioPos];
+
     audioBuff[audioPos] = 127;
     audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
   }
+}
+
+void SFG_enableMusic(uint8_t enable)
+{
+  musicOn = enable;
 }
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
