@@ -53,7 +53,7 @@ uint8_t SFG_getNextMusicSample()
   {
     SFG_MusicState.track++;
 
-    if (SFG_MusicState.track >= 5)
+    if (SFG_MusicState.track >= 6)
       SFG_MusicState.track = 0;
 
     SFG_MusicState.t = 0;
@@ -109,6 +109,16 @@ uint8_t SFG_getNextMusicSample()
         (0x06 >> (t >> (((n11t) >> 14) & 0x0e)));
 
       n11t += 11;
+
+      break;
+    }
+
+    case 5:
+    {
+      uint32_t a = t >> (t >> 6);
+      uint32_t b = 0x011121 >> ((a + t) >> 11);
+      result =
+        (((t >> 9) + (t ^ (t << 1))) & (0x7f >> ((t >> 15) & 0x03))) & (b + a);
 
       break;
     }
