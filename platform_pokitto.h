@@ -17,7 +17,7 @@
 
 #include "settings.h"
 
-#define SFG_LOG(str) printf("game: %s\n",str); // for debug only
+//#define SFG_LOG(str) printf("game: %s\n",str); // for debug only
 
 #define SFG_TEXTURE_DISTANCE 5000
 
@@ -97,13 +97,29 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
+uint8_t musicOn = 1;
+
+void SFG_enableMusic(uint8_t enable)
+{
+  musicOn = enable;
+}
+
+static inline uint8_t mixSamples(uint8_t sample1, uint8_t sample2)
+{
+  return (sample1 >> 1) + (sample2 >> 1);
+}
+
 void onTimer() // for sound
 {
   if (Chip_TIMER_MatchPending(LPC_TIMER32_0, 1))
   {
     Chip_TIMER_ClearMatch(LPC_TIMER32_0, 1);
 
-    Pokitto::dac_write(audioBuff[audioPos]);
+    Pokitto::dac_write(
+      musicOn ?
+      mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() / 2) :
+      audioBuff[audioPos]
+      );
 
     audioBuff[audioPos] = 127;
 
@@ -136,12 +152,8 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    int16_t mixedValue =
-      audioBuff[pos] - 127 + SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
-
-    mixedValue = (mixedValue > 0) ? ((mixedValue < 255) ? mixedValue : 255) : 0;
-
-    audioBuff[pos] = mixedValue;// SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep;
+    audioBuff[pos] =
+      mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep);
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }

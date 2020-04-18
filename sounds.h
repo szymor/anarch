@@ -61,7 +61,7 @@ uint8_t SFG_getNextMusicSample()
     SFG_MusicState.n11t = 0;
   }
 
-  uint8_t result;
+  uint32_t result;
 
   #define t SFG_MusicState.t
   #define t2 SFG_MusicState.t2
