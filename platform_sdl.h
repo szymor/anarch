@@ -181,7 +181,7 @@ uint16_t audioPos = 0;
 
 static inline uint8_t mixSamples(uint8_t sample1, uint8_t sample2)
 {
-  return (((uint16_t) sample1) + ((uint16_t) sample2)) / 2;
+  return (sample1 >> 1) + (sample2 >> 1);
 }
 
 uint8_t musicOn = 1;
