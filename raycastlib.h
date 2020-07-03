@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.904
+  version: 0.906
 */
 
 #include <stdint.h>
@@ -364,13 +364,13 @@ Cos function.
 @return RCL_normalized output in RCL_Units (from -RCL_UNITS_PER_SQUARE to
         RCL_UNITS_PER_SQUARE)
 */
-RCL_Unit RCL_cosInt(RCL_Unit input);
+RCL_Unit RCL_cos(RCL_Unit input);
 
-RCL_Unit RCL_sinInt(RCL_Unit input);
+RCL_Unit RCL_sin(RCL_Unit input);
 
-RCL_Unit RCL_tanInt(RCL_Unit input);
+RCL_Unit RCL_tan(RCL_Unit input);
 
-RCL_Unit RCL_ctgInt(RCL_Unit input);
+RCL_Unit RCL_ctg(RCL_Unit input);
 
 /// Normalizes given vector to have RCL_UNITS_PER_SQUARE length.
 RCL_Vector2D RCL_normalize(RCL_Vector2D v);
@@ -378,7 +378,7 @@ RCL_Vector2D RCL_normalize(RCL_Vector2D v);
 /// Computes a cos of an angle between two vectors.
 RCL_Unit RCL_vectorsAngleCos(RCL_Vector2D v1, RCL_Vector2D v2);
 
-uint16_t RCL_sqrtInt(RCL_Unit value);
+uint16_t RCL_sqrt(RCL_Unit value);
 RCL_Unit RCL_dist(RCL_Vector2D p1, RCL_Vector2D p2);
 RCL_Unit RCL_len(RCL_Vector2D v);
 
@@ -514,50 +514,8 @@ int16_t _RCL_cameraHeightScreen = 0;
 RCL_ArrayFunction _RCL_rollFunction = 0; // says door rolling
 RCL_Unit *_RCL_floorPixelDistances = 0;
 
-#ifdef RCL_PROFILE
-  // function call counters for profiling
-  uint32_t profile_RCL_sqrtInt = 0;
-  uint32_t profile_RCL_clamp = 0;
-  uint32_t profile_RCL_cosInt = 0;
-  uint32_t profile_RCL_angleToDirection = 0;
-  uint32_t profile_RCL_dist = 0;
-  uint32_t profile_RCL_len = 0;
-  uint32_t profile_RCL_pointIsLeftOfRay = 0;
-  uint32_t profile_RCL_castRayMultiHit = 0; 
-  uint32_t profile_RCL_castRay = 0;
-  uint32_t profile_RCL_absVal = 0;
-  uint32_t profile_RCL_normalize = 0;
-  uint32_t profile_RCL_vectorsAngleCos = 0;
-  uint32_t profile_RCL_perspectiveScaleVertical = 0;
-  uint32_t profile_RCL_wrap = 0;
-  uint32_t profile_RCL_divRoundDown = 0;
-  #define RCL_profileCall(c) profile_##c += 1
-
-  #define printProfile() {\
-    printf("profile:\n");\
-    printf("  RCL_sqrtInt: %d\n",profile_RCL_sqrtInt);\
-    printf("  RCL_clamp: %d\n",profile_RCL_clamp);\
-    printf("  RCL_cosInt: %d\n",profile_RCL_cosInt);\
-    printf("  RCL_angleToDirection: %d\n",profile_RCL_angleToDirection);\
-    printf("  RCL_dist: %d\n",profile_RCL_dist);\
-    printf("  RCL_len: %d\n",profile_RCL_len);\
-    printf("  RCL_pointIsLeftOfRay: %d\n",profile_RCL_pointIsLeftOfRay);\
-    printf("  RCL_castRayMultiHit : %d\n",profile_RCL_castRayMultiHit);\
-    printf("  RCL_castRay: %d\n",profile_RCL_castRay);\
-    printf("  RCL_normalize: %d\n",profile_RCL_normalize);\
-    printf("  RCL_vectorsAngleCos: %d\n",profile_RCL_vectorsAngleCos);\
-    printf("  RCL_absVal: %d\n",profile_RCL_absVal);\
-    printf("  RCL_perspectiveScaleVertical: %d\n",profile_RCL_perspectiveScaleVertical);\
-    printf("  RCL_wrap: %d\n",profile_RCL_wrap);\
-    printf("  RCL_divRoundDown: %d\n",profile_RCL_divRoundDown); }
-#else
-  #define RCL_profileCall(c)
-#endif
-
 RCL_Unit RCL_clamp(RCL_Unit value, RCL_Unit valueMin, RCL_Unit valueMax)
 {
-  RCL_profileCall(RCL_clamp);
-
   if (value >= valueMin)
   {
     if (value <= valueMax)
@@ -569,17 +527,14 @@ RCL_Unit RCL_clamp(RCL_Unit value, RCL_Unit valueMin, RCL_Unit valueMax)
     return valueMin;
 }
 
-static inline RCL_Unit RCL_absVal(RCL_Unit value)
+static inline RCL_Unit RCL_abs(RCL_Unit value)
 {
-  RCL_profileCall(RCL_absVal);
-
   return value * (((value >= 0) << 1) - 1);
 }
 
 /// Like mod, but behaves differently for negative values.
 static inline RCL_Unit RCL_wrap(RCL_Unit value, RCL_Unit mod)
 {
-  RCL_profileCall(RCL_wrap);
   RCL_Unit cmp = value < 0;
   return cmp * mod + (value % mod) - cmp;
 }
@@ -587,8 +542,6 @@ static inline RCL_Unit RCL_wrap(RCL_Unit value, RCL_Unit mod)
 /// Performs division, rounding down, NOT towards zero.
 static inline RCL_Unit RCL_divRoundDown(RCL_Unit value, RCL_Unit divisor)
 {
-  RCL_profileCall(RCL_divRoundDown);
-
   return value / divisor - ((value >= 0) ? 0 : 1);
 }
 
@@ -628,10 +581,8 @@ const RCL_Unit cosLUT[128] =
 };
 #endif
 
-RCL_Unit RCL_cosInt(RCL_Unit input)
+RCL_Unit RCL_cos(RCL_Unit input)
 {
-  RCL_profileCall(RCL_cosInt);
-
   input = RCL_wrap(input,RCL_UNITS_PER_SQUARE);
 
 #if RCL_USE_COS_LUT == 1
@@ -658,37 +609,33 @@ RCL_Unit RCL_cosInt(RCL_Unit input)
 
 #undef trigHelper
 
-RCL_Unit RCL_sinInt(RCL_Unit input)
+RCL_Unit RCL_sin(RCL_Unit input)
 {
-  return RCL_cosInt(input - RCL_UNITS_PER_SQUARE / 4);
+  return RCL_cos(input - RCL_UNITS_PER_SQUARE / 4);
 }
 
-RCL_Unit RCL_tanInt(RCL_Unit input)
+RCL_Unit RCL_tan(RCL_Unit input)
 {
-  return (RCL_sinInt(input) * RCL_UNITS_PER_SQUARE) / RCL_cosInt(input);
+  return (RCL_sin(input) * RCL_UNITS_PER_SQUARE) / RCL_cos(input);
 }
 
-RCL_Unit RCL_ctgInt(RCL_Unit input)
+RCL_Unit RCL_ctg(RCL_Unit input)
 {
-  return (RCL_cosInt(input) * RCL_UNITS_PER_SQUARE) / RCL_sinInt(input);
+  return (RCL_cos(input) * RCL_UNITS_PER_SQUARE) / RCL_sin(input);
 }
 
 RCL_Vector2D RCL_angleToDirection(RCL_Unit angle)
 {
-  RCL_profileCall(RCL_angleToDirection);
-
   RCL_Vector2D result;
 
-  result.x = RCL_cosInt(angle);
-  result.y = -1 * RCL_sinInt(angle);
+  result.x = RCL_cos(angle);
+  result.y = -1 * RCL_sin(angle);
 
   return result;
 }
 
-uint16_t RCL_sqrtInt(RCL_Unit value)
+uint16_t RCL_sqrt(RCL_Unit value)
 {
-  RCL_profileCall(RCL_sqrtInt);
-
 #ifdef RCL_RAYCAST_TINY
   uint16_t result = 0;
   uint16_t a = value;
@@ -719,16 +666,14 @@ uint16_t RCL_sqrtInt(RCL_Unit value)
 
 RCL_Unit RCL_dist(RCL_Vector2D p1, RCL_Vector2D p2)
 {
-  RCL_profileCall(RCL_dist);
-
   RCL_Unit dx = p2.x - p1.x;
   RCL_Unit dy = p2.y - p1.y;
 
 #if RCL_USE_DIST_APPROX == 2
   // octagonal approximation
 
-  dx = RCL_absVal(dx);
-  dy = RCL_absVal(dy);
+  dx = RCL_abs(dx);
+  dy = RCL_abs(dy);
 
   return dy > dx ? dx / 2 + dy : dy / 2 + dx;
 #elif RCL_USE_DIST_APPROX == 1
@@ -760,14 +705,12 @@ RCL_Unit RCL_dist(RCL_Vector2D p1, RCL_Vector2D p2)
   dx = dx * dx;
   dy = dy * dy;
 
-  return RCL_sqrtInt((RCL_Unit) (dx + dy));
+  return RCL_sqrt((RCL_Unit) (dx + dy));
 #endif
 }
 
 RCL_Unit RCL_len(RCL_Vector2D v)
 {
-  RCL_profileCall(RCL_len);
-
   RCL_Vector2D zero;
   zero.x = 0;
   zero.y = 0;
@@ -777,8 +720,6 @@ RCL_Unit RCL_len(RCL_Vector2D v)
 
 static inline int8_t RCL_pointIsLeftOfRay(RCL_Vector2D point, RCL_Ray ray)
 {
-  RCL_profileCall(RCL_pointIsLeftOfRay);
-
   RCL_Unit dX    = point.x - ray.start.x;
   RCL_Unit dY    = point.y - ray.start.y;
   return (ray.direction.x * dY - ray.direction.y * dX) > 0;
@@ -789,8 +730,6 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
   RCL_ArrayFunction typeFunc, RCL_HitResult *hitResults,
   uint16_t *hitResultsLen, RCL_RayConstraints constraints)
 {
-  RCL_profileCall(RCL_castRayMultiHit);
-
   RCL_Vector2D currentPos = ray.start;
   RCL_Vector2D currentSquare;
 
@@ -812,8 +751,8 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
   RCL_Unit dirVecLengthNorm = RCL_len(ray.direction) * RCL_UNITS_PER_SQUARE;
 
-  delta.x = RCL_absVal(dirVecLengthNorm / RCL_nonZero(ray.direction.x));
-  delta.y = RCL_absVal(dirVecLengthNorm / RCL_nonZero(ray.direction.y));
+  delta.x = RCL_abs(dirVecLengthNorm / RCL_nonZero(ray.direction.x));
+  delta.y = RCL_abs(dirVecLengthNorm / RCL_nonZero(ray.direction.y));
 
   // init DDA
 
@@ -991,8 +930,6 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 RCL_HitResult RCL_castRay(RCL_Ray ray, RCL_ArrayFunction arrayFunc)
 {
-  RCL_profileCall(RCL_castRay);
-
   RCL_HitResult result;
   uint16_t RCL_len;
   RCL_RayConstraints c;
@@ -1021,7 +958,7 @@ void RCL_castRaysMultiHit(RCL_Camera cam, RCL_ArrayFunction arrayFunc,
   /* We scale the side distances so that the middle one is
      RCL_UNITS_PER_SQUARE, which has to be this way. */
 
-  RCL_Unit cos = RCL_nonZero(RCL_cosInt(RCL_HORIZONTAL_FOV_HALF));
+  RCL_Unit cos = RCL_nonZero(RCL_cos(RCL_HORIZONTAL_FOV_HALF));
 
   dir1.x = (dir1.x * RCL_UNITS_PER_SQUARE) / cos;
   dir1.y = (dir1.y * RCL_UNITS_PER_SQUARE) / cos;
@@ -1139,7 +1076,7 @@ static inline int16_t _RCL_drawHorizontalColumn(
   {\
     if (doDepth) /*constant condition - compiler should optimize it out*/\
     {\
-      depth = pixelInfo->depth + RCL_absVal(verticalOffset) *\
+      depth = pixelInfo->depth + RCL_abs(verticalOffset) *\
         RCL_VERTICAL_DEPTH_MULTIPLY;\
       depthIncrement = depthIncrementMultiplier *\
         _RCL_horizontalDepthStep;\
@@ -1207,15 +1144,15 @@ static inline int16_t _RCL_drawWall(
 {
   _RCL_UNUSED(height)
 
-  height = RCL_absVal(height);
+  height = RCL_abs(height);
 
   pixelInfo->isWall = 1;
 
   RCL_Unit limit = RCL_clamp(yTo,limit1,limit2);
 
-  RCL_Unit wallLength = RCL_nonZero(RCL_absVal(yTo - yFrom - 1));
+  RCL_Unit wallLength = RCL_nonZero(RCL_abs(yTo - yFrom - 1));
 
-  RCL_Unit wallPosition = RCL_absVal(yFrom - yCurrent) - increment;
+  RCL_Unit wallPosition = RCL_abs(yFrom - yCurrent) - increment;
 
   RCL_Unit heightScaled = height * RCL_TEXTURE_INTERPOLATION_SCALE;
   _RCL_UNUSED(heightScaled);
@@ -1459,7 +1396,6 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
   RCL_Unit y = 0;
   RCL_Unit wallHeightScreen = 0;
   RCL_Unit wallStart = _RCL_middleRow;
-  RCL_Unit heightOffset = 0;
 
   RCL_Unit dist = 1;
 
@@ -1524,18 +1460,32 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
     {
       dist = hit.distance;
 
-      int16_t wallHeightWorld = _RCL_floorFunction(hit.square.x,hit.square.y);
+      RCL_Unit wallHeightWorld = _RCL_floorFunction(hit.square.x,hit.square.y);
 
-      wallHeightScreen = RCL_perspectiveScaleVertical((wallHeightWorld *
-        _RCL_camera.resolution.y) / RCL_UNITS_PER_SQUARE,dist);
+      if (wallHeightWorld < 0)
+      {
+        /* We can't just do wallHeightWorld = max(0,wallHeightWorld) because
+        we would be processing an actual hit with height 0, which shouldn't
+        ever happen, so we assign some arbitrary height. */
 
-      int16_t RCL_normalizedWallHeight = wallHeightWorld != 0 ?
-        ((RCL_UNITS_PER_SQUARE * wallHeightScreen) / wallHeightWorld) : 0;
+        wallHeightWorld = RCL_UNITS_PER_SQUARE;
+      }
 
-      heightOffset = RCL_perspectiveScaleVertical(_RCL_cameraHeightScreen,dist);
+      RCL_Unit worldPointTop = wallHeightWorld - _RCL_camera.height;
+      RCL_Unit worldPointBottom = -1 * _RCL_camera.height;
 
-      wallStart = _RCL_middleRow - wallHeightScreen + heightOffset +
-                  RCL_normalizedWallHeight;
+      wallStart = _RCL_middleRow -  
+        (RCL_perspectiveScaleVertical(worldPointTop,dist)
+        * _RCL_camera.resolution.y) / RCL_UNITS_PER_SQUARE;
+
+      int16_t wallEnd =  _RCL_middleRow -
+        (RCL_perspectiveScaleVertical(worldPointBottom,dist)
+        * _RCL_camera.resolution.y) / RCL_UNITS_PER_SQUARE;
+
+      wallHeightScreen = wallEnd - wallStart;
+
+      if (wallHeightScreen <= 0) // can happen because of rounding errors
+        wallHeightScreen = 1; 
     }
   }
   else
@@ -1599,7 +1549,7 @@ static inline void _RCL_precomputeFloorDistances(RCL_Camera camera,
 
   for (uint16_t i = startIndex; i < camera.resolution.y; ++i)
     dest[i] = RCL_perspectiveScaleVerticalInverse(camHeightScreenSize,
-             RCL_absVal(i - _RCL_middleRow));
+             RCL_abs(i - _RCL_middleRow));
 }
 
 void RCL_renderComplex(RCL_Camera cam, RCL_ArrayFunction floorHeightFunc,
@@ -1678,8 +1628,6 @@ void RCL_renderSimple(RCL_Camera cam, RCL_ArrayFunction floorHeightFunc,
 
 RCL_Vector2D RCL_normalize(RCL_Vector2D v)
 {
-  RCL_profileCall(RCL_normalize);
-
   RCL_Vector2D result;
   RCL_Unit l = RCL_len(v);
   l = RCL_nonZero(l);
@@ -1692,8 +1640,6 @@ RCL_Vector2D RCL_normalize(RCL_Vector2D v)
 
 RCL_Unit RCL_vectorsAngleCos(RCL_Vector2D v1, RCL_Vector2D v2)
 {
-  RCL_profileCall(RCL_vectorsAngleCos);
-
   v1 = RCL_normalize(v1);
   v2 = RCL_normalize(v2);
 
@@ -1712,10 +1658,10 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
 
   RCL_Unit middleColumn = camera.resolution.x / 2;
 
-  // rotate the point
+  // rotate the point to camera space (y left/right, x forw/backw)
 
-  RCL_Unit cos = RCL_cosInt(camera.direction);
-  RCL_Unit sin = RCL_sinInt(camera.direction);
+  RCL_Unit cos = RCL_cos(camera.direction);
+  RCL_Unit sin = RCL_sin(camera.direction);
 
   RCL_Unit tmp = toPoint.x;
 
@@ -1743,8 +1689,6 @@ RCL_Unit RCL_degreesToUnitsAngle(int16_t degrees)
 
 RCL_Unit RCL_perspectiveScaleVertical(RCL_Unit originalSize, RCL_Unit distance)
 {
-  RCL_profileCall(RCL_perspectiveScaleVertical);
-
   return distance != 0 ?
    (originalSize * RCL_UNITS_PER_SQUARE) /
       ((RCL_VERTICAL_FOV_TAN * 2 * distance) / RCL_UNITS_PER_SQUARE)
@@ -2036,3 +1980,4 @@ void RCL_initRayConstraints(RCL_RayConstraints *constraints)
 }
 
 #endif
+

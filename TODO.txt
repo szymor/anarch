@@ -1,5 +1,7 @@
 general:
 
+- automatic tests: a frontend that will play the game, check the state, rendered
+  frames etc.
 - weapon autoswitch: when a stronger weapon becomes available via picking up
   ammo, maybe it should automatically be switched to (could have disable
   setting)

@@ -507,7 +507,7 @@ uint8_t SFG_weaponAmmo(uint8_t weapon)
 RCL_Unit SFG_taxicabDistance(
   RCL_Unit x0, RCL_Unit y0, RCL_Unit z0, RCL_Unit x1, RCL_Unit y1, RCL_Unit z1)
 {
-  return (RCL_absVal(x0 - x1) + RCL_absVal(y0 - y1) + RCL_absVal(z0 - z1));
+  return (RCL_abs(x0 - x1) + RCL_abs(y0 - y1) + RCL_abs(z0 - z1));
 }
 
 uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -1045,7 +1045,7 @@ RCL_Unit SFG_movingWallHeight
     (time * ((SFG_MOVING_WALL_SPEED * RCL_UNITS_PER_SQUARE) / 1000)) / height;
 
   return
-    low + halfHeight + (RCL_sinInt(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
+    low + halfHeight + (RCL_sin(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
 }
 
 RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
@@ -1635,8 +1635,8 @@ uint8_t SFG_pushPlayerAway(
 RCL_Vector2D SFG_resolveCollisionWithElement(
   RCL_Vector2D position, RCL_Vector2D moveOffset, RCL_Vector2D elementPos)
 {
-  RCL_Unit dx = RCL_absVal(elementPos.x - position.x);
-  RCL_Unit dy = RCL_absVal(elementPos.y - position.y);
+  RCL_Unit dx = RCL_abs(elementPos.x - position.x);
+  RCL_Unit dy = RCL_abs(elementPos.y - position.y);
 
   if (dx > dy)
   {
@@ -2134,7 +2134,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       SFG_floorCollisionHeightAt(newPos[0] / 4,newPos[1] / 4);
 
     collision =
-      RCL_absVal(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
+      RCL_abs(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
   }
 
   if (collision)
@@ -3713,7 +3713,7 @@ void SFG_drawWinOverlay()
   for (uint16_t y = STRIP_START; y < STRIP_START + l; ++y)
     for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
       SFG_setGamePixel(x,y, 
-        RCL_absVal(y - (SFG_GAME_RESOLUTION_Y / 2)) <= (INNER_STRIP_HEIGHT / 2) ?
+        RCL_abs(y - (SFG_GAME_RESOLUTION_Y / 2)) <= (INNER_STRIP_HEIGHT / 2) ?
           0 : 172);
 
   char textLine[] = "level done";
@@ -3783,7 +3783,7 @@ void SFG_draw()
 
     if (SFG_game.state != SFG_GAME_STATE_LOSE)
     {
-      RCL_Unit bobSin = RCL_sinInt(SFG_player.headBobFrame);
+      RCL_Unit bobSin = RCL_sin(SFG_player.headBobFrame);
 
       headBobOffset = (bobSin * SFG_HEADBOB_OFFSET) / RCL_UNITS_PER_SQUARE;
 
@@ -3930,7 +3930,7 @@ void SFG_draw()
         spriteSize =
           (
             SFG_SPRITE_SIZE_PIXELS(2) *
-            RCL_sinInt(          
+            RCL_sin(          
               ((doubleFramesToLive -
                proj->doubleFramesToLive) * RCL_UNITS_PER_SQUARE / 4)
                / doubleFramesToLive) 
