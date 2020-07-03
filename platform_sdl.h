@@ -36,6 +36,8 @@
 #define SFG_BACKGROUND_BLUR 1
 
 const uint8_t *sdlKeyboardState;
+uint8_t sdlMouseButtonState = 0;
+int8_t sdlMouseWheelState = 0;
 
 uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
 
@@ -108,7 +110,7 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_B:
-      return sdlKeyboardState[SDL_SCANCODE_H] || SDL_GetMouseState(0,0);
+      return sdlKeyboardState[SDL_SCANCODE_H] || (sdlMouseButtonState & SDL_BUTTON_LMASK);
       break;
 
     case SFG_KEY_C:
@@ -134,15 +136,27 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_TOGGLE_FREELOOK:
-      return sdlKeyboardState[SDL_SCANCODE_T];
+      return sdlMouseButtonState & SDL_BUTTON_RMASK;
       break;
 
     case SFG_KEY_NEXT_WEAPON:
-      return sdlKeyboardState[SDL_SCANCODE_M];
+      if (sdlMouseWheelState > 0)
+      {
+        sdlMouseWheelState--;
+        return 1;
+      }
+        
+      return 0;
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
-      return sdlKeyboardState[SDL_SCANCODE_N];
+      if (sdlMouseWheelState < 0)
+      {
+        sdlMouseWheelState++;
+        return 1;
+      }
+        
+      return 0;
       break;
 
     case SFG_KEY_MENU:
@@ -157,7 +171,20 @@ int running;
 
 void mainLoopIteration()
 {
-  SDL_PumpEvents(); // updates the keyboard state
+  SDL_Event event;
+
+  while (SDL_PollEvent(&event)) // also automatically updates sdlKeyboardState
+  {
+    if(event.type == SDL_MOUSEWHEEL)
+    {
+      if (event.wheel.y > 0) // scroll up
+        sdlMouseWheelState++;
+      else if (event.wheel.y < 0) // scroll down
+        sdlMouseWheelState--;
+    }
+  }
+
+  sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
 
   if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
     running = 0;
