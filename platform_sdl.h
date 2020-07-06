@@ -30,7 +30,7 @@
 #include "sounds.h"
 
 #undef SFG_LOG
-#define SFG_LOG(str) printf("game: %s\n",str);
+#define SFG_LOG(str) puts(str);
 
 #undef SFG_BACKGROUND_BLUR
 #define SFG_BACKGROUND_BLUR 1
@@ -261,26 +261,26 @@ int main(int argc, char *argv[])
     else if (argv[i][0] == '-' && argv[i][1] == 'f' && argv[i][2] == 0)       
       argForceFullscreen = 1;
     else
-      printf("SDL: unknown argument: %s\n",argv[i]); 
+      puts("SDL: unknown argument"); 
   }
 
   if (argHelp)
   {
-    printf("TODOGAME, a suckless first person shooter game (SDL2 frontend)\n\n");
-    printf("version TODO, by Miloslav Ciz, released under CC0 1.0 + waiver of all IP\n");
-    printf("possible arguments:\n\n");
-    printf("-h       print this help and end\n");
-    printf("-w       force run in window\n");
-    printf("-f       force run fullscreen\n\n");
-    printf("controls:\n");
-    printf("TODO\n");
+    puts("TODOGAME, a suckless first person shooter game (SDL2 frontend)\n");
+    puts("version TODO, by Miloslav Ciz, released under CC0 1.0 + waiver of all IP");
+    puts("possible arguments:\n");
+    puts("-h       print this help and end");
+    puts("-w       force run in window");
+    puts("-f       force run fullscreen\n");
+    puts("controls:");
+    puts("TODO");
 
     return 0;
   }
 
-  printf("SDL: starting\n");
+  puts("SDL: starting");
 
-  printf("SDL: initializing SDL\n");
+  puts("SDL: initializing SDL");
 
   window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 
   if (!argForceWindow && argForceFullscreen)
   {
-    printf("SDL: setting fullscreen\n");
+    puts("SDL: setting fullscreen");
     SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
   }
 
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
   audioSpec.samples = 128;
 
   if (SDL_OpenAudio(&audioSpec,0) < 0)
-    printf("SDL: could not initialize audio\n");
+    puts("SDL: could not initialize audio");
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
     mainLoopIteration();
 #endif
 
-  printf("SDL: freeing SDL\n");
+  puts("SDL: freeing SDL");
 
   SDL_PauseAudio(1);
   SDL_DestroyTexture(texture);
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
   SDL_DestroyWindow(window); 
   SDL_CloseAudio();
 
-  printf("SDL: ending\n");
+  puts("SDL: ending");
 
   return 0;
 }
