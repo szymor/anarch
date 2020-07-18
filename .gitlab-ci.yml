@@ -1,0 +1,9 @@
+pages:
+  stage: deploy
+  script:
+  - cp index.html public
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
