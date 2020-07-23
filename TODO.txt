@@ -1,11 +1,15 @@
 general:
 
+- On Win$hit builds display an anti-windshit text, by macro.
+- Boss (the last one killed) should drop key card, for boss levels (hardcode).
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
 - weapon autoswitch: when a stronger weapon becomes available via picking up
   ammo, maybe it should automatically be switched to (could have disable
   setting)
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
+- compile on BSD and WinShit
+- make SFML frontend
 - port to GB Meta
 - music:
   Probably just one long music track playing over and over -- KISS. The frontend
@@ -63,6 +67,7 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
+- Underground storage level start: be at the bottom of an elevator pit.
 - ceiling with "holes" through which sky (background) can be seen -- can be done
   by having the ceiling texture set transparent and then alternating ceiling and
   no ceiling
