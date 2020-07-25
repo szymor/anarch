@@ -359,6 +359,8 @@ struct
   SFG_ProjectileRecord projectileRecords[SFG_MAX_PROJECTILES];
   uint8_t projectileRecordCount;
 
+  uint8_t bossCount;
+
   uint8_t backgroundImage;
 
   uint8_t teleportCount;
@@ -1279,6 +1281,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
 
   SFG_currentLevel.levelPointer = level;
 
+  SFG_currentLevel.bossCount = 0;
+
   SFG_currentLevel.floorColor = level->floorColor;
   SFG_currentLevel.ceilingColor = level->ceilingColor;
 
@@ -1361,6 +1365,9 @@ void SFG_setAndInitLevel(const SFG_Level *level)
         monster->coords[1] = e->coords[1] * 4 + 2;
 
         SFG_currentLevel.monsterRecordCount++;
+
+        if (e->type == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
+          SFG_currentLevel.bossCount++;
       }
       else if ((e->type < SFG_LEVEL_ELEMENT_LOCK0) ||
         (e->type > SFG_LEVEL_ELEMENT_LOCK2))
@@ -2491,6 +2498,20 @@ void SFG_updateLevel()
 
       if (state == SFG_MONSTER_STATE_DYING)
       {
+
+         if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
+         {
+           SFG_currentLevel.bossCount--;
+
+           // last boss killed gives player a key card
+
+           if (SFG_currentLevel.bossCount == 0)
+           {
+             SFG_LOG("boss killed, giving player a card");
+             SFG_player.cards |= 0x04;
+           }
+         }
+
         // remove dead
 
         for (uint16_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
