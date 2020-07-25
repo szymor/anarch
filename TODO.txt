@@ -67,6 +67,8 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
+- Many teleports at place A and one teleport at place B, giving a low chance of
+  reaching B: player has to gring teleports until randomly lands in B.
 - Underground storage level start: be at the bottom of an elevator pit.
 - ceiling with "holes" through which sky (background) can be seen -- can be done
   by having the ceiling texture set transparent and then alternating ceiling and
