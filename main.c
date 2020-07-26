@@ -325,8 +325,9 @@ struct
   uint8_t  freeLook;             /**< If on, the vertical looking (shear) does
                                  not automatically shear back. This is mainly 
                                  for mouse control. */
-  uint8_t  cards;                /**< Lowest bits say which access cards have
-                                 been taken. */
+  uint8_t  cards;                /**< Lowest 3 bits say which access cards have
+                                 been taken., the next 3 bits say which cards
+                                 should be blinking in the HUD. */
   uint8_t  justTeleported;
 } SFG_player;
 
@@ -2358,9 +2359,12 @@ void SFG_updateLevel()
   // handle door:
   if (SFG_currentLevel.doorRecordCount > 0) // has to be here
   {
-    /* Check one door on whether a player is standing nearby. For performance
+    /* Check door on whether a player is standing nearby. For performance
        reasons we only check a few doors and move to others in the next
        frame. */
+    
+    if (SFG_currentLevel.checkedDoorIndex == 0)
+      SFG_player.cards &= 0x07; // stop HUD card blinking each cycle
 
     for (uint16_t i = 0;
          i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
@@ -2372,16 +2376,30 @@ void SFG_updateLevel()
 
       uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
 
-      uint8_t lock = SFG_DOOR_LOCK(door->state);
+      uint8_t newUpDownState = 0;
 
-      uint8_t newUpDownState = 
-                (
-                  ((lock == 0) || (SFG_player.cards & (1 << (lock - 1)))) &&
-                  (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
-                  (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
-                  (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
-                  (door->coords[1] <= (SFG_player.squarePosition[1] + 1))
-                ) ? SFG_DOOR_UP_DOWN_MASK : 0x00; 
+      if ( // player near door?
+        (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+        (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+        (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+        (door->coords[1] <= (SFG_player.squarePosition[1] + 1)))
+      {
+        uint8_t lock = SFG_DOOR_LOCK(door->state);
+
+        if (lock == 0)
+        {
+          newUpDownState = SFG_DOOR_UP_DOWN_MASK;    
+        }
+        else
+        {
+          lock = 1 << (lock - 1);
+
+          if (lock & SFG_player.cards) // has the card?
+            newUpDownState = SFG_DOOR_UP_DOWN_MASK;
+          else
+            SFG_player.cards |= lock << 3; // make card blink on HUD
+        }
+      }
 
       if (upDownState != newUpDownState)
         SFG_playGameSound(1,255);
@@ -4010,8 +4028,12 @@ void SFG_draw()
       SFG_FONT_SIZE_MEDIUM,
       4); 
 
+    uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+
     for (uint8_t i = 0; i < 3; ++i) // access cards
-      if (SFG_player.cards & (1 << i))
+      if ( 
+        ((SFG_player.cards >> i) | ((SFG_player.cards >> (i + 3)) & blink))
+        & 0x01)
         SFG_fillRectangle(
           SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
             SFG_FONT_SIZE_MEDIUM * (5 + i),
