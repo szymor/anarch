@@ -4002,7 +4002,8 @@ void SFG_draw()
       SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
 
     SFG_drawNumber( // ammo
-      SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)],
+      SFG_player.weapon != SFG_WEAPON_KNIFE ?
+        SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)] : 0,
       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
         (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM * 3,
       TEXT_Y,
