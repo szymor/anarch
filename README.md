@@ -90,7 +90,9 @@ Because assembly isn't portable and even a portable assembly would make it too d
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 
-Basically yes, since I have given up all my IP rights, legally you can do anything with this which is not otherwise illegal, without needing any permission from me, which means you can play this, modify this, sell this, without even crediting me. That is all legal, however that doesn't mean it's automatically moral or that I endorse everything you do. As an anarchist I don't want law involved and I feel it is your responsibility to decide what is moral behavior.
+Basically yes, since I have given up all my IP rights, legally you can do anything with this **which is not otherwise illegal**, without needing any permission from me, which means you can play this, modify this, sell this, without even crediting me. That is all legal, however that doesn't mean it's automatically moral or that I endorse everything you do. As an anarchist I don't want law involved and I feel it is your responsibility to decide what is moral behavior.
+
+**Note that legally there are still things you cannot do with a public domain work like this**, for example you can't claim copyright for it, i.e. you **cannot** restrict others from using this in any way they want, i.e. you **cannot** stop others from selling this. You also **cannot** claim the lie that you've made this game and own it. You **can** add your own creations to this work (e.g. levels) and claim copyright **only** to those specific parts.
 
 If you for example start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this, I trust you and leave all this to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
 
