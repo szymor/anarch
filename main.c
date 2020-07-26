@@ -1120,13 +1120,13 @@ void SFG_getPlayerWeaponInfo(
 
 void SFG_playerRotateWeapon(uint8_t next)
 {
-  RCL_Unit initialWeapon = SFG_player.weapon;
-  RCL_Unit increment = next ? 1 : -1;
+  uint8_t initialWeapon = SFG_player.weapon;
+  int8_t increment = next ? 1 : -1;
 
   while (1)
   {
-    SFG_player.weapon = 
-      RCL_wrap(SFG_player.weapon + increment,SFG_WEAPONS_TOTAL);
+    SFG_player.weapon =
+      (SFG_WEAPONS_TOTAL + SFG_player.weapon + increment) % SFG_WEAPONS_TOTAL;
 
     if (SFG_player.weapon == initialWeapon)
       break;
