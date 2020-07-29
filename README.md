@@ -48,6 +48,14 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ## FAQ
 
+### Why?
+
+Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (liceses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
+
+### Is this a joke?
+
+No.
+
 ### Is this running on Doom engine or what?
 
 No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine, i.e. a principle completely different from raycasting). I've made the engine with the same philosophy in mind as the game itself.
@@ -78,6 +86,10 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
+### I can make this in Unity in a week.
+
+Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
+
 ### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
 
 No, all these are optional. The core doesn't have any dependencies other than a C99 compiler. Frontends do depend on external libraries, but I've designed the frontend interface so that it's extremely easy to write one, so if let's say SDL dies, it's no problem to write a new frontend using another library.
@@ -94,13 +106,21 @@ Basically yes, since I have given up all my IP rights, legally you can do anythi
 
 **Note that legally there are still things you cannot do with a public domain work like this**, for example you can't claim copyright for it, i.e. you **cannot** restrict others from using this in any way they want, i.e. you **cannot** stop others from selling this. You also **cannot** claim the lie that you've made this game and own it. You **can** add your own creations to this work (e.g. levels) and claim copyright **only** to those specific parts.
 
-If you for example start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this, I trust you and leave all this to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
+If you, for example, start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this as I clearly state with CC0, I leave all decisions to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
 
-Am I so stupid as to trust complete strangers to not abuse this? No, I know some will probably "abuse" my work, but it's a price I am willing to pay and I think the good will be greater than the bad. I believe no one should be able to own information.
+Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work, but the good that will come from this will be greater than the bad. Perhaps this alone will make some people think.
+
+### Who are you?
+
+I am an anarcho-pacifist programmer. You can read more about me at [my website](https://www.tastyfish.cz). You can read my political manifesto here: [Non-Competitive Society](https://gitlab.com/drummyfish/my_writings/-/blob/master/non-competitive%20society.pdf).
 
 ### You sound like an insane person, are you crazy?
 
-I do have mental issues, but they don't affect my reasoning. I ask you to critically think about ideas I present.
+I have mental issues as most people nowadays, but they don't affect my reasoning. I ask you to critically evaluate the ideas I present to you.
+
+### Can I support you?
+        
+Yes. This isn't made for any profit, but if you decide you want to share some food with a fellow human being, you can find my support info at [my website](https://www.tastyfish.cz). 
 
 ## code guide
 
@@ -133,6 +153,8 @@ AI
 map format
 
 main loop, constant time step
+
+saving/loading is optional
 
 optimizations, move computations to compile time, approximations (taxicab, ...), precomputations, -O3
 
