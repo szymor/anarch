@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.906
+  version: 0.907
 */
 
 #include <stdint.h>
@@ -1857,7 +1857,7 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
     else\
       dir##Collides = floorHeightFunc(s1,s2) > RCL_CAMERA_COLL_STEP_HEIGHT;
 
-    // check a collision against non-diagonal square
+    // check collision against non-diagonal square
     #define collCheckOrtho(dir,dir2,s1,s2,x)\
     if (dir##SquareNew != dir##Square)\
     {\
@@ -1882,39 +1882,72 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
     int8_t yCollides = 0;
     collCheckOrtho(y,x,xSquare,ySquareNew,0)
 
-    #define collHandle(dir)\
-    if (dir##Collides)\
-      cornerNew.dir = (dir##Square) * RCL_UNITS_PER_SQUARE +\
-      RCL_UNITS_PER_SQUARE / 2 + dir##Dir * (RCL_UNITS_PER_SQUARE / 2) -\
-      dir##Dir;\
-
-    if (!xCollides && !yCollides) /* if non-diagonal collision happend, corner
-                                     collision can't happen */
+    if (xCollides || yCollides)
     {
-      if (xSquare != xSquareNew && ySquare != ySquareNew) // corner?
+      if (movesInPlane)
+      {
+        #define collHandle(dir)\
+        if (dir##Collides)\
+          cornerNew.dir = (dir##Square) * RCL_UNITS_PER_SQUARE +\
+          RCL_UNITS_PER_SQUARE / 2 + dir##Dir * (RCL_UNITS_PER_SQUARE / 2) -\
+          dir##Dir;\
+
+        collHandle(x)
+        collHandle(y)
+      
+        #undef collHandle
+      }
+      else
+      {
+        /* Player collides without moving in the plane; this can happen e.g. on
+           elevators due to vertical only movement. This code can get executed
+           when force == 1. */
+
+        RCL_Vector2D squarePos;
+        RCL_Vector2D newPos;
+
+        squarePos.x = xSquare * RCL_UNITS_PER_SQUARE;
+        squarePos.y = ySquare * RCL_UNITS_PER_SQUARE;
+
+        newPos.x =
+          RCL_max(squarePos.x + RCL_CAMERA_COLL_RADIUS + 1,
+            RCL_min(squarePos.x + RCL_UNITS_PER_SQUARE - RCL_CAMERA_COLL_RADIUS - 1,
+              camera->position.x));
+
+        newPos.y = 
+          RCL_max(squarePos.y + RCL_CAMERA_COLL_RADIUS + 1,
+            RCL_min(squarePos.y + RCL_UNITS_PER_SQUARE - RCL_CAMERA_COLL_RADIUS - 1,
+              camera->position.y));
+
+        cornerNew.x = corner.x + (newPos.x - camera->position.x);
+        cornerNew.y = corner.y + (newPos.y - camera->position.y);
+      }
+    }
+    else 
+    {
+      /* If no non-diagonal collision is detected, a diagonal/corner collision
+         can still happen, check it here. */
+
+      if (xSquare != xSquareNew && ySquare != ySquareNew)
       {
         int8_t xyCollides = 0;
         collCheck(xy,xSquareNew,ySquareNew)
         
         if (xyCollides)
         {
-          // normally should slide, but let's KISS
+          // normally should slide, but let's KISS and simply stop any movement
           cornerNew = corner;
         }
       }
     }
 
-    collHandle(x)
-    collHandle(y)
-
     #undef collCheck
-    #undef collHandle
 
     camera->position.x = cornerNew.x - xDir * RCL_CAMERA_COLL_RADIUS;
-    camera->position.y = cornerNew.y - yDir * RCL_CAMERA_COLL_RADIUS;
+    camera->position.y = cornerNew.y - yDir * RCL_CAMERA_COLL_RADIUS;  
   }
 
-  if (computeHeight && (movesInPlane || heightOffset != 0 || force))
+  if (computeHeight && (movesInPlane || (heightOffset != 0) || force))
   {
     camera->height += heightOffset;
 
