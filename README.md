@@ -7,6 +7,7 @@
 ## Why this game is special
 
 - **Completely public domain (CC0) free softare, free culture, libre game** for the benefit of all living beings in the Universe, **no conoditions on use whatsoever**. **All art is original** work and licensed CC0 (as well as code).
+- **100% non-commercial**, free of any ads, spyware, microtransactions, corporate logos, planned obsolescence etc.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
 - **Suckless, KISS, minimal, simple**, short code (< 10000 LOC TODO).
 - **Extremely portable** (much more than Doom). So far tested on GNU/Linux PC, Pokitto, TODO.
@@ -14,7 +15,7 @@
 - Can fit into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler.
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
-- **Doesn't use ANY floating point**, everything is integer math (good for platforms without FPU).
+- **Doesn't use any floating point**, everything is integer math (good for platforms without FPU).
 - Written in **pure C99**, also a **subset of C++** (i.e. runs as C++ as well, good for systems that are hard C++ based).
 - Made to **last for centuries** without maintenance.
 - Goes beyond technical design and also **attempts to avoid possible cultural dependencies and barriers** (enemies are only robots, no violence on living beings).
@@ -62,7 +63,7 @@ No, this is my custom engine (raycastlib) based on raycasting, a technique used 
 
 ### How is this different from the trillion other retro shooters?
 
-Firstly this isn't trying to look like a 90s style shooter, this IS a 90s style shooter. The code is written in the oldschool language and style, in a custom efficient SW rendering engine, just like in the old days, meaning this will run anywhere.
+Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style, in a custom efficient SW rendering engine, just like in the old days, meaning this will run anywhere.
 
 Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and art are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
 
