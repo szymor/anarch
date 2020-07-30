@@ -1228,6 +1228,7 @@ void SFG_getItemSprite(
     case SFG_LEVEL_ELEMENT_TREE:
     case SFG_LEVEL_ELEMENT_RUIN:
     case SFG_LEVEL_ELEMENT_LAMP:
+    case SFG_LEVEL_ELEMENT_TELEPORT:
       *spriteSize = 2;
       break;
 
@@ -1235,7 +1236,6 @@ void SFG_getItemSprite(
       *spriteSize = 1;
       break;
 
-    case SFG_LEVEL_ELEMENT_TELEPORT:
     case SFG_LEVEL_ELEMENT_FINISH:
     case SFG_LEVEL_ELEMENT_COLUMN:
       *spriteSize = 3;
@@ -2143,6 +2143,11 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
     collision =
       RCL_abs(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
+
+    if (!collision)
+      collision = 
+        (SFG_ceilingHeightAt(newPos[0] / 4,newPos[1] / 4) - newHeight) <
+        SFG_MONSTER_COLLISION_HEIGHT;
   }
 
   if (collision)
