@@ -221,6 +221,7 @@ typedef struct
 #define SFG_MONSTER_STATE_GOING_SW  10
 #define SFG_MONSTER_STATE_GOING_W   11
 #define SFG_MONSTER_STATE_GOING_NW  12
+#define SFG_MONSTER_STATE_DEAD      13
 
 typedef struct
 {
@@ -532,9 +533,11 @@ static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
 const uint8_t *SFG_getMonsterSprite(
   uint8_t monsterType, uint8_t state, uint8_t frame)
 {
-  uint8_t index = 17; // makes the code smaller compared to returning pointers
+  uint8_t index = 
+    state == SFG_MONSTER_STATE_DEAD ? 18 : 17;
+  // ^ makes the code smaller compared to returning pointers
 
-  if (state != SFG_MONSTER_STATE_DYING)
+  if ((state != SFG_MONSTER_STATE_DYING) && (state != SFG_MONSTER_STATE_DEAD))
     switch (monsterType)
     {
       case SFG_LEVEL_ELEMENT_MONSTER_SPIDER:
@@ -586,7 +589,7 @@ const uint8_t *SFG_getMonsterSprite(
         index = 16; 
         break;
     }
-
+  
   return SFG_monsterSprites[index];
 }
 
@@ -2286,7 +2289,10 @@ void SFG_updateLevel()
         {
           SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[j]);
 
-          if (SFG_MR_STATE(*m) != SFG_MONSTER_STATE_INACTIVE)
+          uint8_t state = SFG_MR_STATE(*m);
+
+          if ((state != SFG_MONSTER_STATE_INACTIVE) &&
+              (state != SFG_MONSTER_STATE_DEAD))
           {
             if (SFG_projectileCollides(p,
                   SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]),
@@ -2499,7 +2505,8 @@ void SFG_updateLevel()
       {
         monster->stateType = 
           (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-          SFG_MONSTER_STATE_IDLE;
+          (monster->health != 0 ? 
+            SFG_MONSTER_STATE_IDLE : SFG_MONSTER_STATE_DEAD);
       }
 
       SFG_currentLevel.checkedMonsterIndex++;
@@ -2519,6 +2526,10 @@ void SFG_updateLevel()
       SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
       uint8_t state = SFG_MR_STATE(*monster);
 
+      if ((state == SFG_MONSTER_STATE_INACTIVE) || 
+          (state == SFG_MONSTER_STATE_DEAD))
+        continue;
+
       if (state == SFG_MONSTER_STATE_DYING)
       {
         if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
@@ -2534,22 +2545,15 @@ void SFG_updateLevel()
           }
         }
 
-        // remove dead
-
-        for (uint16_t j = i; j < SFG_currentLevel.monsterRecordCount - 1; ++j)
-          SFG_currentLevel.monsterRecords[j] =
-            SFG_currentLevel.monsterRecords[j + 1];        
-
-        SFG_currentLevel.monsterRecordCount -= 1;
-
-        i--;
+        monster->stateType =
+          (monster->stateType & 0xf0) | SFG_MONSTER_STATE_DEAD;
       }
       else if (monster->health == 0)
       {
         monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
           SFG_MONSTER_STATE_DYING;
       }
-      else if (state != SFG_MONSTER_STATE_INACTIVE)
+      else
       {
 #if SFG_PREVIEW_MODE == 0
         SFG_monsterPerformAI(monster);
@@ -2916,7 +2920,9 @@ void SFG_gameStepPlaying()
   {
     SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
 
-    if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
+    uint8_t state = SFG_MR_STATE(*m);
+
+    if (state == SFG_MONSTER_STATE_INACTIVE || state == SFG_MONSTER_STATE_DEAD)
       continue;
 
     RCL_Vector2D mPos;
