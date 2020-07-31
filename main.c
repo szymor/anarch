@@ -2521,19 +2521,18 @@ void SFG_updateLevel()
 
       if (state == SFG_MONSTER_STATE_DYING)
       {
+        if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
+        {
+          SFG_currentLevel.bossCount--;
 
-         if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
-         {
-           SFG_currentLevel.bossCount--;
+          // last boss killed gives player a key card
 
-           // last boss killed gives player a key card
-
-           if (SFG_currentLevel.bossCount == 0)
-           {
-             SFG_LOG("boss killed, giving player a card");
-             SFG_player.cards |= 0x04;
-           }
-         }
+          if (SFG_currentLevel.bossCount == 0)
+          {
+            SFG_LOG("boss killed, giving player a card");
+            SFG_player.cards |= 0x04;
+          }
+        }
 
         // remove dead
 
