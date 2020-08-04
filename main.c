@@ -1921,8 +1921,13 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
         pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
 
-        dir.x = SFG_player.camera.position.x - pos.x;
-        dir.y = SFG_player.camera.position.y - pos.y;
+        dir.x = SFG_player.camera.position.x - pos.x
+          - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+          SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+
+        dir.y = SFG_player.camera.position.y - pos.y
+          - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+          SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
 
         dir = RCL_normalize(dir);
 

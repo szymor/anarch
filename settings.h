@@ -199,17 +199,23 @@
 */
 #define SFG_MONSTER_SOUND_PROBABILITY 64
 
+/**
+  Affects how precise monsters are in aiming, specify random range in
+  fourths of a game square. Should be power of 2 for performance.
+*/
+#define SFG_MONSTER_AIM_RANDOMNESS 4
+
 //------ developer/debug settings ------
 
 /**
   Developer cheat for having infinite ammo in all weapons.
 */
-#define SFG_INFINITE_AMMO 0
+#define SFG_INFINITE_AMMO 1
 
 /**
   Developer cheat for immortality.
 */
-#define SFG_IMMORTAL 0
+#define SFG_IMMORTAL 1
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).

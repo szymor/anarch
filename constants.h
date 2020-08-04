@@ -139,6 +139,11 @@
 #define SFG_DAMAGE_RANDOMNESS 64 
 
 /**
+  Height of monster collision BBox in RCL_Units.
+*/
+#define SFG_MONSTER_COLLISION_HEIGHT 1024
+
+/**
   Specifies key repeat delay, in ms.
 */
 #define SFG_KEY_REPEAT_DELAY 500
@@ -518,7 +523,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {
   /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,400),
-  /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(18,1000),
+  /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(11,1000),
   /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(20,500),
   /* dust      */ SFG_PROJECTILE_ATTRIBUTE(0,450),
   /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(28,1000)
