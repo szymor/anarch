@@ -20,6 +20,10 @@
 #ifndef _SFG_PLATFORM_H
 #define _SFG_PLATFORM_H
 
+#if defined(_WIN32) || defined(WIN32) || defined(__WIN32__) || defined(__NT__) || defined(__APPLE__)
+  #define SFG_OS_IS_MALWARE 1
+#endif
+
 #include "settings.h"
 
 #include <stdio.h>

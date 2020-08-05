@@ -205,6 +205,13 @@
 */
 #define SFG_MONSTER_AIM_RANDOMNESS 4
 
+/**
+  Boolean value indicating whether current OS is malware.
+*/
+#ifndef SFG_OS_IS_MALWARE
+  #define SFG_OS_IS_MALWARE 0
+#endif
+
 //------ developer/debug settings ------
 
 /**

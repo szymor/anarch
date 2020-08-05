@@ -31,4 +31,10 @@ SFG_PROGRAM_MEMORY char *SFG_introText =
   "only destroy, not suffer - it is not wrong to end them! You grab your gear "
   "and run towards Macrochip HQ.";
 
+#define SFG_MALWARE_WARNING ""
+
+#if SFG_OS_IS_MALWARE
+  #define SFG_MALWARE_WARNING "MALWARE OS DETECTED"
+#endif
+
 #endif // gaurd

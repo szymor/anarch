@@ -3686,6 +3686,8 @@ void SFG_drawMenu()
 
   uint8_t i = 0;
 
+  uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+
   while (1)
   {
     uint8_t item = SFG_getMenuItem(i);
@@ -3714,8 +3716,7 @@ void SFG_drawMenu()
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
     if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND) &&
-        ((i != SFG_game.selectedMenuItem) ||
-         ((SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2)))
+        ((i != SFG_game.selectedMenuItem) || blink))
     {
       //uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
 
@@ -3743,6 +3744,12 @@ void SFG_drawMenu()
   
   SFG_drawText("0.7 CC0",SFG_HUD_MARGIN,SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN
     - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4,0,0);
+
+  #if SFG_OS_IS_MALWARE
+    if (blink)
+      SFG_drawText(SFG_MALWARE_WARNING,SFG_HUD_MARGIN,SFG_HUD_MARGIN,
+        SFG_FONT_SIZE_MEDIUM,95,0,0);
+  #endif
 
   #undef MAX_ITEMS
   #undef BACKGROUND_SCALE
