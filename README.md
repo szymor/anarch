@@ -57,15 +57,17 @@ Because I find it ridiculously depressing that in a world where we have millions
 
 No.
 
+I **will** be ridiculed, made fun of, bullied and dismissed as an *obvious* lunatic, as many similar people in history who have seen the truth behind the curtain of that time's propaganda. And those in front of it will say "this is different because ..." No, this is not different, I am choosing to see the truth and am exiled for it. I am offering the truth to you, dear reader, but you will probably refuse it because it is too scary, uncomfortable, unbearable, and will rather try to rationalize the lies you've been taught. You will likely dismiss this as a mere joke.
+
 ### Is this running on Doom engine or what?
 
 No, this is my custom engine (raycastlib) based on raycasting, a technique used in Wolf3D engine, but it's improved, e.g. supporting multiple levels of floor and ceiling, so that the visual result is something between Wolf3D and Doom (which was a BSP engine, i.e. a principle completely different from raycasting). I've made the engine with the same philosophy in mind as the game itself.
 
 ### How is this different from the trillion other retro shooters?
 
-Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style, in a custom efficient SW rendering engine, just like in the old days, meaning this will run anywhere.
+Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style in a custom efficient SW rendering engine, just like in the old days, but taken further and evolved in a new direction.
 
-Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and art are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
+Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and assets are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
 
 ### Isn't this backwards? The graphics looks like shit.
 
