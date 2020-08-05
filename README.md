@@ -51,7 +51,7 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ### Why?
 
-Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (liceses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
+Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (licenses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
 
 ### Is this a joke?
 
@@ -89,7 +89,7 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
-### I can make this in Unity in a week.
+### I can make this in "Unity" in a week.
 
 Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
 
