@@ -91,7 +91,7 @@ This game is suppost to be accessible, i.e. require only as many resources as ne
 
 ### I can make this in "Unity" in a week.
 
-Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
+Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
 
 ### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
 
