@@ -457,6 +457,11 @@ uint8_t SFG_random()
   return SFG_game.currentRandom;
 }
 
+static inline int8_t SFG_blinkOn()
+{
+  return (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+}
+
 void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
 {
   if (!(SFG_game.soundSettings & 0x01))
@@ -1300,7 +1305,12 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_currentLevel.doorRecordCount = 0;
   SFG_currentLevel.projectileRecordCount = 0;
   SFG_currentLevel.teleportCount = 0;
-  SFG_currentLevel.mapRevealMask = 0;
+  SFG_currentLevel.mapRevealMask = 
+#if SFG_REVEAL_MAP
+    0xffff;
+#else
+    0;
+#endif
 
   for (uint8_t j = 0; j < SFG_MAP_SIZE; ++j)
   {
@@ -3365,6 +3375,8 @@ void SFG_drawMap()
   uint16_t x;
   uint16_t y = topLeftY;
 
+  uint8_t playerColor = SFG_blinkOn() ? 93 : 111;
+
   for (int16_t j = 0; j < maxJ; ++j)
   {
     x = topLeftX;
@@ -3380,23 +3392,23 @@ void SFG_drawMap()
         SFG_TileDefinition tile =
           SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
 
-        color = 94; // start with player color
+        color = playerColor; // start with player color
 
         if (i != SFG_player.squarePosition[0] ||
             j != SFG_player.squarePosition[1])
         {
           if (properties == SFG_TILE_PROPERTY_ELEVATOR)
-            color = 46;
+            color = 214;
           else if (properties == SFG_TILE_PROPERTY_SQUEEZER)
-            color = 63;
+            color = 246;
           else
           {
-            color =
-              (SFG_TILE_FLOOR_HEIGHT(tile) - SFG_TILE_CEILING_HEIGHT(tile))
-              / 8 + 2;
+            color = 0;
 
-            if (properties == SFG_TILE_PROPERTY_DOOR)
-              color += 8;
+            uint8_t c = SFG_TILE_CEILING_HEIGHT(tile) / 4;
+
+            if (c != 0)
+              color = (SFG_TILE_FLOOR_HEIGHT(tile) % 8 + 3) * 8 + c - 1;
           }
         }
       }
@@ -3686,7 +3698,7 @@ void SFG_drawMenu()
 
   uint8_t i = 0;
 
-  uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+  uint8_t blink = SFG_blinkOn();
 
   while (1)
   {
@@ -3718,8 +3730,6 @@ void SFG_drawMenu()
     if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND) &&
         ((i != SFG_game.selectedMenuItem) || blink))
     {
-      //uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
-
       uint32_t x =
         drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1);
 
@@ -4050,7 +4060,7 @@ void SFG_draw()
       SFG_FONT_SIZE_MEDIUM,
       4); 
 
-    uint8_t blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+    uint8_t blink = SFG_blinkOn();
 
     for (uint8_t i = 0; i < 3; ++i) // access cards
       if ( 

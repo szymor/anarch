@@ -241,4 +241,9 @@
 */
 #define SFG_START_LEVEL 6
 
+/**
+  Reveals whole level map from start.
+*/
+#define SFG_REVEAL_MAP 1
+
 #endif // guard
