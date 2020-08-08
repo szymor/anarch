@@ -21,9 +21,10 @@
   Target FPS (frames per second). This sets the game logic FPS and will try to
   render at the same rate. If such fast rendering can't be achieved, frames will
   be droped, but the game logic will still be forced to run at this speed, so
-  the game may actually become slowed down if FPS is set too high. Too high FPS
-  can also negatively affect game speeds which are computed as integers and
-  rounding errors can occur soon, so don't set this to extreme values.
+  the game may actually become slowed down if FPS is set too high. Too high or
+  too low FPS can also negatively affect game speeds which are computed as
+  integers and rounding errors can occur soon, so don't set this to extreme
+  values (try to keep from 20 to 100).
 */
 #define SFG_FPS 60
 
