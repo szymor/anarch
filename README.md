@@ -51,11 +51,13 @@ Besides support my project has also gotten a lot of hate, being called backwards
 
 ### Why?
 
-Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (liceses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
+Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (licenses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
 
 ### Is this a joke?
 
 No.
+
+I **will** be ridiculed, made fun of, bullied and dismissed as an *obvious* lunatic, as many similar people in history who have seen the truth behind the curtain of that time's propaganda. And those in front of it will say "this is different because ..." No, this is not different, I am choosing to see the truth and am exiled for it. I am offering the truth to you, dear reader, but you will probably refuse it because it is too scary, uncomfortable, unbearable, and will rather try to rationalize the lies you've been taught. You will likely dismiss this as a mere joke.
 
 ### Is this running on Doom engine or what?
 
@@ -63,9 +65,9 @@ No, this is my custom engine (raycastlib) based on raycasting, a technique used 
 
 ### How is this different from the trillion other retro shooters?
 
-Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style, in a custom efficient SW rendering engine, just like in the old days, meaning this will run anywhere.
+Firstly this isn't trying to look like a 90s style shooter, this **is** a 90s style shooter. The code is written in the oldschool language and style in a custom efficient SW rendering engine, just like in the old days, but taken further and evolved in a new direction.
 
-Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and art are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
+Secondly this is more than a game and is not made for any profit but for the benefit of all people. This is not a product of capitalism, but a manifesto and a selfless work of art. The code and assets are free as in freedom, meaning you can do anything you want with them -- you don't have to buy this, agree to any terms, nothing is hidden from you.
 
 ### Isn't this backwards? The graphics looks like shit.
 
@@ -87,9 +89,9 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
-### I can make this in Unity in a week.
+### I can make this in "Unity" in a week.
 
-Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
+Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
 
 ### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
 
