@@ -3377,7 +3377,8 @@ void SFG_drawMap()
   uint16_t x;
   uint16_t y = topLeftY;
 
-  uint8_t playerColor = SFG_game.blink ? 93 : 111;
+  uint8_t playerColor = 
+    SFG_game.blink ? SFG_MAP_PLAYER_COLOR1 : SFG_MAP_PLAYER_COLOR2;
 
   for (int16_t j = 0; j < maxJ; ++j)
   {
@@ -3400,9 +3401,11 @@ void SFG_drawMap()
             j != SFG_player.squarePosition[1])
         {
           if (properties == SFG_TILE_PROPERTY_ELEVATOR)
-            color = 214;
+            color = SFG_MAP_ELEVATOR_COLOR;
           else if (properties == SFG_TILE_PROPERTY_SQUEEZER)
-            color = 246;
+            color = SFG_MAP_SQUEEZER_COLOR;
+          else if (properties == SFG_TILE_PROPERTY_DOOR)
+            color = SFG_MAP_DOOR_COLOR;
           else
           {
             color = 0;

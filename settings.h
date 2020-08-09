@@ -206,6 +206,21 @@
 */
 #define SFG_MONSTER_AIM_RANDOMNESS 4
 
+/// Color 1 index of player on map.
+#define SFG_MAP_PLAYER_COLOR1 93
+
+/// Color 2 index of player on map.
+#define SFG_MAP_PLAYER_COLOR2 111
+
+/// Color index of elevators on map.
+#define SFG_MAP_ELEVATOR_COLOR 214
+
+/// Color index of squeezers on map.
+#define SFG_MAP_SQUEEZER_COLOR 246
+
+/// Color index of door on map.
+#define SFG_MAP_DOOR_COLOR 188
+
 /**
   Boolean value indicating whether current OS is malware.
 */
