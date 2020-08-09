@@ -261,4 +261,9 @@
 */
 #define SFG_REVEAL_MAP 1
 
+/**
+  Gives player all keys from start.
+*/
+#define SFG_UNLOCK_DOOR 1
+
 #endif // guard

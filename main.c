@@ -1186,7 +1186,12 @@ void SFG_initPlayer()
 
   SFG_player.health = SFG_PLAYER_START_HEALTH;
 
-  SFG_player.cards = 0;
+  SFG_player.cards = 
+#if SFG_UNLOCK_DOOR
+  255;
+#else
+  0;
+#endif
 
   SFG_player.justTeleported = 0;
 
