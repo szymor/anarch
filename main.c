@@ -297,6 +297,7 @@ struct
 
   uint8_t soundSettings;   /**< Sound settings: LSB says whether SFX is on,
                              second LSB says whether music is on. */
+  uint8_t blink;           ///< Says whether blinkg is currently on or off.
 } SFG_game;
 
 /**
@@ -455,11 +456,6 @@ uint8_t SFG_random()
   SFG_game.currentRandom += 7;
   
   return SFG_game.currentRandom;
-}
-
-static inline int8_t SFG_blinkOn()
-{
-  return (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
 }
 
 void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
@@ -2389,8 +2385,8 @@ void SFG_updateLevel()
        reasons we only check a few doors and move to others in the next
        frame. */
     
-    if (SFG_currentLevel.checkedDoorIndex == 0)
-      SFG_player.cards &= 0x07; // stop HUD card blinking each cycle
+//    if (SFG_currentLevel.checkedDoorIndex == 0)
+//      SFG_player.cards &= 0x07; // stop HUD card blinking each cycle
 
     for (uint16_t i = 0;
          i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
@@ -2403,6 +2399,14 @@ void SFG_updateLevel()
       uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
 
       uint8_t newUpDownState = 0;
+      
+      uint8_t lock = SFG_DOOR_LOCK(door->state);
+
+      if (lock != 0)
+      {
+        lock = 1 << (lock + 2);
+        SFG_player.cards &= ~lock; // stop HUD blinking
+      } 
 
       if ( // player near door?
         (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
@@ -2410,20 +2414,16 @@ void SFG_updateLevel()
         (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
         (door->coords[1] <= (SFG_player.squarePosition[1] + 1)))
       {
-        uint8_t lock = SFG_DOOR_LOCK(door->state);
-
         if (lock == 0)
         {
           newUpDownState = SFG_DOOR_UP_DOWN_MASK;    
         }
         else
         {
-          lock = 1 << (lock - 1);
-
-          if (lock & SFG_player.cards) // has the card?
+          if ((lock >> 3) & SFG_player.cards)     // player has the card?
             newUpDownState = SFG_DOOR_UP_DOWN_MASK;
           else
-            SFG_player.cards |= lock << 3; // make card blink on HUD
+            SFG_player.cards |= lock; // make card blink on HUD
         }
       }
 
@@ -3260,6 +3260,8 @@ void SFG_gameStepMenu()
 void SFG_gameStep()
 {
   SFG_game.soundsPlayedThisFrame = 0;
+  
+  SFG_game.blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     if (!SFG_keyPressed(i))
@@ -3375,7 +3377,7 @@ void SFG_drawMap()
   uint16_t x;
   uint16_t y = topLeftY;
 
-  uint8_t playerColor = SFG_blinkOn() ? 93 : 111;
+  uint8_t playerColor = SFG_game.blink ? 93 : 111;
 
   for (int16_t j = 0; j < maxJ; ++j)
   {
@@ -3698,8 +3700,6 @@ void SFG_drawMenu()
 
   uint8_t i = 0;
 
-  uint8_t blink = SFG_blinkOn();
-
   while (1)
   {
     uint8_t item = SFG_getMenuItem(i);
@@ -3728,7 +3728,7 @@ void SFG_drawMenu()
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
     if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND) &&
-        ((i != SFG_game.selectedMenuItem) || blink))
+        ((i != SFG_game.selectedMenuItem) || SFG_game.blink))
     {
       uint32_t x =
         drawX + SFG_characterSize(SFG_FONT_SIZE_MEDIUM) * (textLen + 1);
@@ -3756,7 +3756,7 @@ void SFG_drawMenu()
     - SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE,SFG_FONT_SIZE_SMALL,4,0,0);
 
   #if SFG_OS_IS_MALWARE
-    if (blink)
+    if (SFG_game.blink)
       SFG_drawText(SFG_MALWARE_WARNING,SFG_HUD_MARGIN,SFG_HUD_MARGIN,
         SFG_FONT_SIZE_MEDIUM,95,0,0);
   #endif
@@ -4060,12 +4060,10 @@ void SFG_draw()
       SFG_FONT_SIZE_MEDIUM,
       4); 
 
-    uint8_t blink = SFG_blinkOn();
-
     for (uint8_t i = 0; i < 3; ++i) // access cards
       if ( 
-        ((SFG_player.cards >> i) | ((SFG_player.cards >> (i + 3)) & blink))
-        & 0x01)
+        ((SFG_player.cards >> i) | ((SFG_player.cards >> (i + 3))
+        & SFG_game.blink)) & 0x01)
         SFG_fillRectangle(
           SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
             SFG_FONT_SIZE_MEDIUM * (5 + i),
