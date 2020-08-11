@@ -105,13 +105,13 @@ Because assembly isn't portable and even a portable assembly would make it too d
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 
-Basically yes, since I have given up all my IP rights, legally you can do anything with this **which is not otherwise illegal**, without needing any permission from me, which means you can play this, modify this, sell this, without even crediting me. That is all legal, however that doesn't mean it's automatically moral or that I endorse everything you do. As an anarchist I don't want law involved and I feel it is your responsibility to decide what is moral behavior.
+Basically yes, since I have given up all my IP rights, legally you can do anything with this **which is not otherwise illegal** (see the next paragraph), without needing any permission from me, which means you can play this, modify this, sell this, or do anything else without even crediting me. That is all legal, however that doesn't mean it's automatically moral or that I endorse anything you do. As an anarchist I don't want laws preventing your freedom to do anything with a copy of information. It is your responsibility to decide what is moral behavior.
 
-**Note that legally there are still things you cannot do with a public domain work like this**, for example you can't claim copyright for it, i.e. you **cannot** restrict others from using this in any way they want, i.e. you **cannot** stop others from selling this. You also **cannot** claim the lie that you've made this game and own it. You **can** add your own creations to this work (e.g. levels) and claim copyright **only** to those specific parts.
+Note that you may still be interested in that **legally there are still things you cannot do with a public domain work like this**. These are not my conditions, just general laws that I am informing you about. For example you cannot claim copyright for an unmodified version of the game, e.g. you **cannot** prevent others from using it in any way they want, e.g. you can sell this but you **cannot** stop others from also selling it or even redistributing it for free (notice how enforcing copyright is no longer a freedom to use one's own copy of information in any way, which is what I am giving you). Even if crediting me isn't required, you probably **cannot** claim the lie that you are the author of the unmodified version because that, again, is a false claim of copyright. Of course, you **can** add your own creations and modifictions to this work (e.g. levels, code, ...) and then claim copyright, but **only** to those specific parts you yourself created.
 
-If you, for example, start selling this and make big money, it would be nice if you sent me some of it -- I can't and won't enforce this as I clearly state with CC0, I leave all decisions to your conscience. Similarly if you modify this, I believe it would be nice if you keep it in the public domain under CC0, but I don't enforce this (if I wanted to, I would license this as copyleft).
+I don't enforce anything and don't even judge your actions, but I would still be happy if you voluntarily share with me some money that you make on this, if you credit me, if you share your derivative works as public domain or start promoting some of my philosophies. I believe these things are moral, but morals cannot and mustn't be forced. This is why I don't license this as copyleft.
 
-Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work, but the good that will come from this will be greater than the bad. Perhaps this alone will make some people think.
+Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work and I am predict some Chinese company will soon be distributing this somehow with a false claim copyright (in which case please don't believe them, there exists evidence of me creating this and releasing this first, with all rights waived). The good that will come from this will be greater than the bad. Perhaps this alone will make you think.
 
 ### Who are you?
 
@@ -119,11 +119,11 @@ I am an anarcho-pacifist programmer. You can read more about me at [my website](
 
 ### You sound like an insane person, are you crazy?
 
-I have mental issues as most people nowadays, but they don't affect my reasoning. I ask you to critically evaluate the ideas I present to you.
+I have mental issues as most people nowadays, but they don't affect my reasoning. I challenge you to critically evaluate the ideas I present to you.
 
 ### Can I support you?
-        
-Yes. This isn't made for any profit, but if you decide you want to share some food with a fellow human being, you can find my support info at [my website](https://www.tastyfish.cz). 
+
+Yes. This wasn't made for any profit and so I don't want you to reward me for doing what I love. Send me something only if you sincirely want to share money for basic living with a fellow human being. You can find my support info at [my website](https://www.tastyfish.cz).
 
 ## code guide
 
