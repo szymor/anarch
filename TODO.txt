@@ -54,6 +54,8 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
+- Long section under squeezer, player has to run and keep hiding in side rooms
+  to not get killed.
 - Elevator with 4 exits, on each world side.
 - Teleport to a football stadium outside?                                        DONE
 - Key to door that need to be unlocked can also unlock a door in previously      DONE
