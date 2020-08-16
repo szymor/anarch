@@ -1,7 +1,6 @@
 general:
 
 - On Win$hit builds display an anti-windshit text, by macro.
-- Boss (the last one killed) should drop key card, for boss levels (hardcode).
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
 - weapon autoswitch: when a stronger weapon becomes available via picking up
@@ -11,11 +10,6 @@ general:
 - compile on BSD and WinShit
 - make SFML frontend
 - port to GB Meta
-- music:
-  Probably just one long music track playing over and over -- KISS. The frontend
-  could have a callback function play_music_bar(n) which would be called by the
-  backend, the music track would be in sounds.h.
-- level 2D map (with revealing, bitmap), special key for quick displaying map
 - save/load (optional):
   When a level is finished, the state at the beginning of the next one (health,
   ammo, time, ...) is automatically saved and can be restored via load option in
@@ -24,23 +18,16 @@ general:
   implements a saving function.
 - more levels
 - disable transparency for walls for performance (setting)?
-- replace textures in distace with constant color for performance (setting)?
 - add time slowdown constant
-- if space left, try blurring (lerp) the level background, see how it looks
 - some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
   back towards the player
 - compile with different compilers (gcc, clang, musl, ...) and settings, make
   a build script that creates multiple binaries (with different combinations of
   compilers and settings)
 - run on raspbery pi
-- add jump pads?
 - add robot deactivator item? (encourages "stealth" gameplay)
-- add "pletivo" transparent wall texture?
-- add universal corpse sprite?
-- easter egg(s)
-- optioal graphics enhance: vertical wall shading ("ambient occlusions")?
+- optional graphics enhance: vertical wall shading ("ambient occlusions")?
 - option for disabling wall transparency, for performance?
-- open door by shooting at them?
 
 level ideas:
 
@@ -67,32 +54,40 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
-- Many teleports at place A and one teleport at place B, giving a low chance of
+- Elevator with 4 exits, on each world side.
+- Teleport to a football stadium outside?                                        DONE
+- Key to door that need to be unlocked can also unlock a door in previously      DONE
+  visited area which will just hide secret.                                      
+- text on the wall -- some letter can be create- text on the wall --             DONE
+  some letter can be createdd
+- Enemies can be placed on a single square higher fround to prevent their        DONE
+  movement.
+- Many teleports at place A and one teleport at place B, giving a low chance of  DONE
   reaching B: player has to gring teleports until randomly lands in B.
 - Underground storage level start: be at the bottom of an elevator pit.
-- ceiling with "holes" through which sky (background) can be seen -- can be done
+- ceiling with "holes" through which sky (background) can be seen -- can be done DONE
   by having the ceiling texture set transparent and then alternating ceiling and
   no ceiling
-- boss level: skyscraper top, player goes upwards in a spiral along the OUTSIDE
+- boss level: skyscraper top, player goes upwards in a spiral along the OUTSIDE  DONE
   side of the skyscraper
-- two levels could partially overlap, e.g. level one, a city, could overlap
+- two levels could partially overlap, e.g. level one, a city, could overlap      DONE
   with a later city level, the player could recognize he's e.g. on the other
   side of a channel or a wall that he was before
-- invisible maze
-- wall made of elevators (or squeezers), serving as a big auto-opening gate
+- invisible maze                                                                 kinda
+- wall made of elevators (or squeezers), serving as a big auto-opening gate      DONE
 - a key spot to which the player can only get by jumping from a distant high
   elevated place
 - player has to jump from one elevator to another, which can only be done when
   they're both moving down
-- multiple doors in a row (can look interesting)
+- multiple doors in a row (can look interesting)                                 DONE
 - narrow (1 square wide) corridor filled with enemies blocking it
-- narrow (1 square wide) corridor blocked by barrels that have to be exploded
+- narrow (1 square wide) corridor blocked by barrels that have to be exploded    DONE
 - teleport on elevator?
-- teleport at the bottom of a 1 square narrow hole, by jumping into the hole
+- teleport at the bottom of a 1 square narrow hole, by jumping into the hole     DONE
   the player gets teleported
 - narrow corridor with elevator
-- maze from walls and/or props
-- narrow bridge with platformer elements over a hole full of enemies
+- maze from walls and/or props                                                   DONE
+- narrow bridge with platformer elements over a hole full of enemies             kinda
 - server room
 - window (low unpassable ceiling) through which finish can be seen from the
   start location of the level
@@ -101,7 +96,7 @@ level ideas:
 - office building
 - plasma bots guarding a big stock (store) of plasma ammo
 - warrior (enemy) right before the player at the start of the level
-- T-shaped corridor in which two rocket-firing enemies stand facing each other
+- T-shaped corridor in which two rocket-firing enemies stand facing each other  DONE
   so that the player can kill them by stepping between them, letting them fire,
   then stepping back, making them kill each other
 - enemy trapped between barrels
@@ -109,40 +104,39 @@ level ideas:
   square from which the player has to jump down and won't be able to return,
   making it a de-facto one-way teleport
 - teleports placed so that the player can shoot himself with a rocket or plasma
-  (for fun)  
+  (for fun)
 - exploders in a maze, hiding behind corners
 - teleport leading to a center of big room full of enemies
-- easter egg -- a level that looks funny on the map, e.g. forms a text or a
+- easter egg -- a level that looks funny on the map, e.g. forms a text or a     DONE
   picture
 - squeezers with low-elevated base (a hole), on a side of a corridor -- if the
   player is curious and jumps in, he's doomed to die -- perhaps there can be
   many of them while one is in fact an elevator, which the player has to spot
   and take in order to advance
-- bullet-shooting enemies behing windows (low ceilings) in rooms that can't be
+- bullet-shooting enemies behing windows (low ceilings) in rooms that can't be  DONE
   reached
-- locked door that cannot be unlocked at the beginning of the level as a
+- locked door that cannot be unlocked at the beginning of the level as a        DONE
   visual indication of entrance
-- elevator in a narrow (1 square) vertical hole with doors at the top and
+- elevator in a narrow (1 square) vertical hole with doors at the top and       DONE
   bottom, looking like an actual elevator in buildings
-- player goes through a difficult platformer section and at the end has to make
-  a choice between going to the left and right by jumping in either direction,
+- player goes through a difficult platformer section and at the end has to make DONE
   takes card and has to go through the whole section again in order to also
   take the other one
-- big platform made of elevators that moving in a short vertical distance,
+- big platform made of elevators that are moving in a short vertical distance,  DONE
   giving an impression of a shaking, unstable platform
 - warrior and/or exploder right behing doors
 - tight maze made of barrels filled with warriors in which the player has to
   only use knife in order not to explode the barrels and hurt himself
-- enemy on an elevator that doesn't stop at aligned with the floor, so that
+- enemy on an elevator that doesn't stop at aligned with the floor, so that     DONE
   the enemy is "trapped" on it and only appears briefly to shoot at the player
 - barrel on elevator
 - platforming vertical section in which the player is going upwards out of a big
   hole
-- level with a lot of closed doors, done by including a door texture in the
+- level with a lot of closed doors, done by including a door texture in the     DONE
   level wall textures and then sing it for "fake" doors
-- invisible bridge (perhaps not straight) made of bleckers (invisible walls)
+- invisible bridge (perhaps not straight) made of blockers (invisible walls)    kinda
   over a hole, leading to an easter egg
-- start of level: a corner blocked by an invisible wall, to indicate entrance
+- start of level: a corner blocked by an invisible wall, to indicate entrance   DONE
 - small pyramid from diffetently elevated floor tiles
 
 bugs:
@@ -176,6 +170,16 @@ done:
 - let player start with 100 HP, but allow for collecting a higher amount, e.g.
   up to 150.
 - limit maximum ammo amounts
+- boss (the last one killed) should drop key card, for boss levels (hardcode).
+- music:
+  Probably just one long music track playing over and over -- KISS. The frontend
+  could have a callback function play_music_bar(n) which would be called by the
+  backend, the music track would be in sounds.h.
+- easter egg(s)
+- level 2D map (with revealing, bitmap), special key for quick displaying map
+- add universal corpse sprite?
+- if space left, try blurring (lerp) the level background, see how it looks
+- replace textures in distace with constant color for performance (setting)?
 
 scratched:
 - try to make z-buffer 3 line instead of 1D, possibly like this (to keep
@@ -185,3 +189,6 @@ scratched:
   - in pixel funct do something like
       if (pixel->y % X == 0 && pixel->y != 0)
         write to z-buffer
+- open door by shooting at them?
+- add jump pads?
+- add "pletivo" transparent wall texture?
