@@ -123,7 +123,7 @@ I have mental issues as most people nowadays, but they don't affect my reasoning
 
 ### Can I support you?
 
-Yes. This wasn't made for any profit and so I don't want you to reward me for doing what I love. Send me something only if you sincirely want to share money for basic living with a fellow human being. You can find my support info at [my website](https://www.tastyfish.cz).
+Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz).
 
 ## code guide
 
