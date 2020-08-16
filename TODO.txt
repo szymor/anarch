@@ -88,7 +88,7 @@ level ideas:
 - narrow corridor with elevator
 - maze from walls and/or props                                                   DONE
 - narrow bridge with platformer elements over a hole full of enemies             kinda
-- server room
+- server room                                                                    kinda
 - window (low unpassable ceiling) through which finish can be seen from the
   start location of the level
 - three locked doors in a row at the beginning of the level, the player has
@@ -96,47 +96,47 @@ level ideas:
 - office building
 - plasma bots guarding a big stock (store) of plasma ammo
 - warrior (enemy) right before the player at the start of the level
-- T-shaped corridor in which two rocket-firing enemies stand facing each other  DONE
+- T-shaped corridor in which two rocket-firing enemies stand facing each other   DONE
   so that the player can kill them by stepping between them, letting them fire,
   then stepping back, making them kill each other
 - enemy trapped between barrels
 - teleport that leads to another teleport which is on a single high elevated
   square from which the player has to jump down and won't be able to return,
   making it a de-facto one-way teleport
-- teleports placed so that the player can shoot himself with a rocket or plasma
+- teleports placed so that the player can shoot himself with a rocket or plasma  DONE 
   (for fun)
 - exploders in a maze, hiding behind corners
 - teleport leading to a center of big room full of enemies
-- easter egg -- a level that looks funny on the map, e.g. forms a text or a     DONE
+- easter egg -- a level that looks funny on the map, e.g. forms a text or a      DONE
   picture
 - squeezers with low-elevated base (a hole), on a side of a corridor -- if the
   player is curious and jumps in, he's doomed to die -- perhaps there can be
   many of them while one is in fact an elevator, which the player has to spot
   and take in order to advance
-- bullet-shooting enemies behing windows (low ceilings) in rooms that can't be  DONE
+- bullet-shooting enemies behing windows (low ceilings) in rooms that can't be   DONE
   reached
-- locked door that cannot be unlocked at the beginning of the level as a        DONE
+- locked door that cannot be unlocked at the beginning of the level as a         DONE
   visual indication of entrance
-- elevator in a narrow (1 square) vertical hole with doors at the top and       DONE
+- elevator in a narrow (1 square) vertical hole with doors at the top and        DONE
   bottom, looking like an actual elevator in buildings
-- player goes through a difficult platformer section and at the end has to make DONE
+- player goes through a difficult platformer section and at the end has to make  DONE
   takes card and has to go through the whole section again in order to also
   take the other one
-- big platform made of elevators that are moving in a short vertical distance,  DONE
+- big platform made of elevators that are moving in a short vertical distance,   DONE
   giving an impression of a shaking, unstable platform
 - warrior and/or exploder right behing doors
 - tight maze made of barrels filled with warriors in which the player has to
   only use knife in order not to explode the barrels and hurt himself
-- enemy on an elevator that doesn't stop at aligned with the floor, so that     DONE
+- enemy on an elevator that doesn't stop at aligned with the floor, so that      DONE
   the enemy is "trapped" on it and only appears briefly to shoot at the player
 - barrel on elevator
 - platforming vertical section in which the player is going upwards out of a big
   hole
-- level with a lot of closed doors, done by including a door texture in the     DONE
+- level with a lot of closed doors, done by including a door texture in the      DONE
   level wall textures and then sing it for "fake" doors
-- invisible bridge (perhaps not straight) made of blockers (invisible walls)    kinda
+- invisible bridge (perhaps not straight) made of blockers (invisible walls)     kinda
   over a hole, leading to an easter egg
-- start of level: a corner blocked by an invisible wall, to indicate entrance   DONE
+- start of level: a corner blocked by an invisible wall, to indicate entrance    DONE
 - small pyramid from diffetently elevated floor tiles
 
 bugs:

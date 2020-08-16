@@ -264,6 +264,13 @@
 /**
   Gives player all keys from start.
 */
-#define SFG_UNLOCK_DOOR 1
+#define SFG_UNLOCK_DOOR 0
+
+/**
+  Whether levels background (in distance or transparent wall textures) should
+  be drawn. If turned off, the background will be constant color, which can 
+  noticably increase performance.
+*/
+#define SFG_DRAW_LEVEL_BACKGROUND 1
 
 #endif // guard

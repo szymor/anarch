@@ -795,22 +795,26 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   }
   else
   {
+#if SFG_DRAW_LEVEL_BACKGROUND
     color = SFG_getTexel(
       SFG_backgroundImages[SFG_currentLevel.backgroundImage],
       SFG_game.backgroundScaleMap[((pixel->position.x 
-#if SFG_BACKGROUND_BLUR != 0
+  #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
-#endif
+  #endif
         ) * SFG_RAYCASTING_SUBSAMPLE + SFG_game.backgroundScroll) % SFG_GAME_RESOLUTION_Y], 
       (SFG_game.backgroundScaleMap[(pixel->position.y          // ^ TODO: get rid of mod?
-#if SFG_BACKGROUND_BLUR != 0
+  #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex + 1]
-#endif
+  #endif
         ) % SFG_GAME_RESOLUTION_Y ])                                               
       );
 
-#if SFG_BACKGROUND_BLUR != 0
+  #if SFG_BACKGROUND_BLUR != 0
     SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 0x07;
+  #endif
+#else
+    color = 1;
 #endif
   }
 
