@@ -1,5 +1,7 @@
 general:
 
+- Try to recolor textures and give them a bit more of variety.
+- Make monsters die when squeezed?
 - On Win$hit builds display an anti-windshit text, by macro.
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
@@ -54,9 +56,9 @@ level ideas:
       has to slowly kill, which means he has to first get rid of the other
       monsters.
 
-- Long section under squeezer, player has to run and keep hiding in side rooms
+- Long section under squeezer, player has to run and keep hiding in side rooms   DONE
   to not get killed.
-- Elevator with 4 exits, on each world side.
+- Elevator with 4 exits, on each world side.                                     DONE
 - Teleport to a football stadium outside?                                        DONE
 - Key to door that need to be unlocked can also unlock a door in previously      DONE
   visited area which will just hide secret.                                      
@@ -95,7 +97,7 @@ level ideas:
   start location of the level
 - three locked doors in a row at the beginning of the level, the player has
   to go to three different locations for each key -- a "hub" level
-- office building
+- office building                                                                kinda
 - plasma bots guarding a big stock (store) of plasma ammo
 - warrior (enemy) right before the player at the start of the level
 - T-shaped corridor in which two rocket-firing enemies stand facing each other   DONE
