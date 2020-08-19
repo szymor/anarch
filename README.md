@@ -1,4 +1,6 @@
-# WIP
+# WIP, NOT RELEASED YET!
+
+**If you really want, feel free to test this, but this isn't finished, so I highly suggest you wait for the release.**
 
 # Anarch
 
