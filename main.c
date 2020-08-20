@@ -248,7 +248,8 @@ typedef struct
 #define SFG_MENU_ITEM_PLAY 2
 #define SFG_MENU_ITEM_LOAD 3
 #define SFG_MENU_ITEM_SOUND 4
-#define SFG_MENU_ITEM_EXIT 5
+#define SFG_MENU_ITEM_SHEAR 5
+#define SFG_MENU_ITEM_EXIT 6
 
 #define SFG_MENU_ITEM_NONE 255
 
@@ -295,8 +296,16 @@ struct
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
   uint8_t antiSpam;  ///< Prevents log message spamming.
 
-  uint8_t soundSettings;   /**< Sound settings: LSB says whether SFX is on,
-                             second LSB says whether music is on. */
+  uint8_t settings;   /**< Dynamic game settings (can be changed at runtime),
+                           bit meaning:
+
+                           MSB -------- LSB
+                                   ||||
+                                   |||\_ sound (SFX)
+                                   ||\__ music
+                                   |\___ shearing
+                                   \____ freelook (shearing not sliding back) */
+
   uint8_t blink;           ///< Says whether blinkg is currently on or off.
 } SFG_game;
 
@@ -324,9 +333,6 @@ struct
 
   uint8_t  ammo[SFG_AMMO_TOTAL];
 
-  uint8_t  freeLook;             /**< If on, the vertical looking (shear) does
-                                 not automatically shear back. This is mainly 
-                                 for mouse control. */
   uint8_t  cards;                /**< Lowest 3 bits say which access cards have
                                  been taken., the next 3 bits say which cards
                                  should be blinking in the HUD. */
@@ -460,7 +466,7 @@ uint8_t SFG_random()
 
 void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
 {
-  if (!(SFG_game.soundSettings & 0x01))
+  if (!(SFG_game.settings & 0x01))
     return;
 
   uint8_t mask = 0x01 << soundIndex;
@@ -1458,7 +1464,7 @@ void SFG_init()
 
   SFG_game.antiSpam = 0;
 
-  SFG_game.soundSettings = 0xff;
+  SFG_game.settings = 0xff;
   SFG_enableMusic(1);
 
   SFG_LOG("computing average texture colors")
@@ -1513,7 +1519,6 @@ void SFG_init()
   SFG_game.lastFrameTimeMs = SFG_getTimeMs();
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
-  SFG_player.freeLook = 0;
 
 #if SFG_START_LEVEL == 0
   SFG_setGameState(SFG_GAME_STATE_MENU);
@@ -2624,7 +2629,8 @@ void SFG_gameStepPlaying()
   int8_t shearing = 0;
 
   if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
-    SFG_player.freeLook = !SFG_player.freeLook;
+    SFG_game.settings = 
+      (~SFG_game.settings & 0x08) | (SFG_game.settings & ~0x08);
 
 #if SFG_PREVIEW_MODE == 0
   if (
@@ -2760,89 +2766,61 @@ void SFG_gameStepPlaying()
   else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON))
     SFG_playerRotateWeapon(0);
 
+  uint8_t shearingOn = SFG_game.settings & 0x04;
+
   if (SFG_keyIsDown(SFG_KEY_A))
   {
-    if (SFG_keyIsDown(SFG_KEY_UP))
+    if (shearingOn)                      // A + U/D: shearing (if on)
     {
-      SFG_player.camera.shear =
-        RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
-                SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+      if (SFG_keyIsDown(SFG_KEY_UP))
+      {
+        SFG_player.camera.shear =
+          RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
+                  SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
 
-      shearing = 1;
-    }
-    else if (SFG_keyIsDown(SFG_KEY_DOWN))
-    {
-      SFG_player.camera.shear =
-        RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
-                SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+        shearing = 1;
+      }
+      else if (SFG_keyIsDown(SFG_KEY_DOWN))
+      {
+        SFG_player.camera.shear =
+          RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
+                  SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME);
 
-      shearing = 1;
+        shearing = 1;
+      }
     }
 
     if (!SFG_keyIsDown(SFG_KEY_C))
-    {
+    {                                    // A + L/R: strafing
       if (SFG_keyIsDown(SFG_KEY_LEFT))
         strafe = -1;
       else if (SFG_keyIsDown(SFG_KEY_RIGHT))
         strafe = 1;
     }
-    else
-    {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A))
-        SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) ||
-               SFG_keyJustPressed(SFG_KEY_B))
-        SFG_playerRotateWeapon(1);
-    }
   }
-  else
+
+  if (SFG_keyIsDown(SFG_KEY_C))          // C + AL/BR: weapon switching
   {
-    if (!SFG_keyIsDown(SFG_KEY_C))
+    if (SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A))
+      SFG_playerRotateWeapon(0);
+    else if (SFG_keyJustPressed(SFG_KEY_RIGHT) || SFG_keyJustPressed(SFG_KEY_B))
+      SFG_playerRotateWeapon(1);
+  }
+  else if (!SFG_keyIsDown(SFG_KEY_A))    // L/R: turning
+  {
+    if (SFG_keyIsDown(SFG_KEY_LEFT))
     {
-      if (SFG_keyIsDown(SFG_KEY_LEFT))
-      {
-        SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
-        recomputeDirection = 1;
-      }
-      else if (SFG_keyIsDown(SFG_KEY_RIGHT))
-      {
-        SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
-        recomputeDirection = 1;
-      }
-    }
-    else
-    {
-      if (SFG_keyJustPressed(SFG_KEY_LEFT) ||
-          SFG_keyJustPressed(SFG_KEY_A))
-        SFG_playerRotateWeapon(0);
-      else if (SFG_keyJustPressed(SFG_KEY_RIGHT) ||
-          SFG_keyJustPressed(SFG_KEY_B))
-        SFG_playerRotateWeapon(1);
-    }
-
-    int16_t mouseX, mouseY;
-
-    SFG_getMouseOffset(&mouseX,&mouseY);
-
-    if (mouseX != 0 || mouseY != 0)
-    {
-      SFG_player.camera.direction += 
-        (mouseX * SFG_MOUSE_SENSITIVITY_HORIZONTAL) / 128;
-
-      if (SFG_player.freeLook)
-        SFG_player.camera.shear =
-          RCL_max(RCL_min(
-            SFG_player.camera.shear - (mouseY * SFG_MOUSE_SENSITIVITY_VERTICAL)
-            / 128,
-            SFG_CAMERA_MAX_SHEAR_PIXELS),
-            -1 * SFG_CAMERA_MAX_SHEAR_PIXELS);
- 
+      SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
       recomputeDirection = 1;
     }
+    else if (SFG_keyIsDown(SFG_KEY_RIGHT))
+    {
+      SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
+      recomputeDirection = 1;
+    } 
+  }
 
-    if (recomputeDirection)
-      SFG_recomputePLayerDirection();
-
+  if (!SFG_keyIsDown(SFG_KEY_A) || !shearingOn)     // U/D: movement
     if (SFG_keyIsDown(SFG_KEY_UP))
     {
       moveOffset.x += SFG_player.direction.x;
@@ -2859,7 +2837,29 @@ void SFG_gameStepPlaying()
       bobbing = 1;
 #endif
     }
+
+  int16_t mouseX, mouseY;
+
+  SFG_getMouseOffset(&mouseX,&mouseY);
+
+  if (mouseX != 0)                                  // mouse turning
+  {
+    SFG_player.camera.direction += 
+      (mouseX * SFG_MOUSE_SENSITIVITY_HORIZONTAL) / 128;
+
+    recomputeDirection = 1;
   }
+
+  if ((mouseY != 0) && shearingOn)                  // mouse shearing
+    SFG_player.camera.shear =
+      RCL_max(RCL_min(
+        SFG_player.camera.shear - 
+        (mouseY * SFG_MOUSE_SENSITIVITY_VERTICAL) / 128,
+        SFG_CAMERA_MAX_SHEAR_PIXELS),
+        -1 * SFG_CAMERA_MAX_SHEAR_PIXELS);
+
+  if (recomputeDirection)
+    SFG_recomputePLayerDirection();
 
   if (SFG_keyIsDown(SFG_KEY_STRAFE_LEFT))
     strafe = -1;
@@ -2892,7 +2892,7 @@ void SFG_gameStepPlaying()
     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
 #endif
 
-  if (!shearing && SFG_player.camera.shear != 0 && !SFG_player.freeLook)
+  if (!shearing && SFG_player.camera.shear != 0 && !(SFG_game.settings & 0x08))
   {
     // gradually shear back to zero
 
@@ -3228,19 +3228,29 @@ void SFG_gameStepMenu()
       case SFG_MENU_ITEM_SOUND:
         SFG_LOG("sound changed");
 
-        SFG_game.soundSettings++;
+        SFG_game.settings = 
+          (SFG_game.settings & ~0x03) | ((SFG_game.settings + 1)  & 0x03);
+
         SFG_playGameSound(3,64);
 
-        if ((SFG_game.soundSettings & 0x02) !=
-            ((SFG_game.soundSettings - 1) & 0x02))
-        {
-          if (SFG_game.soundSettings & 0x02)
-            SFG_enableMusic(1);
-          else
-            SFG_enableMusic(0);
-        }
-
+        if ((SFG_game.settings & 0x02) !=
+            ((SFG_game.settings - 1) & 0x02))
+            SFG_enableMusic(SFG_game.settings & 0x02);
         break;
+
+      case SFG_MENU_ITEM_SHEAR:
+      {
+        uint8_t current = (SFG_game.settings >> 2) & 0x03;
+
+        current++;
+
+        if (current == 2)  // option that doesn't make sense, skip
+          current++;
+
+        SFG_game.settings = 
+          (SFG_game.settings & ~0x0c) | ((current & 0x03) << 2);
+        break;
+      }
 
       default:
         break;
@@ -3739,7 +3749,8 @@ void SFG_drawMenu()
   
     SFG_drawText(text,drawX,y,SFG_FONT_SIZE_MEDIUM,textColor,0,0);
 
-    if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND) &&
+    if ((item == SFG_MENU_ITEM_PLAY || item == SFG_MENU_ITEM_SOUND
+         || item == SFG_MENU_ITEM_SHEAR) &&
         ((i != SFG_game.selectedMenuItem) || SFG_game.blink))
     {
       uint32_t x =
@@ -3748,13 +3759,19 @@ void SFG_drawMenu()
       uint8_t c = 93;
 
       if (item == SFG_MENU_ITEM_PLAY)
-        SFG_drawNumber((SFG_game.selectedLevel + 1),x,y,SFG_FONT_SIZE_MEDIUM,c);
+        SFG_drawNumber(SFG_game.selectedLevel + 1,x,y,SFG_FONT_SIZE_MEDIUM,c);
+      else if (item == SFG_MENU_ITEM_SHEAR)
+      {
+        uint8_t n = (SFG_game.settings >> 2) & 0x03;
+
+        SFG_drawNumber(n == 3 ? 2 : n,x,y,SFG_FONT_SIZE_MEDIUM,c);
+      }
       else
       {
         char settingText[3] = "  ";
 
-        settingText[0] = (SFG_game.soundSettings & 0x01) ? 'S' : ' ';
-        settingText[1] = (SFG_game.soundSettings & 0x02) ? 'M' : ' ';
+        settingText[0] = (SFG_game.settings & 0x01) ? 'S' : ' ';
+        settingText[1] = (SFG_game.settings & 0x02) ? 'M' : ' ';
 
         SFG_drawText(settingText,x,y,SFG_FONT_SIZE_MEDIUM,c,0,0);
       }
