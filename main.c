@@ -199,7 +199,7 @@ typedef struct
 #define SFG_MR_TYPE(mr) \
   (SFG_MONSTER_INDEX_TO_TYPE(((mr).stateType & SFG_MONSTER_MASK_TYPE) >> 4))
 
-#define SFG_MONSTER_COORD_TO_RCL_UNITS(c) (c * 256)
+#define SFG_MONSTER_COORD_TO_RCL_UNITS(c) ((RCL_UNITS_PER_SQUARE / 8) + c * 256)
 #define SFG_MONSTER_COORD_TO_SQUARES(c) (c / 4)
 
 #define SFG_ELEMENT_COORD_TO_RCL_UNITS(c) \
@@ -720,7 +720,7 @@ static inline uint8_t SFG_getTexelAverage(uint8_t textureIndex)
 }
 
 void SFG_pixelFunc(RCL_PixelInfo *pixel)
-{
+{ 
   uint8_t color;
   uint8_t shadow = 0;
 

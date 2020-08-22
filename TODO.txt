@@ -184,6 +184,7 @@ done:
 - add universal corpse sprite?
 - if space left, try blurring (lerp) the level background, see how it looks
 - replace textures in distace with constant color for performance (setting)?
+- enemies close to a wall often don't get drawn
 
 scratched:
 - try to make z-buffer 3 line instead of 1D, possibly like this (to keep
