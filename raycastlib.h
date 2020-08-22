@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.907
+  version: 0.908
 */
 
 #include <stdint.h>
@@ -825,18 +825,21 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 #if RCL_RECTILINEAR
         /* Here we compute the fish eye corrected distance (perpendicular to
-        the projection plane) as the Euclidean distance divided by the length
-        of the ray direction vector. This can be computed without actually
-        computing Euclidean distances as a hypothenuse A (distance) divided
-        by hypothenuse B (length) is equal to leg A (distance along one axis)
-        divided by leg B (length along the same axis). */
+        the projection plane) as the Euclidean distance (of hit from camera
+        position) divided by the length of the ray direction vector. This can
+        be computed without actually computing Euclidean distances as a
+        hypothenuse A (distance) divided by hypothenuse B (length) is equal to
+        leg A (distance along principal axis) divided by leg B (length along
+        the same principal axis). */
 
-        h.distance =
-          (((h.position.x - ray.start.x) / 4) *
-          RCL_UNITS_PER_SQUARE * rayDirXRecip)
-          / (RECIP_SCALE / 4);
+#define CORRECT(dir1,dir2)\
+  RCL_Unit tmp = diff / 4;        /* 4 to prevent overflow */ \
+  h.distance = ((tmp / 8) != 0) ? /* prevent a bug with small dists */ \
+    ((tmp * RCL_UNITS_PER_SQUARE * rayDir ## dir1 ## Recip) / (RECIP_SCALE / 4)):\
+    RCL_abs(h.position.dir2 - ray.start.dir2);
 
-          // ^ / 4 is here to prevent overflow
+        CORRECT(X,y)
+
 #endif
       }
       else
@@ -856,10 +859,10 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
           ray.start.x + (ray.direction.x * diff * rayDirYRecip) / RECIP_SCALE;
 
 #if RCL_RECTILINEAR
-        h.distance =
-          (((h.position.y - ray.start.y) / 4) *
-          RCL_UNITS_PER_SQUARE * rayDirYRecip)
-          / (RECIP_SCALE / 4);
+
+        CORRECT(Y,x) // same as above but for different axis
+
+#undef CORRECT
 
           // ^ / 4 is here to prevent overflow
 #endif
