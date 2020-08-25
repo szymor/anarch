@@ -37,6 +37,13 @@ SDL:
 
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
+
+**HW requirements**: the least demanding HW this game has been played on is currently:
+
+- TODO MHz CPU
+- TODO kB RAM
+- TODO storage space
+
 ## manifesto
 
 In today's world of capitalism and fascism no one thinks anymore about doing something without personal benefit, without expecting something in return. Complete selflessness and aim for the pure indiscriminatory long-term benefit of everyone is no longer even considered and if it appears by chance, it is laughed at and portrayed as stupidity. Technology that we are using every day is infected by this poison more than anything else.
