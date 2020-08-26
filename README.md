@@ -122,6 +122,10 @@ I don't enforce anything and don't even judge your actions, but I would still be
 
 Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work and I am predict some Chinese company will soon be distributing this somehow with a false claim copyright (in which case please don't believe them, there exists evidence of me creating this and releasing this first, with all rights waived). The good that will come from this will be greater than the bad. Perhaps this alone will make you think.
 
+### Why raycasting and not e.g. BSP?
+
+This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple and doesn't e.g. require precomputing accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
+
 ### Who are you?
 
 I am an anarcho-pacifist programmer. You can read more about me at [my website](https://www.tastyfish.cz). You can read my political manifesto here: [Non-Competitive Society](https://gitlab.com/drummyfish/my_writings/-/blob/master/non-competitive%20society.pdf).
