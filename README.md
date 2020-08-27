@@ -124,7 +124,7 @@ Am I so stupid as to trust complete strangers to not abuse this? No, I know peop
 
 ### Why raycasting and not e.g. BSP?
 
-This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple and doesn't e.g. require precomputing accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
+This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
 
 ### Who are you?
 
