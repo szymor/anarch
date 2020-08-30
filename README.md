@@ -38,11 +38,11 @@ SDL:
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
 
-**HW requirements**: the least demanding HW this game has been played on is currently:
+## Stats
 
-- TODO MHz CPU
-- TODO kB RAM
-- TODO storage space
+TODO file LOC summary
+
+TODO platform stats and sizes summary
 
 ## manifesto
 
@@ -137,6 +137,10 @@ I have mental issues as most people nowadays, but they don't affect my reasoning
 ### Can I support you?
 
 Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz).
+
+### Fuck you.
+
+Peace.
 
 ## code guide
 
