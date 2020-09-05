@@ -1,5 +1,7 @@
 general:
 
+- Architecture change: make platform files compilable and move main.c to game.h
+  (so that pokitto is .cpp, GB is .ino etc.).
 - Try to recolor textures and give them a bit more of variety.
 - Make monsters die when squeezed?
 - On Win$hit builds display an anti-windshit text, by macro.
