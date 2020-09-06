@@ -2,6 +2,7 @@ general:
 
 - Architecture change: make platform files compilable and move main.c to game.h
   (so that pokitto is .cpp, GB is .ino etc.).
+- Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - Make monsters die when squeezed?
 - On Win$hit builds display an anti-windshit text, by macro.
@@ -83,7 +84,7 @@ level ideas:
 - wall made of elevators (or squeezers), serving as a big auto-opening gate      DONE
 - a key spot to which the player can only get by jumping from a distant high
   elevated place
-- player has to jump from one elevator to another, which can only be done when
+- player has to jump from one elevator to another, which can only be done when   kinda
   they're both moving down
 - multiple doors in a row (can look interesting)                                 DONE
 - narrow (1 square wide) corridor filled with enemies blocking it
@@ -112,7 +113,7 @@ level ideas:
 - teleports placed so that the player can shoot himself with a rocket or plasma  DONE 
   (for fun)
 - exploders in a maze, hiding behind corners
-- teleport leading to a center of big room full of enemies
+- teleport leading to a center of big room full of enemies                       kinda
 - easter egg -- a level that looks funny on the map, e.g. forms a text or a      DONE
   picture
 - squeezers with low-elevated base (a hole), on a side of a corridor -- if the

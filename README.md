@@ -157,15 +157,15 @@ assets/          asset sources (textures, sprites, maps, sounds, ...)
   *.py           scripts for converting assets to C structs/arrays
 media/           media presenting the game (screenshots, logo, ...)
 constants.h      game constants that aren't considered settings
+game.h           main game logic
 images.h         images (textures, sprites) from assets folder converted to C
 levels.h         levels from assets folder converted to C
+main_*.*         fronted implement. for various platforms, passed to compiler
 palette.h        game 256 color palette
-platform_*.png   fronted implementation for various platforms
 raycastlib.h     raycasting library
 settings.h       game settings that users can change (FPS, resolution, ...)
 sounds.h         sounds from assets folder converted to C
 texts.h          game texts
-main.c           main game logic, this file is passed to the compiler
 make.sh          compiling script constaining compiler settings
 HTMLshell.html   HTML shell for emscripten (browser) version
 index.html       game website

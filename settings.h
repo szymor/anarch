@@ -32,30 +32,35 @@
   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
   RCL_Unit per mouse pixel travelled.
 */
-#define SFG_MOUSE_SENSITIVITY_HORIZONTAL 32
+#ifndef SFG_MOUSE_SENSITIVITY_HORIZONTAL
+  #define SFG_MOUSE_SENSITIVITY_HORIZONTAL 32
+#endif
 
 /**
   Like SFG_MOUSE_SENSITIVITY_HORIZONTAL but for vertical look. 128 means 1
   shear pixel per mouse pixel travelled.
 */
-#define SFG_MOUSE_SENSITIVITY_VERTICAL 64
+#ifndef SFG_MOUSE_SENSITIVITY_VERTICAL
+  #define SFG_MOUSE_SENSITIVITY_VERTICAL 64
+#endif
 
 /**
   Width of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_X 1024
+#ifndef SFG_SCREEN_RESOLUTION_X
+  #define SFG_SCREEN_RESOLUTION_X 800
+#endif
 
 /**
   Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
   game to run at smaller resolution (with bigger pixels), do his using
   SFG_RESOLUTION_SCALEDOWN;  
 */
-#define SFG_SCREEN_RESOLUTION_Y 768
-
-
-#define SFG_Z_BUFFER_BAND 
+#ifndef SFG_SCREEN_RESOLUTION_Y
+  #define SFG_SCREEN_RESOLUTION_Y 600
+#endif
 
 /**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
@@ -64,162 +69,224 @@
   having just a low value, values >= 65535 activate texturing completely, which
   can be a little faster than setting having a high value lower than this limit.
 */
-#define SFG_TEXTURE_DISTANCE 100000
+#ifndef SFG_TEXTURE_DISTANCE
+  #define SFG_TEXTURE_DISTANCE 100000
+#endif
 
 /**
   How many times the screen resolution will be divided (how many times a game
   pixel will be bigger than the screen pixel).
 */
-#define SFG_RESOLUTION_SCALEDOWN 1
+#ifndef SFG_RESOLUTION_SCALEDOWN
+  #define SFG_RESOLUTION_SCALEDOWN 1
+#endif
 
 /**
   Hint as to whether run in fullscreen, if the platform allows it.
 */
-#define SFG_FULLSCREEN 0
+#ifndef SFG_FULLSCREEN
+  #define SFG_FULLSCREEN 0
+#endif
 
 /**
   Whether shadows (fog) should be dithered, i.e. more smooth (needs a bit more
   CPU performance and memory).
 */
-#define SFG_DITHERED_SHADOW 1
+#ifndef SFG_DITHERED_SHADOW
+  #define SFG_DITHERED_SHADOW 1
+#endif
 
 /**
   Depth step (in RCL_Units) after which fog diminishes a color by one value
   point. For performance reasons this number should be kept a power of two!
 */
-#define SFG_FOG_DIMINISH_STEP 2048
+#ifndef SFG_FOG_DIMINISH_STEP
+  #define SFG_FOG_DIMINISH_STEP 2048
+#endif
 
 /**
   Maximum number of squares that will be traversed by any cast ray. Smaller
   number is faster but can cause visual artifacts.
 */
-#define SFG_RAYCASTING_MAX_STEPS 30
+#ifndef SFG_RAYCASTING_MAX_STEPS
+  #define SFG_RAYCASTING_MAX_STEPS 30
+#endif
 
 /**
   Maximum number of hits any cast ray will register. Smaller number is faster
   but can cause visual artifacts.
 */
-#define SFG_RAYCASTING_MAX_HITS 10
+#ifndef SFG_RAYCASTING_MAX_HITS
+  #define SFG_RAYCASTING_MAX_HITS 10
+#endif
 
 /**
   How many times rendering should be subsampled horizontally. Bigger number
   can significantly improve performance (by casting fewer rays), but can look
   a little worse.
 */
-#define SFG_RAYCASTING_SUBSAMPLE 1
+#ifndef SFG_RAYCASTING_SUBSAMPLE
+  #define SFG_RAYCASTING_SUBSAMPLE 1
+#endif
 
 /**
   Enables or disables fog (darkness) due to distance. Recommended to keep on
   for good look, but can be turned off for performance.
 */
-#define SFG_ENABLE_FOG 1
+#ifndef SFG_ENABLE_FOG
+  #define SFG_ENABLE_FOG 1
+#endif
 
 /**
   Says whether sprites should diminish in fog. This takes more performance but
   looks better.
 */
-#define SFG_DIMINISH_SPRITES 1
+#ifndef SFG_DIMINISH_SPRITES
+  #define SFG_DIMINISH_SPRITES 1
+#endif
 
 /**
   How quick player head bob is, 1024 meaning once per second. 0 Means turn off
   head bob.
 */
-#define SFG_HEADBOB_SPEED 900
+#ifndef SFG_HEADBOB_SPEED
+  #define SFG_HEADBOB_SPEED 900
+#endif
 
 /**
   Sets head bob offset, in RCL_UNITS_PER_SQUARE. 0 Means turn off head bob.
 */
-#define SFG_HEADBOB_OFFSET 200
+#ifndef SFG_HEADBOB_OFFSET
+  #define SFG_HEADBOB_OFFSET 200
+#endif
 
 /**
   Weapon bobbing offset in weapon image pixels.
 */
-#define SFG_WEAPONBOB_OFFSET 4 
+#ifndef SFG_WEAPONBOB_OFFSET
+  #define SFG_WEAPONBOB_OFFSET 4 
+#endif
 
 /**
   Camera shearing (looking up/down) speed, in vertical resolutions per second.
 */
-#define SFG_CAMERA_SHEAR_SPEED 3
+#ifndef SFG_CAMERA_SHEAR_SPEED
+  #define SFG_CAMERA_SHEAR_SPEED 3
+#endif
 
 /**
   Maximum camera shear (vertical angle). 1024 means 1.0 * vertical resolution.
 */
-#define SFG_CAMERA_MAX_SHEAR 1024
+#ifndef SFG_CAMERA_MAX_SHEAR
+  #define SFG_CAMERA_MAX_SHEAR 1024
+#endif
 
 /**
   Specifies how quick some sprite animations are, in frames per second.
 */
-#define SFG_SPRITE_ANIMATION_SPEED 4
+#ifndef SFG_SPRITE_ANIMATION_SPEED
+  #define SFG_SPRITE_ANIMATION_SPEED 4
+#endif
 
 /**
   How wide the border indicator is, in fractions of screen width.
 */
-#define SFG_HUD_BORDER_INDICATOR_WIDTH 32
+#ifndef SFG_HUD_BORDER_INDICATOR_WIDTH
+  #define SFG_HUD_BORDER_INDICATOR_WIDTH 32
+#endif
 
 /**
   For how long border indication (being hurt etc.) stays shown, in ms.
 */
-#define SFG_HUD_BORDER_INDICATOR_DURATION 500
+#ifndef SFG_HUD_BORDER_INDICATOR_DURATION
+  #define SFG_HUD_BORDER_INDICATOR_DURATION 500
+#endif
 
 /**
   Color (palette index) by which being hurt is indicated.
 */
-#define SFG_HUD_HURT_INDICATION_COLOR 175
+#ifndef SFG_HUD_HURT_INDICATION_COLOR
+  #define SFG_HUD_HURT_INDICATION_COLOR 175
+#endif
 
 /**
   Color (palette index) by which taking an item is indicated.
 */
-#define SFG_HUD_ITEM_TAKEN_INDICATION_COLOR 207
+#ifndef SFG_HUD_ITEM_TAKEN_INDICATION_COLOR
+  #define SFG_HUD_ITEM_TAKEN_INDICATION_COLOR 207
+#endif
 
 /**
   How many element (items, monsters, ...) distances will be checked per frame
   for distance. Higher value may decrease performance a tiny bit, but things
   will react more quickly and appear less "out of thin air".
 */
-#define SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME 8
+#ifndef SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME
+  #define SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME 8
+#endif
 
 /**
   Maximum distance at which sound effects (SFX) will be played. The SFX volume
   will gradually drop towards this distance.
 */
-#define SFG_SFX_MAX_DISTANCE (1024 * 20)
+#ifndef SFG_SFX_MAX_DISTANCE
+  #define SFG_SFX_MAX_DISTANCE (1024 * 20)
+#endif
 
 /**
   Says the intensity of background image blur. 0 means no blur, improves
   performance and lowers memory usage.
 */
-#define SFG_BACKGROUND_BLUR 0
+#ifndef SFG_BACKGROUND_BLUR
+  #define SFG_BACKGROUND_BLUR 0
+#endif
 
 /**
   Defines the period, in ms, of things that blink, such as text.
 */
-#define SFG_BLINK_PERIOD 500
+#ifndef SFG_BLINK_PERIOD
+  #define SFG_BLINK_PERIOD 500
+#endif
 
 /**
   Probability (0 - 255) of how often a monster makes sound during movement.
 */
-#define SFG_MONSTER_SOUND_PROBABILITY 64
+#ifndef SFG_MONSTER_SOUND_PROBABILITY
+  #define SFG_MONSTER_SOUND_PROBABILITY 64
+#endif
 
 /**
   Affects how precise monsters are in aiming, specify random range in
   fourths of a game square. Should be power of 2 for performance.
 */
-#define SFG_MONSTER_AIM_RANDOMNESS 4
+#ifndef SFG_MONSTER_AIM_RANDOMNESS
+  #define SFG_MONSTER_AIM_RANDOMNESS 4
+#endif
 
 /// Color 1 index of player on map.
-#define SFG_MAP_PLAYER_COLOR1 93
+#ifndef SFG_MAP_PLAYER_COLOR1
+  #define SFG_MAP_PLAYER_COLOR1 93
+#endif
 
 /// Color 2 index of player on map.
-#define SFG_MAP_PLAYER_COLOR2 111
+#ifndef SFG_MAP_PLAYER_COLOR2
+  #define SFG_MAP_PLAYER_COLOR2 111
+#endif
 
 /// Color index of elevators on map.
-#define SFG_MAP_ELEVATOR_COLOR 214
+#ifndef SFG_MAP_ELEVATOR_COLOR
+  #define SFG_MAP_ELEVATOR_COLOR 214
+#endif
 
 /// Color index of squeezers on map.
-#define SFG_MAP_SQUEEZER_COLOR 246
+#ifndef SFG_MAP_SQUEEZER_COLOR
+  #define SFG_MAP_SQUEEZER_COLOR 246
+#endif
 
 /// Color index of door on map.
-#define SFG_MAP_DOOR_COLOR 188
+#ifndef SFG_MAP_DOOR_COLOR
+  #define SFG_MAP_DOOR_COLOR 188
+#endif
 
 /**
   Boolean value indicating whether current OS is malware.
@@ -233,44 +300,60 @@
 /**
   Developer cheat for having infinite ammo in all weapons.
 */
-#define SFG_INFINITE_AMMO 1
+#ifndef SFG_INFINITE_AMMO
+  #define SFG_INFINITE_AMMO 1
+#endif
 
 /**
   Developer cheat for immortality.
 */
-#define SFG_IMMORTAL 1
+#ifndef SFG_IMMORTAL
+  #define SFG_IMMORTAL 1
+#endif
 
 /**
   Turn on for previes mode for map editing (flying, noclip, fast movement etc.).
 */
-#define SFG_PREVIEW_MODE 0
+#ifndef SFG_PREVIEW_MODE
+  #define SFG_PREVIEW_MODE 0
+#endif
 
 /**
   How much faster movement is in the preview mode.
 */
-#define SFG_PREVIEW_MODE_SPEED_MULTIPLIER 2
+#ifndef SFG_PREVIEW_MODE_SPEED_MULTIPLIER
+  #define SFG_PREVIEW_MODE_SPEED_MULTIPLIER 2
+#endif
 
 /**
   Skips menu and starts given level immediatelly, for development. 0 means this
   options is ignored, 1 means load level 1 etc.
 */
-#define SFG_START_LEVEL 6
+#ifndef SFG_START_LEVEL
+  #define SFG_START_LEVEL 6
+#endif
 
 /**
   Reveals whole level map from start.
 */
-#define SFG_REVEAL_MAP 1
+#ifndef SFG_REVEAL_MAP
+  #define SFG_REVEAL_MAP 1
+#endif
 
 /**
   Gives player all keys from start.
 */
-#define SFG_UNLOCK_DOOR 0
+#ifndef SFG_UNLOCK_DOOR
+  #define SFG_UNLOCK_DOOR 0
+#endif
 
 /**
   Whether levels background (in distance or transparent wall textures) should
   be drawn. If turned off, the background will be constant color, which can 
   noticably increase performance.
 */
-#define SFG_DRAW_LEVEL_BACKGROUND 1
+#ifndef SFG_DRAW_LEVEL_BACKGROUND
+  #define SFG_DRAW_LEVEL_BACKGROUND 1
+#endif
 
 #endif // guard

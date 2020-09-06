@@ -1051,7 +1051,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
     }
   },
 
-  #include "/home/tastyfish/Git/sucklessFPS/assets/tmp.txt"
+  #include "/home/tastyfish/git/anarch/assets/tmp.txt"
   ,
 
   { // level 6
