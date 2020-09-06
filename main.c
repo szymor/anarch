@@ -2435,6 +2435,8 @@ void SFG_updateLevel()
         }
         else
         {
+          lock = 1 << (lock - 1);
+
           if (SFG_player.cards & lock)     // player has the card?
             newUpDownState = SFG_DOOR_UP_DOWN_MASK;
           else
