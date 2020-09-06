@@ -335,7 +335,8 @@ struct
 
   uint8_t  cards;                /**< Lowest 3 bits say which access cards have
                                  been taken., the next 3 bits say which cards
-                                 should be blinking in the HUD. */
+                                 should be blinking in the HUD, the last
+                                 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
 } SFG_player;
 
@@ -1198,7 +1199,7 @@ void SFG_initPlayer()
 
   SFG_player.cards = 
 #if SFG_UNLOCK_DOOR
-  255;
+  0x07;
 #else
   0;
 #endif
@@ -2398,10 +2399,16 @@ void SFG_updateLevel()
     /* Check door on whether a player is standing nearby. For performance
        reasons we only check a few doors and move to others in the next
        frame. */
-    
-//    if (SFG_currentLevel.checkedDoorIndex == 0)
-//      SFG_player.cards &= 0x07; // stop HUD card blinking each cycle
+   
+    if (SFG_currentLevel.checkedDoorIndex == 0)
+    {
+      uint8_t count = SFG_player.cards >> 6;
 
+      SFG_player.cards = (count <= 1) ?
+        (SFG_player.cards & 0x07) :
+        ((SFG_player.cards & 0x7f) | ((count - 1) << 6));
+    }
+ 
     for (uint16_t i = 0;
          i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
            SFG_currentLevel.doorRecordCount);
@@ -2416,12 +2423,6 @@ void SFG_updateLevel()
       
       uint8_t lock = SFG_DOOR_LOCK(door->state);
 
-      if (lock != 0)
-      {
-        lock = 1 << (lock + 2);
-        SFG_player.cards &= ~lock; // stop HUD blinking
-      } 
-
       if ( // player near door?
         (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
         (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
@@ -2434,10 +2435,10 @@ void SFG_updateLevel()
         }
         else
         {
-          if ((lock >> 3) & SFG_player.cards)     // player has the card?
+          if (SFG_player.cards & lock)     // player has the card?
             newUpDownState = SFG_DOOR_UP_DOWN_MASK;
           else
-            SFG_player.cards |= lock; // make card blink on HUD
+            SFG_player.cards = (SFG_player.cards & 0x07) | (lock << 3) | (2 << 6);
         }
       }
 
