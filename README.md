@@ -126,6 +126,12 @@ Am I so stupid as to trust complete strangers to not abuse this? No, I know peop
 
 This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
 
+### Why CC0? Why not MIT or copyleft?
+
+Because I strongly reject the concept of intellectual property and laws in general and because I simply don't want any bullshit burdening my creation. MIT is **not** public domain dedication, it still acknowledges copyright and has a burdening requirement of having to include a copyright notice, and it is also worded kind of vaguely. Copyleft puts even heavier legal burden on users and makes us "marry the lawyers", i.e. approve of the IP bullshit and show willingness to enforce only "good" use of our art, as if we're some kind of dictator authority.
+
+It is shame that so little software is truly in the public domain for anyone to simply use without restriction and distraction. Yes, I am aware of CC0's shortcoming, but it's the best we have and I try to address the issues with an extra waiver.
+
 ### Who are you?
 
 I am an anarcho-pacifist programmer. You can read more about me at [my website](https://www.tastyfish.cz). You can read my political manifesto here: [Non-Competitive Society](https://gitlab.com/drummyfish/my_writings/-/blob/master/non-competitive%20society.pdf).
