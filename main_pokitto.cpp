@@ -25,13 +25,13 @@
 #define SFG_RAYCASTING_MAX_HITS 6
 #define SFG_RAYCASTING_SUBSAMPLE 2
 
-#include "Pokitto.h"
-#include "clock_11u6x.h"
-#include "timer_11u6x.h"
-#include "palette.h"
-
 #include "game.h"
 #include "sounds.h"
+
+#include "../PokittoLib/Pokitto/POKITTO_HW/clock_11u6x.h"
+#include "../PokittoLib/Pokitto/POKITTO_HW/timer_11u6x.h"
+
+#include "../PokittoLib/Pokitto/Pokitto.h"
 
 Pokitto::Core pokitto;
 
@@ -140,6 +140,7 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 int main()
 {
   pokitto.begin(); 
+
   timerInit(8000);
 
   for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
