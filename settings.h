@@ -26,7 +26,9 @@
   integers and rounding errors can occur soon, so don't set this to extreme
   values (try to keep from 20 to 100).
 */
-#define SFG_FPS 60
+#ifndef SFG_FPS
+  #define SFG_FPS 60
+#endif
 
 /**
   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
@@ -79,6 +81,14 @@
 */
 #ifndef SFG_RESOLUTION_SCALEDOWN
   #define SFG_RESOLUTION_SCALEDOWN 1
+#endif
+
+/**
+  Multiplier, in RCL_Units (1024 == 1.0), of the damager player takes. This can
+  be used to balance difficulty.
+*/
+#ifndef SFG_PLAYER_DAMAGE_MULTIPLIER
+  #define SFG_PLAYER_DAMAGE_MULTIPLIER 512
 #endif
 
 /**
@@ -301,14 +311,14 @@
   Developer cheat for having infinite ammo in all weapons.
 */
 #ifndef SFG_INFINITE_AMMO
-  #define SFG_INFINITE_AMMO 1
+  #define SFG_INFINITE_AMMO 0
 #endif
 
 /**
   Developer cheat for immortality.
 */
 #ifndef SFG_IMMORTAL
-  #define SFG_IMMORTAL 1
+  #define SFG_IMMORTAL 0
 #endif
 
 /**
@@ -330,14 +340,14 @@
   options is ignored, 1 means load level 1 etc.
 */
 #ifndef SFG_START_LEVEL
-  #define SFG_START_LEVEL 6
+  #define SFG_START_LEVEL 0
 #endif
 
 /**
   Reveals whole level map from start.
 */
 #ifndef SFG_REVEAL_MAP
-  #define SFG_REVEAL_MAP 1
+  #define SFG_REVEAL_MAP 0
 #endif
 
 /**

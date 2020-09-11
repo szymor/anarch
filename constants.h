@@ -477,10 +477,10 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
 SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 {
   /* knife    */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_MELEE,1,650),
-  /* shotgun  */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,2,1200),
+  /* shotgun  */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,2,1400),
   /* m. gun   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,1,700),
-  /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,1,900),
-  /* plasma   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,1,550),
+  /* r. laun. */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_FIREBALL,1,850),
+  /* plasma   */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,1,600),
   /* solution */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,4,1050)
 };
 
@@ -488,7 +488,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 {
   /* melee                 */ 7,
   /* bullet                */ 10,
-  /* explostion (fireball) */ 13,
+  /* explostion (fireball) */ 17,
   /* plasma                */ 17
 };
 

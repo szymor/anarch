@@ -1707,6 +1707,17 @@ void SFG_playerChangeHealth(int8_t healthAdd)
     SFG_player.lastHurtFrame = SFG_game.frame;
 }
 
+void SFG_playerChangeHealthWithMiltiplier(int8_t healthAdd)
+{
+  if (healthAdd < 0)
+    healthAdd =
+      RCL_min(-1,
+      (((RCL_Unit) healthAdd) * SFG_PLAYER_DAMAGE_MULTIPLIER) /
+      RCL_UNITS_PER_SQUARE);
+
+  SFG_playerChangeHealth(healthAdd);
+}
+
 uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 {
   RCL_Unit distance = SFG_taxicabDistance(x,y,z,
@@ -1819,7 +1830,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
 
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_PUSH_AWAY_DISTANCE))
-    SFG_playerChangeHealth(-1 * damage);
+    SFG_playerChangeHealthWithMiltiplier(-1 * damage);
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
@@ -2067,7 +2078,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
           state = SFG_MONSTER_STATE_ATTACKING;
 
-          SFG_playerChangeHealth(
+          SFG_playerChangeHealthWithMiltiplier(
             -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
               
           SFG_playGameSound(3,255);
@@ -2081,10 +2092,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_TileDefinition tile =
             SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
          
-          SFG_createExplosion(mX * RCL_UNITS_PER_SQUARE,
-            mY * RCL_UNITS_PER_SQUARE,
-            SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP +
-            SFG_WALL_HEIGHT_STEP);
+          SFG_createExplosion(pX,pY,pZ);
 
           monster->health = 0;
         }
@@ -2294,7 +2302,7 @@ void SFG_updateLevel()
             SFG_player.camera.height))
         {
           eliminate = 1;
-          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
+          SFG_playerChangeHealthWithMiltiplier(-1 * SFG_getDamageValue(attackType));
         }
 
       /* check collision with the map (we don't use SFG_floorCollisionHeightAt
