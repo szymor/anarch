@@ -38,9 +38,9 @@
 struct
 { // all should be initialized to 0
   uint8_t track;
-  uint32_t t;
-  uint32_t t2;
-  uint32_t n11t;
+  uint32_t t;      // time variable/parameter
+  uint32_t t2;     // stores t squared, for better performance
+  uint32_t n11t;   // stores a multiple of 11, for better performance
 } SFG_MusicState;
 
 /**
@@ -63,41 +63,41 @@ uint8_t SFG_getNextMusicSample()
 
   uint32_t result;
 
-  #define t SFG_MusicState.t
-  #define t2 SFG_MusicState.t2
-  #define n11t SFG_MusicState.n11t
+  #define T SFG_MusicState.t
+  #define T2 SFG_MusicState.t2
+  #define N11T SFG_MusicState.n11t
 
   switch (SFG_MusicState.track) // individual music tracks
   {
     case 0:
     {
-      uint32_t a = ((t >> 7) | (t >> 9) | (~t << 1) | t);
-      result = ((t) & 65536 ? (a & (((t2) >> 16) & 0x09)) : ~a);
+      uint32_t a = ((T >> 7) | (T >> 9) | (~T << 1) | T);
+      result = ((T) & 65536 ? (a & (((T2) >> 16) & 0x09)) : ~a);
 
-      t2 += t;
+      SFG_MusicState.t2 += T;
 
       break;
     }
 
     case 1:
     {
-      result = (t & (3 << (((t >> 10) ^ ((t >> 10) << (t >> 6))))));
+      result = (T & (3 << (((T >> 10) ^ ((T >> 10) << (T >> 6))))));
 
       break;
     }
 
     case 2:
     {
-      result =
-        ~((((t >> (t >> 2)) | (t >> (t >> 5))) & 0x12) << 1) | (t >> 11);
+      result = ~((((T >> (T >> 2)) | (T >> (T >> 5))) & 0x12) << 1) | (T >> 11);
+
       break;
     }
 
     case 3:
     {
       result =
-        ((((t >> (t >> 2)) + (t >> (t >> 7)))) & 0x3f | (t >> 5) | (t >> 11))
-        & (t & (32768 | 8192) ? 0xf0 : 0x30);
+        ((((T >> (T >> 2)) + (T >> (T >> 7)))) & 0x3f | (T >> 5) | (T >> 11))
+        & (T & (32768 | 8192) ? 0xf0 : 0x30);
 
       break;
     }
@@ -105,20 +105,20 @@ uint8_t SFG_getNextMusicSample()
     case 4:
     {
       result =
-        ((0x47 >> (t >> 9)) & (t >> t)) | (0x57 >> (t >> 7)) |
-        (0x06 >> (t >> (((n11t) >> 14) & 0x0e)));
+        ((0x47 >> (T >> 9)) & (T >> T)) | (0x57 >> (T >> 7)) |
+        (0x06 >> (T >> (((N11T) >> 14) & 0x0e)));
 
-      n11t += 11;
+      SFG_MusicState.n11t += 11;
 
       break;
     }
 
     case 5:
     {
-      uint32_t a = t >> (t >> 6);
-      uint32_t b = 0x011121 >> ((a + t) >> 11);
+      uint32_t a = T >> (T >> 6);
+      uint32_t b = 0x011121 >> ((a + T) >> 11);
       result =
-        (((t >> 9) + (t ^ (t << 1))) & (0x7f >> ((t >> 15) & 0x03))) & (b + a);
+        (((T >> 9) + (T ^ (T << 1))) & (0x7f >> ((T >> 15) & 0x03))) & (b + a);
 
       break;
     }
