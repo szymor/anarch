@@ -109,7 +109,7 @@
   How much damage triggers a barrel explosion.
 */
 
-#define SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD 11
+#define SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD 3
 
 /**
   Maximum player health.
