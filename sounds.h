@@ -63,32 +63,32 @@ uint8_t SFG_getNextMusicSample()
 
   uint32_t result;
 
-  #define T SFG_MusicState.t
-  #define T2 SFG_MusicState.t2
-  #define N11T SFG_MusicState.n11t
+  #define S SFG_MusicState.t
+  #define S2 SFG_MusicState.t2
+  #define N11S SFG_MusicState.n11t
 
   switch (SFG_MusicState.track) // individual music tracks
   {
     case 0:
     {
-      uint32_t a = ((T >> 7) | (T >> 9) | (~T << 1) | T);
-      result = ((T) & 65536 ? (a & (((T2) >> 16) & 0x09)) : ~a);
+      uint32_t a = ((S >> 7) | (S >> 9) | (~S << 1) | S);
+      result = ((S) & 65536 ? (a & (((S2) >> 16) & 0x09)) : ~a);
 
-      SFG_MusicState.t2 += T;
+      SFG_MusicState.t2 += S;
 
       break;
     }
 
     case 1:
     {
-      result = (T & (3 << (((T >> 10) ^ ((T >> 10) << (T >> 6))))));
+      result = (S & (3 << (((S >> 10) ^ ((S >> 10) << (S >> 6))))));
 
       break;
     }
 
     case 2:
     {
-      result = ~((((T >> (T >> 2)) | (T >> (T >> 5))) & 0x12) << 1) | (T >> 11);
+      result = ~((((S >> (S >> 2)) | (S >> (S >> 5))) & 0x12) << 1) | (S >> 11);
 
       break;
     }
@@ -96,8 +96,8 @@ uint8_t SFG_getNextMusicSample()
     case 3:
     {
       result =
-        ((((T >> (T >> 2)) + (T >> (T >> 7)))) & 0x3f | (T >> 5) | (T >> 11))
-        & (T & (32768 | 8192) ? 0xf0 : 0x30);
+        ((((S >> (S >> 2)) + (S >> (S >> 7)))) & 0x3f | (S >> 5) | (S >> 11))
+        & (S & (32768 | 8192) ? 0xf0 : 0x30);
 
       break;
     }
@@ -105,8 +105,8 @@ uint8_t SFG_getNextMusicSample()
     case 4:
     {
       result =
-        ((0x47 >> (T >> 9)) & (T >> T)) | (0x57 >> (T >> 7)) |
-        (0x06 >> (T >> (((N11T) >> 14) & 0x0e)));
+        ((0x47 >> (S >> 9)) & (S >> S)) | (0x57 >> (S >> 7)) |
+        (0x06 >> (S >> (((N11S) >> 14) & 0x0e)));
 
       SFG_MusicState.n11t += 11;
 
@@ -115,10 +115,10 @@ uint8_t SFG_getNextMusicSample()
 
     case 5:
     {
-      uint32_t a = T >> (T >> 6);
-      uint32_t b = 0x011121 >> ((a + T) >> 11);
+      uint32_t a = S >> (S >> 6);
+      uint32_t b = 0x011121 >> ((a + S) >> 11);
       result =
-        (((T >> 9) + (T ^ (T << 1))) & (0x7f >> ((T >> 15) & 0x03))) & (b + a);
+        (((S >> 9) + (S ^ (S << 1))) & (0x7f >> ((S >> 15) & 0x03))) & (b + a);
 
       break;
     }
@@ -128,9 +128,9 @@ uint8_t SFG_getNextMusicSample()
       break;
   }
 
-  #undef t
-  #undef t2
-  #undef n11t
+  #undef S
+  #undef S2
+  #undef N11S
 
   SFG_MusicState.t += 1;
 
