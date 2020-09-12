@@ -1,7 +1,6 @@
 general:
 
-- Architecture change: make platform files compilable and move main.c to game.h
-  (so that pokitto is .cpp, GB is .ino etc.).
+- Ability to play SFX slower to e.g. give some monsters lower pitch?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - Make monsters die when squeezed?
@@ -188,6 +187,8 @@ done:
 - if space left, try blurring (lerp) the level background, see how it looks
 - replace textures in distace with constant color for performance (setting)?
 - enemies close to a wall often don't get drawn
+- Architecture change: make platform files compilable and move main.c to game.h
+  (so that pokitto is .cpp, GB is .ino etc.).
 
 scratched:
 - try to make z-buffer 3 line instead of 1D, possibly like this (to keep

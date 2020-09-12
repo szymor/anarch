@@ -4,7 +4,9 @@
   This file contains settings (or setting hints) for the game. Values here can
   fine tune performance vs quality and personalize the final compiled game. Some
   of these settings may be overriden by the specific platform used according to
-  its limitations.
+  its limitations. You are advised to NOT change value in this file directly,
+  but rather predefine them somewhere before this file gets included, e.g. in
+  you personal settings file.
 
   by Miloslav Ciz (drummyfish), 2019
 
