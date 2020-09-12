@@ -147,6 +147,8 @@ level ideas:
 
 bugs:
 
+- Bytebeat is bugged on Pokitto, outputs different values than on PC. Fix this.
+
 done:
 
 - add headbob
