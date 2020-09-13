@@ -148,7 +148,8 @@ level ideas:
 
 bugs:
 
-- Bytebeat is bugged on Pokitto, outputs different values than on PC. Fix this.
+- Player jumps higher on lower FPS, is able to jump on 4 squares. Also check the
+  distance jump.
 
 done:
 
@@ -192,6 +193,7 @@ done:
 - enemies close to a wall often don't get drawn
 - Architecture change: make platform files compilable and move main.c to game.h
   (so that pokitto is .cpp, GB is .ino etc.).
+- Bytebeat is bugged on Pokitto, outputs different values than on PC. Fix this.
 
 scratched:
 - try to make z-buffer 3 line instead of 1D, possibly like this (to keep
