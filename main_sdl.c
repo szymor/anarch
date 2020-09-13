@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;
 
-//  SDL_PauseAudio(0);
+  SDL_PauseAudio(0);
 
   running = 1;
 

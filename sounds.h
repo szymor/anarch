@@ -63,9 +63,12 @@ uint8_t SFG_getNextMusicSample()
 
   uint32_t result;
 
-  #define S SFG_MusicState.t
+  #define S SFG_MusicState.t    // can't use "T" because of a C++ template
   #define S2 SFG_MusicState.t2
   #define N11S SFG_MusicState.n11t
+
+  /* CAREFUL! Bit shifts in any direction by amount greater than data type
+     width (32) are undefined behavior. Use % 32. */
 
   switch (SFG_MusicState.track) // individual music tracks
   {
@@ -81,14 +84,17 @@ uint8_t SFG_getNextMusicSample()
 
     case 1:
     {
-      result = (S & (3 << (((S >> 10) ^ ((S >> 10) << (S >> 6))))));
+      uint32_t a = (S >> 10);
+      result = S & (3 << (((a ^ (a << ((S >> 6) % 32)))) % 32));
 
       break;
     }
 
     case 2:
     {
-      result = ~((((S >> (S >> 2)) | (S >> (S >> 5))) & 0x12) << 1) | (S >> 11);
+      result = 
+        ~((((S >> ((S >> 2) % 32)) | (S >> ((S >> 5) % 32))) & 0x12) << 1) 
+        | (S >> 11);
 
       break;
     }
@@ -96,8 +102,8 @@ uint8_t SFG_getNextMusicSample()
     case 3:
     {
       result =
-        ((((S >> (S >> 2)) + (S >> (S >> 7)))) & 0x3f | (S >> 5) | (S >> 11))
-        & (S & (32768 | 8192) ? 0xf0 : 0x30);
+        ((((S >> ((S >> 2) % 32)) + (S >> ((S >> 7) % 32)))) & 0x3f | (S >> 5)
+        | (S >> 11)) & (S & (32768 | 8192) ? 0xf0 : 0x30);
 
       break;
     }
@@ -105,8 +111,9 @@ uint8_t SFG_getNextMusicSample()
     case 4:
     {
       result =
-        ((0x47 >> (S >> 9)) & (S >> S)) | (0x57 >> (S >> 7)) |
-        (0x06 >> (S >> (((N11S) >> 14) & 0x0e)));
+        ((0x47 >> ((S >> 9) % 32)) & (S >> (S % 32))) | 
+        (0x57 >> ((S >> 7) % 32)) |
+        (0x06 >> ((S >> ((((N11S) >> 14) & 0x0e) % 32)) % 32));
 
       SFG_MusicState.n11t += 11;
 
@@ -115,10 +122,11 @@ uint8_t SFG_getNextMusicSample()
 
     case 5:
     {
-      uint32_t a = S >> (S >> 6);
-      uint32_t b = 0x011121 >> ((a + S) >> 11);
-      result =
-        (((S >> 9) + (S ^ (S << 1))) & (0x7f >> ((S >> 15) & 0x03))) & (b + a);
+      uint32_t a = S >> ((S >> 6) % 32);
+      uint32_t b = 0x011121 >> (((a + S) >> 11) % 32);
+      result = 
+        (((S >> 9) + (S ^ (S << 1))) & (0x7f >> (((S >> 15) & 0x03) % 32))) 
+        & (b + a);
 
       break;
     }
