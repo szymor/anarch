@@ -21,7 +21,7 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
   "play level",
   "load",
   "sound",
-  "shear",
+  "look",
   "exit"
 };
 

@@ -307,6 +307,15 @@
   #define SFG_OS_IS_MALWARE 0
 #endif
 
+/**
+  Angle difference, as a cos value in RCL_Units, between the player and a
+  monster, at which vertical autoaim will trigger. If the angle is greater, a
+  shot will go directly forward.
+*/
+#ifndef SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD
+  #define SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD 50
+#endif
+
 //------ developer/debug settings ------
 
 /**

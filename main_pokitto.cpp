@@ -164,10 +164,6 @@ int main()
   {
     if (pokitto.update())
     {
-
-if (SFG_game.frame % 32 == 0)
-printf("%d\n",Pokitto::Core::fps_counter);
-
       SFG_mainLoopBody();
     }
   }

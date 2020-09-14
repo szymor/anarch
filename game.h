@@ -2622,6 +2622,72 @@ static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
 }
 
 /**
+  Checks a 3D point visibility from player's position (WITHOUT considering
+  facing direction).
+*/
+static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height,
+  uint8_t spriteSize)
+{
+  return
+    RCL_castRay3D(
+      SFG_player.camera.position,
+      SFG_player.camera.height,
+      pos,
+      height,
+      SFG_floorHeightAt,
+      SFG_ceilingHeightAt,
+      SFG_game.rayConstraints
+    ) == RCL_UNITS_PER_SQUARE;
+}
+
+/**
+  Returns a tangent in RCL_Unit of vertical autoaim, given current game state.
+*/
+RCL_Unit SFG_autoaimVertically()
+{
+  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  {
+    SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
+      
+    if (SFG_MR_STATE(m) == SFG_MONSTER_STATE_INACTIVE)
+      continue;
+
+    RCL_Vector2D worldPosition, toMonster;
+
+    worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
+    worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
+    
+    toMonster.x = worldPosition.x - SFG_player.camera.position.x;
+    toMonster.y = worldPosition.y - SFG_player.camera.position.y;
+
+    if (RCL_abs(
+         RCL_vectorsAngleCos(SFG_player.direction,toMonster) 
+         - RCL_UNITS_PER_SQUARE) < SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD)
+    {
+      uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
+        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
+        
+      RCL_Unit worldHeight = 
+        SFG_floorHeightAt(
+          SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
+          SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
+          + 
+          SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
+        
+      if (SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
+      {
+        RCL_Unit distance = RCL_len(toMonster);
+ 
+        return ((worldHeight - SFG_player.camera.height) * RCL_UNITS_PER_SQUARE)
+          / distance;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
@@ -2650,8 +2716,8 @@ void SFG_gameStepPlaying()
   int8_t shearing = 0;
 
   if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
-    SFG_game.settings = 
-      (~SFG_game.settings & 0x08) | (SFG_game.settings & ~0x08);
+    SFG_game.settings = (SFG_game.settings & 0x04) ?
+      (SFG_game.settings & ~0x0c) : (SFG_game.settings | 0x0c );
 
 #if SFG_PREVIEW_MODE == 0
   if (
@@ -2719,6 +2785,16 @@ void SFG_gameStepPlaying()
         RCL_Unit direction =
           (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
           + angleAdd;
+          
+        RCL_Unit projectileSpeed = SFG_GET_PROJECTILE_SPEED_UPS(projectile);
+        
+        /* Vertical speed will be either determined by autoaim (if shearing is
+           off) or the camera shear value. */
+        RCL_Unit verticalSpeed = (SFG_game.settings & 0x04) ?
+          (SFG_player.camera.shear * projectileSpeed) / 
+            SFG_CAMERA_MAX_SHEAR_PIXELS
+          :
+          (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
 
         for (uint8_t i = 0; i < projectileCount; ++i)
         {
@@ -2727,10 +2803,8 @@ void SFG_gameStepPlaying()
             SFG_player.camera.position,
             SFG_player.camera.height,
             RCL_angleToDirection(direction),
-            (SFG_player.camera.shear *
-              SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 
-              SFG_CAMERA_MAX_SHEAR_PIXELS,
-              SFG_PROJECTILE_SPAWN_OFFSET
+            verticalSpeed,  
+            SFG_PROJECTILE_SPAWN_OFFSET
             );
 
           direction += angleAdd;
@@ -3848,25 +3922,6 @@ void SFG_drawWinOverlay()
   #undef STRIP_HEIGHT
   #undef STRIP_START
   #undef INNER_STRIP_HEIGHT
-}
-
-/**
-  Checks a 3D point visibility from player's position (WITHOUT considering
-  facing direction).
-*/
-static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height,
-  uint8_t spriteSize)
-{
-  return
-    RCL_castRay3D(
-      SFG_player.camera.position,
-      SFG_player.camera.height,
-      pos,
-      height,
-      SFG_floorHeightAt,
-      SFG_ceilingHeightAt,
-      SFG_game.rayConstraints
-    ) == RCL_UNITS_PER_SQUARE;
 }
 
 void SFG_draw()
