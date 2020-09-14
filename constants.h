@@ -114,7 +114,7 @@
 /**
   Maximum player health.
 */
-#define SFG_PLAYER_MAX_HEALTH 150
+#define SFG_PLAYER_MAX_HEALTH 125
 
 /**
   Start health of player.
@@ -528,7 +528,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {
   /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,400),
-  /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(15,1000),
+  /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(12,1000),
   /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(20,500),
   /* dust      */ SFG_PROJECTILE_ATTRIBUTE(0,450),
   /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(28,1000)

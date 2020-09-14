@@ -4,6 +4,14 @@
   Main source file of the game that puts together all the pieces. main game
   logic is implemented here.
 
+  Physics notes (you can break this when messing with constants):
+
+  - Lowest ceiling under which player can fit is 4 height steps.
+  - Widest hole over which player can run without jumping is 1 square.
+  - Widest hole over which the player can jump is 3 squares.
+  - Highest step a player can walk onto without jumping is 2 height steps.
+  - Highest step a player can jump onto is 3 height steps.
+
   by Miloslav Ciz (drummyfish), 2019
 
   Released under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
@@ -1467,7 +1475,7 @@ void SFG_init()
 
   SFG_game.antiSpam = 0;
 
-  SFG_game.settings = 0xff;
+  SFG_game.settings = 0x03;
   SFG_enableMusic(1);
 
   SFG_LOG("computing average texture colors")

@@ -12,17 +12,21 @@
   whatsoever.
 */
 
-//#define SFG_LOG(str) printf("game: %s\n",str); // for debug only
 
-#define SFG_FPS 30
-#define SFG_TEXTURE_DISTANCE 5000
+   #include <stdio.h>
+   #define SFG_LOG(str) printf("game: %s\n",str); // for debug only
+
+  #define SFG_START_LEVEL 8
+
+#define SFG_FPS 25
+#define SFG_TEXTURE_DISTANCE 6000
 #define SFG_SCREEN_RESOLUTION_X 110
 #define SFG_SCREEN_RESOLUTION_Y 88
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_DITHERED_SHADOW 0
 #define SFG_FOG_DIMINISH_STEP 2048
 #define SFG_RAYCASTING_MAX_STEPS 20  
-#define SFG_RAYCASTING_MAX_HITS 6
+#define SFG_RAYCASTING_MAX_HITS 5
 #define SFG_RAYCASTING_SUBSAMPLE 2
 
 #include "game.h"
@@ -160,6 +164,10 @@ int main()
   {
     if (pokitto.update())
     {
+
+if (SFG_game.frame % 32 == 0)
+printf("%d\n",Pokitto::Core::fps_counter);
+
       SFG_mainLoopBody();
     }
   }
