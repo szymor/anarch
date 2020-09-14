@@ -55,12 +55,11 @@
 /* ============================= PORTING =================================== */
 
 /* When porting, do the following:
-   - implement the following functions in your platform_*.h.
-   - Call SFG_init() from your platform initialization code.
-   - Call SFG_mainLoopBody() from within your platform's main loop.
-   - include "settings.h" in your platform_*.h and optionally hard-override
-     (redefine) some settings in platform_*.h, according to the platform's
-     needs.
+   - Include this file (and possibly other optionaly files) in your main_*
+     frontend source.
+   - Implement the following functions in your frontend source.
+   - Call SFG_init() from your frontend initialization code.
+   - Call SFG_mainLoopBody() from within your frontend main loop.
 */
 
 #ifndef SFG_LOG
@@ -201,7 +200,7 @@ typedef struct
 {
   uint8_t stateType;     /**< Holds state (lower 4 bits) and type of monster
                               (upper 4 bits). */
-  uint8_t coords[2];     /**< Monster position, in 1/4s of a square */
+  uint8_t coords[2];     /**< monster position, in 1/4s of a square */
   uint8_t health;
 } SFG_MonsterRecord;
 
@@ -218,7 +217,7 @@ typedef struct
 #define SFG_MONSTER_MASK_STATE 0x0f
 #define SFG_MONSTER_MASK_TYPE  0xf0
 
-#define SFG_MONSTER_STATE_INACTIVE  0  ///< Not nearby, not actively updated.
+#define SFG_MONSTER_STATE_INACTIVE  0 ///< Not nearby, not actively updated.
 #define SFG_MONSTER_STATE_IDLE      1
 #define SFG_MONSTER_STATE_ATTACKING 2
 #define SFG_MONSTER_STATE_HURTING   3
@@ -304,7 +303,7 @@ struct
   uint32_t lastFrameTimeMs;
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
-  uint8_t antiSpam;  ///< Prevents log message spamming.
+  uint8_t antiSpam;   ///< Prevents log message spamming.
 
   uint8_t settings;   /**< Dynamic game settings (can be changed at runtime),
                            bit meaning:
@@ -316,7 +315,7 @@ struct
                                    |\___ shearing
                                    \____ freelook (shearing not sliding back) */
 
-  uint8_t blink;           ///< Says whether blinkg is currently on or off.
+  uint8_t blink;      ///< Says whether blinkg is currently on or off.
 } SFG_game;
 
 /**
@@ -368,7 +367,7 @@ struct
   uint8_t doorRecordCount;
   uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
 
-  SFG_ItemRecord itemRecords[SFG_MAX_ITEMS]; ///< Holds level items
+  SFG_ItemRecord itemRecords[SFG_MAX_ITEMS]; ///< Holds level items.
   uint8_t itemRecordCount;
   uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
 
@@ -463,9 +462,9 @@ SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
 */
 
 /**
-  Returns a pseudorandom byte. This is a congrent generator, its parameters
-  have been chosen so that each number (0-255) is included in the output
-  exactly once!
+  Returns a pseudorandom byte. This is a very simple congrent generator, its
+  parameters have been chosen so that each number (0-255) is included in the
+  output exactly once!
 */
 uint8_t SFG_random()
 {
@@ -491,7 +490,7 @@ void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
 
 /**
   Returns a damage value for specific attack type (SFG_WEAPON_FIRE_TYPE_...),
-  with added randomness (so the values will differe). For explosion pass
+  with added randomness (so the values will differ). For explosion pass
   SFG_WEAPON_FIRE_TYPE_FIREBALL.
 */
 uint8_t SFG_getDamageValue(uint8_t attackType)
@@ -499,7 +498,7 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
   if (attackType >= SFG_WEAPON_FIRE_TYPES_TOTAL)
     return 0;
 
-  int32_t value = SFG_attackDamageTable[attackType];   // has to be signed
+  int32_t value = SFG_attackDamageTable[attackType]; // has to be signed
   int32_t maxAdd = (value * SFG_DAMAGE_RANDOMNESS) / 256;
 
   value = value + (maxAdd / 2) - (SFG_random() * maxAdd / 256);
@@ -647,6 +646,7 @@ uint16_t SFG_keyRegisters(uint8_t key)
 #if SFG_RESOLUTION_SCALEDOWN == 1
   #define SFG_setGamePixel SFG_setPixel
 #else
+
 /**
   Sets the game pixel (a pixel that can potentially be bigger than the screen
   pixel).
@@ -704,8 +704,8 @@ static inline uint8_t SFG_fogValueDiminish(RCL_Unit depth)
   return depth / SFG_FOG_DIMINISH_STEP;
 }
 
-
-static inline uint8_t SFG_getTexelFull(uint8_t textureIndex,RCL_Unit u, RCL_Unit v)
+static inline uint8_t
+  SFG_getTexelFull(uint8_t textureIndex,RCL_Unit u, RCL_Unit v)
 {
   return
     SFG_getTexel(
@@ -2200,7 +2200,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   if (collision)
   {
     state = SFG_MONSTER_STATE_IDLE;
-    // ^ will force the monster to choose random direction in next update
+    // ^ will force the monster to choose random direction in the next update
  
     newPos[0] = monster->coords[0];
     newPos[1] = monster->coords[1];
@@ -2264,7 +2264,8 @@ void SFG_updateLevel()
 
   uint8_t substractFrames =
     (SFG_game.frame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
-    // ^ only substract frames to live every other frame
+    /* ^ only substract frames to live every other frame because a maximum of
+       256 frames would be too few */
 
   for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
   { // ^ has to be signed
@@ -2277,7 +2278,7 @@ void SFG_updateLevel()
     else if (p->type == SFG_PROJECTILE_PLASMA)
       attackType = SFG_WEAPON_FIRE_TYPE_PLASMA;
 
-    RCL_Unit pos[3] = {0,0,0}; /* we have to convert from uint16_t because
+    RCL_Unit pos[3] = {0,0,0}; /* we have to convert from uint16_t because of
                                   under/overflows */
     uint8_t eliminate = 0;
 
@@ -2313,9 +2314,9 @@ void SFG_updateLevel()
           SFG_playerChangeHealthWithMiltiplier(-1 * SFG_getDamageValue(attackType));
         }
 
-      /* check collision with the map (we don't use SFG_floorCollisionHeightAt
-         because collisio with items has to be done differently for
-         projectiles) */
+      /* Check collision with the map (we don't use SFG_floorCollisionHeightAt
+         because collisions with items have to be done differently for
+         projectiles). */
 
       if (!eliminate &&
           ((SFG_floorHeightAt(pos[0] / RCL_UNITS_PER_SQUARE,pos[1] / 
@@ -2455,10 +2456,11 @@ void SFG_updateLevel()
         {
           lock = 1 << (lock - 1);
 
-          if (SFG_player.cards & lock)     // player has the card?
+          if (SFG_player.cards & lock) // player has the card?
             newUpDownState = SFG_DOOR_UP_DOWN_MASK;
           else
-            SFG_player.cards = (SFG_player.cards & 0x07) | (lock << 3) | (2 << 6);
+            SFG_player.cards = 
+              (SFG_player.cards & 0x07) | (lock << 3) | (2 << 6);
         }
       }
 
@@ -2727,7 +2729,7 @@ void SFG_gameStepPlaying()
     RCL_max(SFG_MIN_WEAPON_COOLDOWN_FRAMES,
       SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon))))
   {
-    // player: attack, shoot, fire
+    // player: attack/shoot/fire
 
     uint8_t ammo, projectileCount, canShoot;
 
@@ -3009,9 +3011,9 @@ void SFG_gameStepPlaying()
     uint8_t quadrant = (SFG_player.headBobFrame % RCL_UNITS_PER_SQUARE) /
       (RCL_UNITS_PER_SQUARE / 4);
 
-    /* when in quadrant in which sin is going away from zero, switch to the
+    /* When in quadrant in which sin is going away from zero, switch to the
        same value of the next quadrant, so that bobbing starts to go towards
-       zero immediately */
+       zero immediately. */
 
     if (quadrant % 2 == 0)
       SFG_player.headBobFrame =
@@ -3022,7 +3024,7 @@ void SFG_gameStepPlaying()
     RCL_Unit currentFrame = SFG_player.headBobFrame;
     RCL_Unit nextFrame = SFG_player.headBobFrame + 16;
 
-    // only stop bobbing when we pass frame at which sin crosses ero
+    // only stop bobbing when we pass a frame at which sin crosses zero
     SFG_player.headBobFrame =
       (currentFrame / (RCL_UNITS_PER_SQUARE / 2) ==
        nextFrame / (RCL_UNITS_PER_SQUARE / 2)) ?
@@ -3069,8 +3071,8 @@ void SFG_gameStepPlaying()
 
   uint8_t collidesWithTeleport = 0;
 
-  /* item collisions with player (only those that don't stop player's movement
-     -- these are handled differently, via itemCollisionMap): */
+  /* item collisions with player (only those that don't stop player's movement,
+     as those are handled differently, via itemCollisionMap): */
   for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
     // ^ has to be int16_t (signed)
   {
@@ -3339,7 +3341,7 @@ void SFG_gameStepMenu()
 
         current++;
 
-        if (current == 2)  // option that doesn't make sense, skip
+        if (current == 2) // option that doesn't make sense, skip
           current++;
 
         SFG_game.settings = 
@@ -3369,7 +3371,7 @@ void SFG_gameStepMenu()
 
 /**
   Performs one game step (logic, physics, menu, ...), happening SFG_MS_PER_FRAME
-  after previous frame.
+  after the previous step.
 */
 void SFG_gameStep()
 {
@@ -3401,7 +3403,7 @@ void SFG_gameStep()
     { 
       // player die animation (lose)
 
-      SFG_updateLevel();
+      SFG_updateLevel(); // let monsters and other things continue moving
     
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
@@ -3425,7 +3427,7 @@ void SFG_gameStep()
       // win animation
      
       SFG_updateLevel();
- 
+
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
       if ((t > SFG_WIN_ANIMATION_DURATION) && SFG_keyIsDown(SFG_KEY_A))
@@ -3680,8 +3682,8 @@ uint8_t SFG_drawNumber(
 }
 
 /**
-  Draws a border that indicates something is happening, e.g. being hurt or
-  taking an item.
+  Draws a screen border that indicates something is happening, e.g. being hurt
+  or taking an item.
 */
 void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 {
@@ -3715,7 +3717,7 @@ void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 }
 
 /**
-  Draws the player weapon, handling the shooting animation.
+  Draws the player weapon, includes handling the shoot animation.
 */
 void SFG_drawWeapon(int16_t bobOffset)
 {
@@ -3977,7 +3979,7 @@ void SFG_draw()
         SFG_LOSE_ANIMATION_DURATION;
     }
       
-    // add head bob just for the rendering
+    // add head bob just for the rendering (we'll will substract it back later)
 
     SFG_player.camera.height += headBobOffset;
 #endif
@@ -4198,8 +4200,8 @@ void SFG_draw()
 
 void SFG_mainLoopBody()
 {
-  /* standard deterministic game loop, independed on actuall achieved FPS,
-     each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
+  /* Standard deterministic game loop, independed of actual achieved FPS.
+     Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
   uint32_t timeNow = SFG_getTimeMs();
   uint32_t timeNextFrame = SFG_game.lastFrameTimeMs + SFG_MS_PER_FRAME;
@@ -4212,7 +4214,7 @@ void SFG_mainLoopBody()
 
     uint8_t steps = 0;
 
-    // perform game logic (physics), for each frame
+    // perform game logic (physics etc.), for each frame
     while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
       SFG_gameStep();
