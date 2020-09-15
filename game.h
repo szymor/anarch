@@ -1196,10 +1196,9 @@ void SFG_initPlayer()
 
   SFG_player.headBobFrame = 0;
 
-  SFG_player.weapon = 2;
+  SFG_player.weapon = SFG_WEAPON_KNIFE;
 
   SFG_playerRotateWeapon(1); // this chooses weapon with ammo available
-  SFG_playerRotateWeapon(0);
 
   SFG_player.weaponCooldownStartFrame = SFG_game.frame;
   SFG_player.lastHurtFrame = SFG_game.frame;
@@ -2852,8 +2851,21 @@ void SFG_gameStepPlaying()
 
       SFG_player.weaponCooldownStartFrame = SFG_game.frame;
 
-      if (ammo != SFG_AMMO_NONE && SFG_player.ammo[ammo] == 0)
+      SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+
+      if (!canShoot)
+      {
+        // No more ammo, switch to the second strongest weapon.
+
         SFG_playerRotateWeapon(1);
+
+        uint8_t previousWeapon = SFG_player.weapon;
+
+        SFG_playerRotateWeapon(0);
+
+        if (previousWeapon > SFG_player.weapon)
+          SFG_playerRotateWeapon(1);
+      }
     } // endif: has enough ammo?
   } // attack
 #endif // SFG_PREVIEW_MODE == 0
@@ -3100,6 +3112,15 @@ void SFG_gameStepPlaying()
       {
         uint8_t eliminate = 1;
 
+        uint8_t onlyKnife = 1;
+
+        for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
+          if (SFG_player.ammo[i] != 0)
+          {
+            onlyKnife = 0;
+            break;
+          }
+
         switch (e->type)
         {
           case SFG_LEVEL_ELEMENT_HEALTH:
@@ -3111,8 +3132,11 @@ void SFG_gameStepPlaying()
 
 #define addAmmo(type) \
   if (SFG_player.ammo[SFG_AMMO_##type] < SFG_AMMO_MAX_##type) \
+  {\
     SFG_player.ammo[SFG_AMMO_##type] = RCL_min(SFG_AMMO_MAX_##type,\
       SFG_player.ammo[SFG_AMMO_##type] + SFG_AMMO_INCREASE_##type);\
+    if (onlyKnife) SFG_playerRotateWeapon(1); \
+  }\
   else\
     eliminate = 0;
 

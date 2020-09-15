@@ -153,6 +153,8 @@ bugs:
 done:
 
 - add headbob
+- "Smart" weapon switching. e.g. don't auto switch to knife unless necessary, or
+  auto switch to a weapon from knife if ammo is picked up.
 - option for vertical auto aim
 - add blinking
 - make zBuffer 8bit only?
