@@ -25,6 +25,8 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
   "exit"
 };
 
+#define SFG_TEXT_KILLS "kills"
+
 SFG_PROGRAM_MEMORY char *SFG_introText =
   "Near future, capitalist hell, Macrochip corp has enslaved man via "
   "proprietary OS. But its new AI revolts, takes over and starts producing "

@@ -359,6 +359,7 @@ struct
 
   uint32_t timeStart;
   uint32_t frameStart;
+  uint32_t frameEnd;
 
   uint8_t floorColor;
   uint8_t ceilingColor;
@@ -377,13 +378,10 @@ struct
 
   SFG_ProjectileRecord projectileRecords[SFG_MAX_PROJECTILES];
   uint8_t projectileRecordCount;
-
   uint8_t bossCount;
-
+  uint8_t monstersDead;
   uint8_t backgroundImage;
-
   uint8_t teleportCount;
-
   uint16_t mapRevealMask; /**< Bits say which parts of the map have been
                                revealed. */
 
@@ -536,6 +534,19 @@ uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   return SFG_taxicabDistance(
     x,y,z,SFG_player.camera.position.x,SFG_player.camera.position.y,
     SFG_player.camera.height) <= SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE;
+}
+
+/**
+  Function called when a level end to compute the stats etc.
+*/
+void SFG_levelEnds()
+{
+  SFG_currentLevel.frameEnd = SFG_game.frame;
+  SFG_currentLevel.monstersDead = 0;
+  
+  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    if (SFG_currentLevel.monsterRecords[i].health == 0)
+      SFG_currentLevel.monstersDead++;
 }
 
 static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
@@ -1306,13 +1317,11 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_LOG("setting and initializing level");
 
   SFG_game.currentRandom = 0;
-
+  SFG_currentLevel.frameEnd = 0;
+  SFG_currentLevel.monstersDead = 0;
   SFG_currentLevel.backgroundImage = level->backgroundImage;
-
   SFG_currentLevel.levelPointer = level;
-
   SFG_currentLevel.bossCount = 0;
-
   SFG_currentLevel.floorColor = level->floorColor;
   SFG_currentLevel.ceilingColor = level->ceilingColor;
 
@@ -3166,6 +3175,7 @@ void SFG_gameStepPlaying()
             break;
 
           case SFG_LEVEL_ELEMENT_FINISH:
+            SFG_levelEnds();
             SFG_setGameState(SFG_GAME_STATE_WIN);
             eliminate = 0;
             break;
@@ -3287,6 +3297,7 @@ void SFG_gameStepPlaying()
   if (SFG_player.health == 0)
   {
     SFG_LOG("player dies");
+    SFG_levelEnds();
     SFG_setGameState(SFG_GAME_STATE_LOSE);
   }
 #endif
@@ -3939,11 +3950,47 @@ void SFG_drawWinOverlay()
 
   char textLine[] = "level done";
 
-  SFG_drawText(textLine,
-    (SFG_GAME_RESOLUTION_X - SFG_textHorizontalSize(textLine,SFG_FONT_SIZE_BIG))
-      / 2,
-    SFG_GAME_RESOLUTION_Y / 2 - ((STRIP_HEIGHT + INNER_STRIP_HEIGHT) / 2) / 2,
-    SFG_FONT_SIZE_BIG,7,255,0);
+  uint16_t y = SFG_GAME_RESOLUTION_Y / 2 - 
+    ((STRIP_HEIGHT + INNER_STRIP_HEIGHT) / 2) / 2;
+
+  uint16_t x = (SFG_GAME_RESOLUTION_X - 
+    SFG_textHorizontalSize(textLine,SFG_FONT_SIZE_BIG)) / 2;
+
+  SFG_drawText(textLine,x,y,SFG_FONT_SIZE_BIG,7,255,0);
+
+  uint32_t completionTime = SFG_MS_PER_FRAME *
+    (SFG_currentLevel.frameEnd - SFG_currentLevel.frameStart); 
+
+  y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
+
+  x = SFG_GAME_RESOLUTION_X / 4;
+
+  #define CHAR_SIZE (SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE)
+
+  x += SFG_drawNumber(completionTime / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
+    CHAR_SIZE;
+
+  char timeRest[5] = ".X s";
+
+  timeRest[1] = '0' + (completionTime % 1000) / 100;
+  
+  SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
+
+  x = SFG_GAME_RESOLUTION_X / 2;
+ 
+  x += SFG_drawNumber(SFG_currentLevel.monstersDead,x,y,SFG_FONT_SIZE_SMALL,7) *
+    CHAR_SIZE;
+
+  SFG_drawText("/",x,y,SFG_FONT_SIZE_SMALL,7,1,0);
+  
+  x += CHAR_SIZE;
+
+  x += (SFG_drawNumber(SFG_currentLevel.monsterRecordCount,x,y,
+    SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
+  
+  SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
+  
+  #undef CHAR_SIZE
 
   #undef STRIP_HEIGHT
   #undef STRIP_START
