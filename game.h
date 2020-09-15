@@ -3176,6 +3176,7 @@ void SFG_gameStepPlaying()
 
           case SFG_LEVEL_ELEMENT_FINISH:
             SFG_levelEnds();
+            SFG_playGameSound(2,255); 
             SFG_setGameState(SFG_GAME_STATE_WIN);
             eliminate = 0;
             break;
@@ -3465,8 +3466,16 @@ void SFG_gameStep()
 
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
-      if ((t > SFG_WIN_ANIMATION_DURATION) && SFG_keyIsDown(SFG_KEY_A))
-        SFG_setGameState(SFG_GAME_STATE_MENU);
+      if (t > SFG_WIN_ANIMATION_DURATION)
+      {
+        if (SFG_keyIsDown(SFG_KEY_RIGHT))
+        {
+          // TODO: save here
+          SFG_setGameState(SFG_GAME_STATE_MENU);
+        }
+        else if (SFG_keyIsDown(SFG_KEY_LEFT))
+          SFG_setGameState(SFG_GAME_STATE_MENU);
+      }
 
       break;
     }
@@ -3956,41 +3965,53 @@ void SFG_drawWinOverlay()
   uint16_t x = (SFG_GAME_RESOLUTION_X - 
     SFG_textHorizontalSize(textLine,SFG_FONT_SIZE_BIG)) / 2;
 
-  SFG_drawText(textLine,x,y,SFG_FONT_SIZE_BIG,7,255,0);
+  SFG_drawText(textLine,x,y,SFG_FONT_SIZE_BIG,7 + SFG_game.blink * 95,255,0);
 
   uint32_t completionTime = SFG_MS_PER_FRAME *
     (SFG_currentLevel.frameEnd - SFG_currentLevel.frameStart); 
 
-  y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
+  if (t >= (SFG_WIN_ANIMATION_DURATION / 2))
+  {
+    y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
 
-  x = SFG_GAME_RESOLUTION_X / 4;
+    x = SFG_GAME_RESOLUTION_X / 4;
 
-  #define CHAR_SIZE (SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE)
+    #define CHAR_SIZE (SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE)
 
-  x += SFG_drawNumber(completionTime / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
-    CHAR_SIZE;
+    x += SFG_drawNumber(completionTime / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
+      CHAR_SIZE;
 
-  char timeRest[5] = ".X s";
+    char timeRest[5] = ".X s";
 
-  timeRest[1] = '0' + (completionTime % 1000) / 100;
-  
-  SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
+    timeRest[1] = '0' + (completionTime % 1000) / 100;
+    
+    SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
 
-  x = SFG_GAME_RESOLUTION_X / 2;
- 
-  x += SFG_drawNumber(SFG_currentLevel.monstersDead,x,y,SFG_FONT_SIZE_SMALL,7) *
-    CHAR_SIZE;
+    x = SFG_GAME_RESOLUTION_X / 2;
+   
+    x += SFG_drawNumber(SFG_currentLevel.monstersDead,x,y,SFG_FONT_SIZE_SMALL,7) *
+      CHAR_SIZE;
 
-  SFG_drawText("/",x,y,SFG_FONT_SIZE_SMALL,7,1,0);
-  
-  x += CHAR_SIZE;
+    SFG_drawText("/",x,y,SFG_FONT_SIZE_SMALL,7,1,0);
+    
+    x += CHAR_SIZE;
 
-  x += (SFG_drawNumber(SFG_currentLevel.monsterRecordCount,x,y,
-    SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
-  
-  SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
-  
-  #undef CHAR_SIZE
+    x += (SFG_drawNumber(SFG_currentLevel.monsterRecordCount,x,y,
+      SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
+    
+    SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
+    
+    if (t >= (SFG_WIN_ANIMATION_DURATION - 1))
+    {
+      y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
+
+      SFG_drawText(SFG_TEXT_SAVE_PROMPT,
+        (SFG_GAME_RESOLUTION_X - SFG_textHorizontalSize(SFG_TEXT_SAVE_PROMPT,
+          SFG_FONT_SIZE_MEDIUM)) / 2,y,SFG_FONT_SIZE_MEDIUM,7,255,0);
+    }
+
+    #undef CHAR_SIZE
+  }
 
   #undef STRIP_HEIGHT
   #undef STRIP_START
