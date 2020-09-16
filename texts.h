@@ -27,6 +27,7 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
 
 #define SFG_TEXT_KILLS "kills"
 #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
+#define SFG_TEXT_SAVED "saved"
 
 SFG_PROGRAM_MEMORY char *SFG_introText =
   "Near future, capitalist hell, Macrochip corp has enslaved man via "

@@ -117,6 +117,24 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 */
 void SFG_enableMusic(uint8_t enable);
 
+#define SFG_SAVE_SIZE 12
+
+/**
+  Optional function for permanently saving game state. Platform that don't have
+  permanent storage may let this function do nothing. If implemented, the
+  function should save the passed data into its permanent storage, e.g. a file,
+  a cookie etc.
+*/
+void SFG_save(uint8_t data[SFG_SAVE_SIZE]);
+
+/**
+  Optional function for retrieving game data that were saved to permanent
+  storage. Platforms without permanent storage may let this function do nothing.
+  If implemented, the function should fill the passed array with data from
+  permanent storage, e.g. a file, a cookie etc.
+*/
+void SFG_load(uint8_t data[SFG_SAVE_SIZE]);
+
 /* ========================================================================= */
 
 /**
@@ -251,6 +269,7 @@ typedef struct
 #define SFG_GAME_STATE_INTRO 4
 #define SFG_GAME_STATE_OUTRO 5
 #define SFG_GAME_STATE_MAP 6
+#define SFG_GAME_STATE_LEVEL_START 7
 
 #define SFG_MENU_ITEM_CONTINUE 0
 #define SFG_MENU_ITEM_MAP 1
@@ -304,6 +323,7 @@ struct
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
   uint8_t antiSpam;   ///< Prevents log message spamming.
+  uint8_t saved;      ///< Helper variable to know if game was saved.
 
   uint8_t settings;   /**< Dynamic game settings (can be changed at runtime),
                            bit meaning:
@@ -355,6 +375,7 @@ struct
 struct
 {
   const SFG_Level *levelPointer;
+  uint8_t levelNumber;
   const uint8_t* textures[7];
 
   uint32_t timeStart;
@@ -505,6 +526,68 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
     value = 0;
 
   return value;
+}
+
+/**
+  Saves game data to persistent storage.
+*/
+void SFG_gameSave()
+{
+  /*
+    The save format is binary and platform independent. The save contains game
+    settings, game progress and a saved position. The format is as follows:
+
+    4b   Last level that has been reached and is accessible to play.
+    4b   Level number of the saved position.
+    8b   game settings (SFG_game.settings)
+    8b   Health at saved position.
+    8b   Bullets ammo at saved position.
+    8b   Rockets ammo at saved position.
+    8b   Plasma ammo at saved position.
+    32b  Little endian total play time from start, in 10ths of second.
+    16b  Little endian total enemies killed from start.
+  */
+
+  SFG_LOG("Saving.");
+
+  uint8_t data[SFG_SAVE_SIZE];
+
+  data[0] = SFG_currentLevel.levelNumber | 0; // TODO
+  data[1] = SFG_game.settings;
+  data[2] = SFG_player.health;
+
+  for (uint8_t i = 0; i < 3; ++i)
+    data[3 + i] = SFG_player.ammo[i];
+
+  uint32_t time = 0; // TODO
+
+  for (uint8_t i = 0; i < 4; ++i)
+  {
+    data[6 + i] = time % 256;
+    time /= 256;
+  }
+
+  uint16_t kills = 0; // TODO
+
+  data[10] = kills % 256;
+  data[11] = kills / 256;
+
+  SFG_game.saved = 1;
+
+//  SFG_save(data);
+}
+
+/**
+  Loads game data from persistent storage.
+*/
+void SFG_gameLoad()
+{
+  SFG_LOG("Loading.");
+
+  uint8_t data[SFG_SAVE_SIZE];
+
+
+//  SFG_load(data);
 }
 
 /**
@@ -1195,7 +1278,8 @@ void SFG_initPlayer()
   SFG_player.camera.height = 
     SFG_floorHeightAt( 
       SFG_currentLevel.levelPointer->playerStart[0],
-      SFG_currentLevel.levelPointer->playerStart[1]);
+      SFG_currentLevel.levelPointer->playerStart[1]) + 
+      RCL_CAMERA_COLL_HEIGHT_BELOW;
 
   SFG_player.camera.direction = 
     SFG_currentLevel.levelPointer->playerStart[2] *
@@ -1312,11 +1396,21 @@ uint8_t SFG_itemCollides(uint8_t elementType)
     elementType == SFG_LEVEL_ELEMENT_LAMP;
 }
 
-void SFG_setAndInitLevel(const SFG_Level *level)
+void SFG_setGameState(uint8_t state)
+{
+  SFG_game.state = state;
+  SFG_game.stateChangeTime = SFG_game.frameTime;
+}
+
+void SFG_setAndInitLevel(uint8_t levelNumber)
 {
   SFG_LOG("setting and initializing level");
 
+  const SFG_Level *level = &SFG_levels[levelNumber];
+
   SFG_game.currentRandom = 0;
+  SFG_game.saved = 0;
+  SFG_currentLevel.levelNumber = levelNumber;
   SFG_currentLevel.frameEnd = 0;
   SFG_currentLevel.monstersDead = 0;
   SFG_currentLevel.backgroundImage = level->backgroundImage;
@@ -1462,12 +1556,8 @@ void SFG_setAndInitLevel(const SFG_Level *level)
   SFG_game.spriteAnimationFrame = 0;
  
   SFG_initPlayer();
-}
 
-void SFG_setGameState(uint8_t state)
-{
-  SFG_game.state = state;
-  SFG_game.stateChangeTime = SFG_game.frameTime;
+  SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
 }
 
 void SFG_init()
@@ -1542,8 +1632,7 @@ void SFG_init()
 #if SFG_START_LEVEL == 0
   SFG_setGameState(SFG_GAME_STATE_MENU);
 #else
-  SFG_setAndInitLevel(&SFG_levels[SFG_START_LEVEL - 1]);
-  SFG_setGameState(SFG_GAME_STATE_PLAYING);
+  SFG_setAndInitLevel(SFG_START_LEVEL - 1);
 #endif
 }
 
@@ -2103,13 +2192,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         {
           // explode
 
-          uint8_t properties;
-
-          SFG_TileDefinition tile =
-            SFG_getMapTile(SFG_currentLevel.levelPointer,mX,mY,&properties);
-         
           SFG_createExplosion(pX,pY,pZ);
-
           monster->health = 0;
         }
       }
@@ -2698,6 +2781,103 @@ RCL_Unit SFG_autoaimVertically()
 }
 
 /**
+  Draws text on screen using the bitmap font stored in assets.
+*/
+void SFG_drawText(
+  const char *text,
+  uint16_t x,
+  uint16_t y,
+  uint8_t size,
+  uint8_t color,
+  uint16_t maxLength,
+  uint16_t limitX)
+{
+  if (size == 0)
+    size = 1;
+
+  if (limitX == 0)
+    limitX = 65535;
+
+  if (maxLength == 0)
+    maxLength = 65535;
+
+  uint16_t pos = 0;
+
+  uint16_t currentX = x;
+  uint16_t currentY = y;
+
+  while (text[pos] != 0 && pos < maxLength) // for each character
+  {
+    uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
+
+    for (uint8_t i = 0; i < SFG_FONT_CHARACTER_SIZE; ++i) // for each line
+    {
+      currentY = y;
+
+      for (uint8_t j = 0; j < SFG_FONT_CHARACTER_SIZE; ++j) // for each row
+      {
+        if (character & 0x8000)
+          for (uint8_t k = 0; k < size; ++k)
+            for (uint8_t l = 0; l < size; ++l)
+            {
+              uint16_t drawX = currentX + k;
+              uint16_t drawY = currentY + l;
+
+              if (drawX < SFG_GAME_RESOLUTION_X &&
+                drawY < SFG_GAME_RESOLUTION_Y)
+                SFG_setGamePixel(drawX,drawY,color);
+            }
+
+        currentY += size;
+        character = character << 1;
+      }
+
+      currentX += size;
+    }
+    
+    currentX += size; // space
+      
+    if (currentX > limitX)
+    {
+      currentX = x;
+      y += (SFG_FONT_CHARACTER_SIZE + 1) * size;
+    }
+
+    pos++;    
+  }
+}
+
+void SFG_drawLevelStartOverlay()
+{
+  uint8_t stage = ((SFG_game.frameTime - SFG_game.stateChangeTime) * 4) /
+    SFG_LEVEL_START_DURATION;
+
+  // fade in:
+
+  for (uint16_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
+    for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
+    {
+      uint8_t draw = 0;
+
+      switch (stage)
+      {
+        case 0: draw = 1; break;
+        case 1: draw = (x % 2) || (y % 2); break;
+        case 2: draw = (x % 2) == (y % 2); break;
+        case 3: draw = (x % 2) && (y % 2); break;
+        default: break;
+      }
+
+      if (draw)
+        SFG_setGamePixel(x,y,0);
+    }
+
+  if (SFG_game.saved)
+    SFG_drawText(SFG_TEXT_SAVED,SFG_HUD_MARGIN,SFG_HUD_MARGIN,
+      SFG_FONT_SIZE_MEDIUM,7,255,0);
+}
+
+/**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
@@ -2939,6 +3119,7 @@ void SFG_gameStepPlaying()
   }
 
   if (!SFG_keyIsDown(SFG_KEY_A) || !shearingOn)     // U/D: movement
+  {
     if (SFG_keyIsDown(SFG_KEY_UP))
     {
       moveOffset.x += SFG_player.direction.x;
@@ -2955,6 +3136,7 @@ void SFG_gameStepPlaying()
       bobbing = 1;
 #endif
     }
+  }
 
   int16_t mouseX, mouseY;
 
@@ -3345,8 +3527,7 @@ void SFG_gameStepMenu()
         }
         else
         {
-          SFG_setAndInitLevel(&SFG_levels[SFG_game.selectedLevel]);
-          SFG_setGameState(SFG_GAME_STATE_PLAYING);
+          SFG_setAndInitLevel(SFG_game.selectedLevel);
         }
         break;
 
@@ -3443,8 +3624,7 @@ void SFG_gameStep()
     
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
-      RCL_Unit h = SFG_floorHeightAt(
-        SFG_player.squarePosition[0],
+      RCL_Unit h = SFG_floorHeightAt(SFG_player.squarePosition[0],
         SFG_player.squarePosition[1]); 
 
       SFG_player.camera.height = 
@@ -3468,13 +3648,14 @@ void SFG_gameStep()
 
       if (t > SFG_WIN_ANIMATION_DURATION)
       {
-        if (SFG_keyIsDown(SFG_KEY_RIGHT))
+        if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
+            SFG_keyIsDown(SFG_KEY_LEFT))
         {
-          // TODO: save here
-          SFG_setGameState(SFG_GAME_STATE_MENU);
+          SFG_setAndInitLevel(SFG_currentLevel.levelNumber);
+
+          if (SFG_keyIsDown(SFG_KEY_RIGHT))
+            SFG_gameSave();
         }
-        else if (SFG_keyIsDown(SFG_KEY_LEFT))
-          SFG_setGameState(SFG_GAME_STATE_MENU);
       }
 
       break;
@@ -3487,13 +3668,25 @@ void SFG_gameStep()
       break;
 
     case SFG_GAME_STATE_INTRO:
-      if (SFG_keyJustPressed(SFG_KEY_A))
-      {
-        SFG_setAndInitLevel(&SFG_levels[0]);
-        SFG_setGameState(SFG_GAME_STATE_PLAYING);
-      }
+      if (SFG_keyJustPressed(SFG_KEY_A) || SFG_keyJustPressed(SFG_KEY_B))
+        SFG_setAndInitLevel(0);
 
       break;
+
+    case SFG_GAME_STATE_LEVEL_START:
+    {
+      SFG_updateLevel();
+
+      int16_t x,y;
+      
+      SFG_getMouseOffset(&x,&y); // this keeps centering the mouse
+
+      if ((SFG_game.frameTime - SFG_game.stateChangeTime) >= 
+        SFG_LEVEL_START_DURATION)     
+        SFG_setGameState(SFG_GAME_STATE_PLAYING);
+
+      break;
+    }
 
     default:
       break;
@@ -3587,73 +3780,6 @@ void SFG_drawMap()
 
     y += SFG_MAP_PIXEL_SIZE;
   } 
-}
-
-/**
-  Draws text on screen using the bitmap font stored in assets.
-*/
-void SFG_drawText(
-  const char *text,
-  uint16_t x,
-  uint16_t y,
-  uint8_t size,
-  uint8_t color,
-  uint16_t maxLength,
-  uint16_t limitX)
-{
-  if (size == 0)
-    size = 1;
-
-  if (limitX == 0)
-    limitX = 65535;
-
-  if (maxLength == 0)
-    maxLength = 65535;
-
-  uint16_t pos = 0;
-
-  uint16_t currentX = x;
-  uint16_t currentY = y;
-
-  while (text[pos] != 0 && pos < maxLength) // for each character
-  {
-    uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
-
-    for (uint8_t i = 0; i < SFG_FONT_CHARACTER_SIZE; ++i) // for each line
-    {
-      currentY = y;
-
-      for (uint8_t j = 0; j < SFG_FONT_CHARACTER_SIZE; ++j) // for each row
-      {
-        if (character & 0x8000)
-          for (uint8_t k = 0; k < size; ++k)
-            for (uint8_t l = 0; l < size; ++l)
-            {
-              uint16_t drawX = currentX + k;
-              uint16_t drawY = currentY + l;
-
-              if (drawX < SFG_GAME_RESOLUTION_X &&
-                drawY < SFG_GAME_RESOLUTION_Y)
-                SFG_setGamePixel(drawX,drawY,color);
-            }
-
-        currentY += size;
-        character = character << 1;
-      }
-
-      currentX += size;
-    }
-    
-    currentX += size; // space
-      
-    if (currentX > limitX)
-    {
-      currentX = x;
-      y += (SFG_FONT_CHARACTER_SIZE + 1) * size;
-    }
-
-    pos++;    
-  }
 }
 
 /**
@@ -4287,6 +4413,8 @@ void SFG_draw()
 
     if (SFG_game.state == SFG_GAME_STATE_WIN)
       SFG_drawWinOverlay();
+    else if (SFG_game.state == SFG_GAME_STATE_LEVEL_START)
+      SFG_drawLevelStartOverlay();
   }
 }
 

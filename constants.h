@@ -196,6 +196,11 @@
 #define SFG_WIN_ANIMATION_DURATION 2500
 
 /**
+  Time in ms of the level start stage.
+*/
+#define SFG_LEVEL_START_DURATION 2000
+
+/**
   Vertical sprite size, in RCL_Units.
 */
 #define SFG_BASE_SPRITE_SIZE RCL_UNITS_PER_SQUARE
