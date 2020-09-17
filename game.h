@@ -3648,7 +3648,12 @@ void SFG_gameStep()
 
       if (t > SFG_WIN_ANIMATION_DURATION)
       {
-        if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
+        if (SFG_currentLevel.levelNumber == (SFG_NUMBER_OF_LEVELS - 1))
+        {
+          if (SFG_keyIsDown(SFG_KEY_A))
+            SFG_setGameState(SFG_GAME_STATE_OUTRO);
+        }
+        else if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
             SFG_keyIsDown(SFG_KEY_LEFT))
         {
           SFG_setAndInitLevel(SFG_currentLevel.levelNumber);
@@ -3670,6 +3675,14 @@ void SFG_gameStep()
     case SFG_GAME_STATE_INTRO:
       if (SFG_keyJustPressed(SFG_KEY_A) || SFG_keyJustPressed(SFG_KEY_B))
         SFG_setAndInitLevel(0);
+
+      break;
+
+    case SFG_GAME_STATE_OUTRO:
+      if (((SFG_game.frameTime - SFG_game.stateChangeTime) > 
+           SFG_STORYTEXT_DURATION) && (SFG_keyIsDown(SFG_KEY_A) ||
+           SFG_keyIsDown(SFG_KEY_B)))
+        SFG_setGameState(SFG_GAME_STATE_MENU);
 
       break;
 
@@ -3787,9 +3800,29 @@ void SFG_drawMap()
 */
 void SFG_drawStoryText()
 {
-  SFG_clearScreen(0);
- 
-  const char *text = SFG_introText;
+  const char *text;
+
+  uint16_t textColor;
+
+  if (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)) // intro?  
+  {
+    text = SFG_introText;
+    textColor = 7;
+  
+    SFG_clearScreen(0);
+  }
+  else // outro
+  {
+    text = SFG_outroText;
+    textColor = 23;
+
+    SFG_clearScreen(9);
+
+    SFG_blitImage(SFG_monsterSprites[18],
+      (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
+      SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
+      SFG_FONT_SIZE_SMALL);  
+  }
 
   uint16_t textLen = 0;
 
@@ -3801,7 +3834,7 @@ void SFG_drawStoryText()
     ((SFG_game.frameTime - SFG_game.stateChangeTime) * textLen) /
       SFG_STORYTEXT_DURATION + 1);
 
-  SFG_drawText(text,SFG_HUD_MARGIN,SFG_HUD_MARGIN,SFG_FONT_SIZE_SMALL,7,
+  SFG_drawText(text,SFG_HUD_MARGIN,SFG_HUD_MARGIN,SFG_FONT_SIZE_SMALL,textColor,
     drawLen,SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN);
 }
 
@@ -4127,7 +4160,8 @@ void SFG_drawWinOverlay()
     
     SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
     
-    if (t >= (SFG_WIN_ANIMATION_DURATION - 1))
+    if ((t >= (SFG_WIN_ANIMATION_DURATION - 1)) && 
+      (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)))
     {
       y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
 

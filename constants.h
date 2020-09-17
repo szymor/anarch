@@ -198,7 +198,7 @@
 /**
   Time in ms of the level start stage.
 */
-#define SFG_LEVEL_START_DURATION 2000
+#define SFG_LEVEL_START_DURATION 1500
 
 /**
   Vertical sprite size, in RCL_Units.

@@ -19,7 +19,7 @@
   #define SFG_START_LEVEL 8
 
 #define SFG_FPS 25
-#define SFG_TEXTURE_DISTANCE 6000
+//#define SFG_TEXTURE_DISTANCE 6000
 #define SFG_SCREEN_RESOLUTION_X 110
 #define SFG_SCREEN_RESOLUTION_Y 88
 #define SFG_RESOLUTION_SCALEDOWN 1
@@ -145,7 +145,7 @@ int main()
 {
   pokitto.begin(); 
 
-  timerInit(8000);
+//  timerInit(8000);
 
   for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;

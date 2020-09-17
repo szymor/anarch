@@ -27,11 +27,11 @@
 
 #define SFG_LOG(str) puts(str);
 
-  #define SFG_START_LEVEL 8
+  #define SFG_START_LEVEL 6
   #define SFG_IMMORTAL 1
 //  #define SFG_UNLOCK_DOOR 1
   #define SFG_REVEAL_MAP 1
-  #define SFG_INFINITE_AMMO 1
+//  #define SFG_INFINITE_AMMO 1
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;
 
-//  SDL_PauseAudio(0);
+  SDL_PauseAudio(0);
 
   running = 1;
 

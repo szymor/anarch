@@ -36,6 +36,11 @@ SFG_PROGRAM_MEMORY char *SFG_introText =
   "only destroy, not suffer - it is not wrong to end them! You grab your gear "
   "and run towards Macrochip HQ.";
 
+SFG_PROGRAM_MEMORY char *SFG_outroText =
+  "You killed the main computer, the world is saved! Thank you my friend. We "
+  "learned a lesson, never again allow capitalism and hierarchy. We can now "
+  "rebuild society in peaceful anarchy.";
+
 #define SFG_MALWARE_WARNING ""
 
 #if SFG_OS_IS_MALWARE
