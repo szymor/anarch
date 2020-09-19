@@ -29,7 +29,7 @@
 
 //  #define SFG_START_LEVEL 6
   #define SFG_IMMORTAL 1
-//  #define SFG_UNLOCK_DOOR 1
+  #define SFG_UNLOCK_DOOR 1
   #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1
 
@@ -60,6 +60,42 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 uint32_t SFG_getTimeMs()
 {
   return SDL_GetTicks();
+}
+
+void SFG_save(uint8_t data[SFG_SAVE_SIZE])
+{
+  FILE *f = fopen("anarch.sav","wb");
+
+  puts("SDL: opening and writing save file");
+
+  if (f == NULL)
+  {
+    puts("SDL: could not open the file!");
+    return;
+  }
+
+  fwrite(data,1,SFG_SAVE_SIZE,f);
+
+  fclose(f);
+}
+
+uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
+{
+  FILE *f = fopen("anarch.sav","rb");
+
+  puts("SDL: opening and reading save file");
+
+  if (f == NULL)
+  {
+    puts("SDL: no save file to open");
+  }
+  else
+  {
+    fread(data,1,SFG_SAVE_SIZE,f);
+    fclose(f);
+  }
+
+  return 1;
 }
 
 void SFG_sleepMs(uint16_t timeMs)

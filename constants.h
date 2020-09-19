@@ -65,6 +65,11 @@
 #define SFG_DOOR_OPEN_SPEED 2048
 
 /**
+  Helper special state value.
+*/
+#define SFG_CANT_SAVE 255
+
+/**
   Says the distance in RCL_Units at which level elements (items, monsters etc.)
   are active.
 */

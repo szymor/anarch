@@ -132,8 +132,15 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE]);
   storage. Platforms without permanent storage may let this function do nothing.
   If implemented, the function should fill the passed array with data from
   permanent storage, e.g. a file, a cookie etc.
+
+  If this function is called before SFG_save was ever called and no data is
+  present in permanent memory, this function should do nothing (leave the data
+  array as is).
+
+  This function should return 1 if saving/loading is possible and 0 if not (this
+  will be used by the game to detect this capability).
 */
-void SFG_load(uint8_t data[SFG_SAVE_SIZE]);
+uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
 
 /* ========================================================================= */
 
@@ -323,8 +330,6 @@ struct
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
   uint8_t antiSpam;   ///< Prevents log message spamming.
-  uint8_t saved;      ///< Helper variable to know if game was saved.
-
   uint8_t settings;   /**< Dynamic game settings (can be changed at runtime),
                            bit meaning:
 
@@ -336,6 +341,25 @@ struct
                                    \____ freelook (shearing not sliding back) */
 
   uint8_t blink;      ///< Says whether blinkg is currently on or off.
+
+  uint8_t saved;      /**< Helper variable to know if game was saved. Can be
+                           0 (not saved), 1 (just saved) or 255 (can't save).*/
+  uint8_t save[SFG_SAVE_SIZE];  /**< Stores the game save state that's kept in
+                           the persistent memory.
+
+                           The save format is binary and platform independent.
+                           The save contains game settings, game progress and a
+                           saved position. The format is as follows:
+
+                           4b   highest level that has been reached
+                           4b   level number of the saved position (15: no save)
+                           8b   game settings (SFG_game.settings)
+                           8b   health at saved position
+                           8b   bullet ammo at saved position
+                           8b   rocket ammo at saved position
+                           8b   plasma ammo at saved position
+                           32b  little endian total play time, in 10ths of sec
+                           16b  little endian total enemies killed from start */
 } SFG_game;
 
 /**
@@ -533,48 +557,12 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
 */
 void SFG_gameSave()
 {
-  /*
-    The save format is binary and platform independent. The save contains game
-    settings, game progress and a saved position. The format is as follows:
+  if (SFG_game.saved == SFG_CANT_SAVE)
+    return;
 
-    4b   Last level that has been reached and is accessible to play.
-    4b   Level number of the saved position.
-    8b   game settings (SFG_game.settings)
-    8b   Health at saved position.
-    8b   Bullets ammo at saved position.
-    8b   Rockets ammo at saved position.
-    8b   Plasma ammo at saved position.
-    32b  Little endian total play time from start, in 10ths of second.
-    16b  Little endian total enemies killed from start.
-  */
+  SFG_LOG("saving game data");
 
-  SFG_LOG("Saving.");
-
-  uint8_t data[SFG_SAVE_SIZE];
-
-  data[0] = SFG_currentLevel.levelNumber | 0; // TODO
-  data[1] = SFG_game.settings;
-  data[2] = SFG_player.health;
-
-  for (uint8_t i = 0; i < 3; ++i)
-    data[3 + i] = SFG_player.ammo[i];
-
-  uint32_t time = 0; // TODO
-
-  for (uint8_t i = 0; i < 4; ++i)
-  {
-    data[6 + i] = time % 256;
-    time /= 256;
-  }
-
-  uint16_t kills = 0; // TODO
-
-  data[10] = kills % 256;
-  data[11] = kills / 256;
-
-  SFG_game.saved = 1;
-
-//  SFG_save(data);
+  SFG_save(SFG_game.save);
 }
 
 /**
@@ -582,12 +570,17 @@ void SFG_gameSave()
 */
 void SFG_gameLoad()
 {
-  SFG_LOG("Loading.");
+  if (SFG_game.saved == SFG_CANT_SAVE)
+    return;
 
-  uint8_t data[SFG_SAVE_SIZE];
+  SFG_LOG("loading game data");
 
+  uint8_t result = SFG_load(SFG_game.save);
 
-//  SFG_load(data);
+  if (result == 0)
+    SFG_game.saved = SFG_CANT_SAVE;
+
+  SFG_game.settings = SFG_game.save[1];
 }
 
 /**
@@ -1409,7 +1402,10 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   const SFG_Level *level = &SFG_levels[levelNumber];
 
   SFG_game.currentRandom = 0;
-  SFG_game.saved = 0;
+
+  if (SFG_game.saved != SFG_CANT_SAVE)
+    SFG_game.saved = 0;
+
   SFG_currentLevel.levelNumber = levelNumber;
   SFG_currentLevel.frameEnd = 0;
   SFG_currentLevel.monstersDead = 0;
@@ -1554,9 +1550,9 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   SFG_currentLevel.frameStart = SFG_game.frame;
 
   SFG_game.spriteAnimationFrame = 0;
- 
-  SFG_initPlayer();
 
+  SFG_initPlayer();
+ 
   SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
 }
 
@@ -1573,7 +1569,6 @@ void SFG_init()
 
   SFG_game.antiSpam = 0;
 
-  SFG_game.settings = 0x03;
   SFG_enableMusic(1);
 
   SFG_LOG("computing average texture colors")
@@ -1628,6 +1623,27 @@ void SFG_init()
   SFG_game.lastFrameTimeMs = SFG_getTimeMs();
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
+  SFG_game.settings = 0x03;
+  SFG_game.saved = 0;
+
+  // create a default save data:
+
+  for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    SFG_game.save[i] = 0;
+    
+  SFG_game.save[0] = SFG_NUMBER_OF_LEVELS | 0xf0; // all levels revealed
+  SFG_game.save[1] = SFG_game.settings;
+
+  SFG_gameLoad(); // attempt to load settings
+
+  if (SFG_game.saved != SFG_CANT_SAVE)
+  {
+    SFG_LOG("settings loaded");
+  }
+  else
+  {
+    SFG_LOG("saving/loading not possible");
+  }
 
 #if SFG_START_LEVEL == 0
   SFG_setGameState(SFG_GAME_STATE_MENU);
@@ -3522,13 +3538,20 @@ void SFG_gameStepMenu()
     {
       case SFG_MENU_ITEM_PLAY:
         if (SFG_game.selectedLevel == 0)
-        {
           SFG_setGameState(SFG_GAME_STATE_INTRO);
-        }
         else
-        {
           SFG_setAndInitLevel(SFG_game.selectedLevel);
-        }
+
+        break;
+
+      case SFG_MENU_ITEM_LOAD:
+        SFG_setAndInitLevel(SFG_game.save[0] >> 4);
+
+        SFG_player.health = SFG_game.save[2];
+        SFG_game.save[3] = SFG_player.ammo[3];
+        SFG_game.save[4] = SFG_player.ammo[4];
+        SFG_game.save[5] = SFG_player.ammo[5];
+
         break;
 
       case SFG_MENU_ITEM_CONTINUE:
@@ -3550,6 +3573,10 @@ void SFG_gameStepMenu()
         if ((SFG_game.settings & 0x02) !=
             ((SFG_game.settings - 1) & 0x02))
             SFG_enableMusic(SFG_game.settings & 0x02);
+
+        SFG_game.save[1] = SFG_game.settings;
+        SFG_gameSave();
+
         break;
 
       case SFG_MENU_ITEM_SHEAR:
@@ -3563,6 +3590,10 @@ void SFG_gameStepMenu()
 
         SFG_game.settings = 
           (SFG_game.settings & ~0x0c) | ((current & 0x03) << 2);
+
+        SFG_game.save[1] = SFG_game.settings;
+        SFG_gameSave();
+
         break;
       }
 
@@ -3656,10 +3687,37 @@ void SFG_gameStep()
         else if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
             SFG_keyIsDown(SFG_KEY_LEFT))
         {
-          SFG_setAndInitLevel(SFG_currentLevel.levelNumber);
+          uint8_t tmp[4];
+
+          tmp[0] = SFG_player.health;
+          tmp[1] = SFG_player.ammo[0];
+          tmp[2] = SFG_player.ammo[1];
+          tmp[3] = SFG_player.ammo[2];
+
+          SFG_setAndInitLevel(SFG_currentLevel.levelNumber + 1);
+
+          SFG_player.health = tmp[0];
+          SFG_player.ammo[0] = tmp[1];
+          SFG_player.ammo[1] = tmp[2];
+          SFG_player.ammo[2] = tmp[3];
 
           if (SFG_keyIsDown(SFG_KEY_RIGHT))
+          {
+            // save the current position
+
+            SFG_game.save[0] = 
+              (SFG_game.save[0] & 0x0f) | (SFG_currentLevel.levelNumber << 4);
+
+            SFG_game.save[2] = SFG_player.health;
+            SFG_game.save[3] = SFG_player.ammo[0];
+            SFG_game.save[4] = SFG_player.ammo[1];
+            SFG_game.save[5] = SFG_player.ammo[2];
+
             SFG_gameSave();
+
+            if (SFG_game.saved != SFG_CANT_SAVE)
+              SFG_game.saved = 1;
+          }
         }
       }
 
