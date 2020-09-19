@@ -1,5 +1,6 @@
 general:
 
+- Force monsters that are squeezed (e.g. on door) to always move.
 - Ability to play SFX slower to e.g. give some monsters lower pitch?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.

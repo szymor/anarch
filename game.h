@@ -3509,12 +3509,12 @@ void SFG_gameStepMenu()
     (SFG_game.selectedMenuItem < menuItems - 1))
   {
     SFG_game.selectedMenuItem++;
-    SFG_playGameSound(3,64);
+    SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
   }
   else if (SFG_keyRegisters(SFG_KEY_UP) && (SFG_game.selectedMenuItem > 0))
   {
     SFG_game.selectedMenuItem--;
-    SFG_playGameSound(3,64);
+    SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
   }
   else if (SFG_keyJustPressed(SFG_KEY_A))
   {
@@ -3545,7 +3545,7 @@ void SFG_gameStepMenu()
         SFG_game.settings = 
           (SFG_game.settings & ~0x03) | ((SFG_game.settings + 1)  & 0x03);
 
-        SFG_playGameSound(3,64);
+        SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
 
         if ((SFG_game.settings & 0x02) !=
             ((SFG_game.settings - 1) & 0x02))
@@ -3576,12 +3576,12 @@ void SFG_gameStepMenu()
       (SFG_game.selectedLevel < SFG_NUMBER_OF_LEVELS - 1))
     {
       SFG_game.selectedLevel++;
-      SFG_playGameSound(3,64);
+      SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
     }
     else if (SFG_keyRegisters(SFG_KEY_LEFT) && SFG_game.selectedLevel > 0)
     {
       SFG_game.selectedLevel--;
-      SFG_playGameSound(3,64);
+      SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
     }
   }
 }

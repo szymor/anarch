@@ -37,7 +37,7 @@ SFG_PROGRAM_MEMORY char *SFG_introText =
   "and run towards Macrochip HQ.";
 
 SFG_PROGRAM_MEMORY char *SFG_outroText =
-  "You killed the main computer, the world is saved! Thank you my friend. We "
+  "You killed the main computer, the world is saved! Thank you, my friend. We "
   "learned a lesson, never again allow capitalism and hierarchy. We can now "
   "rebuild society in peaceful anarchy.";
 

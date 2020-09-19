@@ -242,7 +242,7 @@
   will gradually drop towards this distance.
 */
 #ifndef SFG_SFX_MAX_DISTANCE
-  #define SFG_SFX_MAX_DISTANCE (1024 * 20)
+  #define SFG_SFX_MAX_DISTANCE (1024 * 60)
 #endif
 
 /**
@@ -314,6 +314,13 @@
 */
 #ifndef SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD
   #define SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD 50
+#endif
+
+/**
+  Byte (0 - 255) volume of the menu click sound.
+*/
+#ifndef SFG_MENU_CLICK_VOLUME
+  #define SFG_MENU_CLICK_VOLUME 220
 #endif
 
 //------ developer/debug settings ------

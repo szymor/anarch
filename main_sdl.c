@@ -27,11 +27,13 @@
 
 #define SFG_LOG(str) puts(str);
 
-  #define SFG_START_LEVEL 6
+//  #define SFG_START_LEVEL 6
   #define SFG_IMMORTAL 1
 //  #define SFG_UNLOCK_DOOR 1
   #define SFG_REVEAL_MAP 1
-//  #define SFG_INFINITE_AMMO 1
+  #define SFG_INFINITE_AMMO 1
+
+#define MUSIC_VOLUME 4
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -207,10 +209,12 @@ typedef void (*em_callback_func)(void);
 void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
 #endif
 
-uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
+#define AUDIO_ZERO 32768
+
+uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
-static inline uint8_t mixSamples(uint8_t sample1, uint8_t sample2)
+static inline uint16_t mixSamples(uint16_t sample1, uint16_t sample2)
 {
   return (sample1 >> 1) + (sample2 >> 1);
 }
@@ -219,13 +223,15 @@ uint8_t musicOn = 1;
 
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
-  for (int i = 0; i < l; ++i)
+  uint16_t *s16 = (uint16_t *) s;
+
+  for (int i = 0; i < l / 2; ++i)
   {
-    s[i] = musicOn ?
-      mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() / 2) :
+    s16[i] = musicOn ?
+      mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() << MUSIC_VOLUME) :
       audioBuff[audioPos];
 
-    audioBuff[audioPos] = 127;
+    audioBuff[audioPos] = AUDIO_ZERO;
     audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
   }
 }
@@ -237,14 +243,18 @@ void SFG_enableMusic(uint8_t enable)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
-  uint8_t volumeStep = volume / 16;
-
   uint16_t pos = audioPos;
+
+  int8_t volumeShift = volume / 16 - 7; // -7 to 8
+
+  uint16_t baseLevel = AUDIO_ZERO - (0x0001 << (volumeShift + 7));
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    audioBuff[pos] =
-      mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep);
+    audioBuff[pos] = mixSamples(audioBuff[pos],baseLevel +
+     ((volumeShift >= 0) ?
+       (SFG_GET_SFX_SAMPLE(soundIndex,i) << volumeShift) :
+       (SFG_GET_SFX_SAMPLE(soundIndex,i) >> (-1 * volumeShift))));
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
@@ -320,15 +330,15 @@ int main(int argc, char *argv[])
   audioSpec.callback = audioFillCallback;
   audioSpec.userdata = 0;
   audioSpec.freq = 8000;
-  audioSpec.format = AUDIO_U8;
+  audioSpec.format = AUDIO_U16;
   audioSpec.channels = 1;
   audioSpec.samples = 128;
 
   if (SDL_OpenAudio(&audioSpec,0) < 0)
     puts("SDL: could not initialize audio");
 
-  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
-    audioBuff[i] = 127;
+  for (int16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+    audioBuff[i] = AUDIO_ZERO;
 
   SDL_PauseAudio(0);
 
