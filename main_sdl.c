@@ -245,6 +245,19 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
   uint16_t pos = audioPos;
 
+  uint8_t volumeShift = 15 - volume / 16;
+
+  uint16_t baseLevel = AUDIO_ZERO - (0x8000 >> volumeShift);
+
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+  {
+    audioBuff[pos] = mixSamples(audioBuff[pos],baseLevel +
+     ((SFG_GET_SFX_SAMPLE(soundIndex,i) << 8) >> volumeShift));
+
+    pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
+  }
+
+/*
   int8_t volumeShift = volume / 16 - 7; // -7 to 8
 
   uint16_t baseLevel = AUDIO_ZERO - (0x0001 << (volumeShift + 7));
@@ -258,6 +271,7 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
+*/
 }
 
 int main(int argc, char *argv[])
