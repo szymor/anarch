@@ -231,14 +231,15 @@ void mainLoopIteration()
   if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
     running = 0;
 
-  SFG_mainLoopBody();
+  if (!SFG_mainLoopBody())
+    running = 0;
 
   SDL_UpdateTexture(texture,NULL,screen,SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
 
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer,texture,NULL,NULL);
   SDL_RenderPresent(renderer);
-}   
+}
 
 #ifdef __EMSCRIPTEN__
 typedef void (*em_callback_func)(void);

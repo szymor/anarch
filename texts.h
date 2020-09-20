@@ -18,7 +18,7 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
 {
   "continue",
   "map",
-  "play level",
+  "play",
   "load",
   "sound",
   "look",

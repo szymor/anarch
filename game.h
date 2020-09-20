@@ -147,8 +147,9 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
 
 /**
   Game main loop body, call this inside the platform's specific main loop.
+  Returns 1 if the game continues, 0 if the game was exited.
 */
-void SFG_mainLoopBody();
+uint8_t SFG_mainLoopBody();
 
 /**
   Initializes the whole program, call this in the platform initialization.
@@ -361,6 +362,7 @@ struct
                            8b   plasma ammo at saved position
                            32b  little endian total play time, in 10ths of sec
                            16b  little endian total enemies killed from start */
+  uint8_t continues;  ///< Whether the game continues or was exited.
 } SFG_game;
 
 /**
@@ -1563,6 +1565,7 @@ void SFG_init()
 
   SFG_game.frame = 0;
   SFG_game.currentRandom = 0;
+  SFG_game.continues = 1;
 
   RCL_initRayConstraints(&SFG_game.rayConstraints);
   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
@@ -3616,6 +3619,10 @@ void SFG_gameStepMenu()
         break;
       }
 
+      case SFG_MENU_ITEM_EXIT:
+        SFG_game.continues = 0;
+        break;
+
       default:
         break;
     }
@@ -4099,7 +4106,7 @@ void SFG_drawMenu()
 
   uint8_t i = 0;
 
-  while (1)
+  while (1) // draw menu items
   {
     uint8_t item = SFG_getMenuItem(i);
 
@@ -4118,7 +4125,7 @@ void SFG_drawMenu()
     if (i != SFG_game.selectedMenuItem)
       textColor = 23;
     else
-      SFG_fillRectangle(  
+      SFG_fillRectangle( // menu item highlight
         SELECTION_START_X,
         y - SFG_FONT_SIZE_MEDIUM,
         SFG_GAME_RESOLUTION_X - SELECTION_START_X * 2,
@@ -4529,7 +4536,7 @@ void SFG_draw()
   }
 }
 
-void SFG_mainLoopBody()
+uint8_t SFG_mainLoopBody()
 {
   /* Standard deterministic game loop, independed of actual achieved FPS.
      Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
@@ -4574,6 +4581,8 @@ void SFG_mainLoopBody()
   {
     SFG_sleepMs((timeNextFrame - timeNow) / 2); // wait, relieve CPU
   }
+
+  return SFG_game.continues;
 }
 
 #endif // guard
