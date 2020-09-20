@@ -19,6 +19,7 @@
   #define SFG_START_LEVEL 8
 
 #define SFG_FPS 25
+#define SFG_CAN_EXIT 0
 //#define SFG_TEXTURE_DISTANCE 6000
 #define SFG_SCREEN_RESOLUTION_X 110
 #define SFG_SCREEN_RESOLUTION_Y 88
@@ -72,8 +73,15 @@ int8_t SFG_keyPressed(uint8_t key)
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
-  *x = 0;
-  *y = 0;
+}
+
+void SFG_save(uint8_t data[SFG_SAVE_SIZE])
+{
+}
+
+uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
+{
+  return 0;
 }
 
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
@@ -128,14 +136,15 @@ void timerInit(uint32_t samplingRate)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
-  uint8_t volumeStep = volume / 16;
+  uint8_t volumeShift = 7 - volume / 32;
+  uint16_t baseLevel = 128 - (128 >> volumeShift);
 
   uint16_t pos = audioPos;
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    audioBuff[pos] =
-      mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i) * volumeStep);
+    audioBuff[pos] = mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i)
+      >> volumeShift);
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
@@ -145,7 +154,7 @@ int main()
 {
   pokitto.begin(); 
 
-//  timerInit(8000);
+  timerInit(8000);
 
   for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;

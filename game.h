@@ -77,7 +77,8 @@ int8_t SFG_keyPressed(uint8_t key);
   Optinal function for mouse/analog controls, gets mouse x and y offset in
   pixels from the game screen center (to achieve classic FPS mouse controls the
   platform should center the mouse at the end). If the platform isn't using a
-  mouse, this function should simply return [0,0] offets at each call.
+  mouse, this function can simply return [0,0] offets at each call, or even
+  do nothing (leave the variables as are).
 */
 void SFG_getMouseOffset(int16_t *x, int16_t *y);
 
@@ -3154,7 +3155,7 @@ void SFG_gameStepPlaying()
     }
   }
 
-  int16_t mouseX, mouseY;
+  int16_t mouseX = 0, mouseY = 0;
 
   SFG_getMouseOffset(&mouseX,&mouseY);
 
@@ -3502,12 +3503,30 @@ void SFG_gameStepPlaying()
 #endif
 }
 
+/**
+  This function defines which items are displayed in the menu.
+*/
 uint8_t SFG_getMenuItem(uint8_t index)
 {
-  uint8_t start = (SFG_currentLevel.levelPointer == 0) ? 2 : 0;
+  uint8_t current = 0;
 
-  if (index <= (SFG_MENU_ITEM_EXIT - start))
-    return start + index;
+  while (1) // find first legitimate item
+  {
+    if ( // skip non-legitimate items
+      ((current <= SFG_MENU_ITEM_MAP) && (SFG_currentLevel.levelPointer == 0))
+      || ((current == SFG_MENU_ITEM_LOAD) && ((SFG_game.save[0] >> 4) == 0x0f)))
+    {
+      current++;
+      continue;
+    }
+
+    if (index == 0)
+      return (current <= (SFG_MENU_ITEM_EXIT - (SFG_CAN_EXIT ? 0 : 1))
+        ) ? current : SFG_MENU_ITEM_NONE;
+
+    current++;
+    index--;
+  }
 
   return SFG_MENU_ITEM_NONE;
 }
@@ -3548,9 +3567,9 @@ void SFG_gameStepMenu()
         SFG_setAndInitLevel(SFG_game.save[0] >> 4);
 
         SFG_player.health = SFG_game.save[2];
-        SFG_game.save[3] = SFG_player.ammo[3];
-        SFG_game.save[4] = SFG_player.ammo[4];
-        SFG_game.save[5] = SFG_player.ammo[5];
+        SFG_game.save[3] = SFG_player.ammo[0];
+        SFG_game.save[4] = SFG_player.ammo[1];
+        SFG_game.save[5] = SFG_player.ammo[2];
 
         break;
 
@@ -3748,7 +3767,7 @@ void SFG_gameStep()
     {
       SFG_updateLevel();
 
-      int16_t x,y;
+      int16_t x = 0, y = 0;
       
       SFG_getMouseOffset(&x,&y); // this keeps centering the mouse
 

@@ -323,6 +323,15 @@
   #define SFG_MENU_CLICK_VOLUME 220
 #endif
 
+/**
+  Says whether the exit item should be showed in the menu. Platforms that can't
+  exit (such as some gaming consoles that simply use power off button) can
+  define this to 0.
+*/
+#ifndef SFG_CAN_EXIT
+  #define SFG_CAN_EXIT 1
+#endif
+
 //------ developer/debug settings ------
 
 /**
