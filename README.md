@@ -122,6 +122,16 @@ I don't enforce anything and don't even judge your actions, but I would still be
 
 Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work and I am predict some Chinese company will soon be distributing this somehow with a false claim copyright (in which case please don't believe them, there exists evidence of me creating this and releasing this first, with all rights waived). The good that will come from this will be greater than the bad. Perhaps this alone will make you think.
 
+### What values is this work trying to present?
+
+The game itself can't communicate many values directly – it is just a simple game with very little text – but it tries to **bring attention** to the values of its author. Some of these are:
+
+- [Anarchism](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-02-17), which [automatically means](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-12-17#toc16) anti-capitalism and caring about all other living beings.
+- [Pacifism](https://en.wikipedia.org/wiki/Anarcho-pacifism), because true effort for equality can't be pursued by violence and other forms of oppression.
+- [Minimalism](https://suckless.org/philosophy/) and simplicity, in technology and elsewhere, as a means of freedom and beauty.
+- [Software](https://en.wikipedia.org/wiki/Free_software), [cultural](https://en.wikipedia.org/wiki/Free-culture_movement) and information freedom, opposition to intellectual property.
+- Selflessness.
+
 ### Why raycasting and not e.g. BSP?
 
 This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
