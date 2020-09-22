@@ -1288,8 +1288,6 @@ void SFG_initPlayer()
 
   SFG_player.weapon = SFG_WEAPON_KNIFE;
 
-  SFG_playerRotateWeapon(1); // this chooses weapon with ammo available
-
   SFG_player.weaponCooldownFrames = 0;
   SFG_player.lastHurtFrame = SFG_game.frame;
   SFG_player.lastItemTakenFrame = SFG_game.frame;
@@ -1634,7 +1632,7 @@ void SFG_init()
   for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
     SFG_game.save[i] = 0;
     
-  SFG_game.save[0] = SFG_NUMBER_OF_LEVELS | 0xf0; // all levels revealed
+  SFG_game.save[0] = 0;
   SFG_game.save[1] = SFG_game.settings;
 
   SFG_gameLoad(); // attempt to load settings
@@ -1646,6 +1644,7 @@ void SFG_init()
   else
   {
     SFG_LOG("saving/loading not possible");
+    SFG_game.save[0] = SFG_NUMBER_OF_LEVELS | 0xf0; // revealed all levels
   }
 
 #if SFG_START_LEVEL == 0
@@ -3588,6 +3587,7 @@ void SFG_gameStepMenu()
         SFG_game.save[4] = SFG_player.ammo[1];
         SFG_game.save[5] = SFG_player.ammo[2];
 
+        SFG_playerRotateWeapon(0); // this chooses weapon with ammo available
         break;
 
       case SFG_MENU_ITEM_CONTINUE:
@@ -3644,7 +3644,7 @@ void SFG_gameStepMenu()
   else if (item == SFG_MENU_ITEM_PLAY)
   {
     if (SFG_keyRegisters(SFG_KEY_RIGHT) && 
-      (SFG_game.selectedLevel < SFG_NUMBER_OF_LEVELS - 1))
+      (SFG_game.selectedLevel < (SFG_game.save[0] & 0x0f)))
     {
       SFG_game.selectedLevel++;
       SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
@@ -3787,6 +3787,13 @@ void SFG_gameStep()
     case SFG_GAME_STATE_LEVEL_START:
     {
       SFG_updateLevel();
+
+      if (SFG_currentLevel.levelNumber > (SFG_game.save[0] & 0x0f))
+      {
+        SFG_game.save[0] = // save progress
+          (SFG_game.save[0] & 0xf0) | SFG_currentLevel.levelNumber;
+        SFG_gameSave();
+      }
 
       int16_t x = 0, y = 0;
       
