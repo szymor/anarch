@@ -4,7 +4,6 @@ general:
 - Ability to play SFX slower to e.g. give some monsters lower pitch?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
-- Make monsters die when squeezed?
 - On Win$hit builds display an anti-windshit text, by macro.
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
@@ -209,3 +208,4 @@ scratched:
 - open door by shooting at them?
 - add jump pads?
 - add "pletivo" transparent wall texture?
+- make monsters die when squeezed?

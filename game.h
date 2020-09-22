@@ -382,8 +382,7 @@ struct
 
   uint8_t  health;
 
-  uint32_t weaponCooldownStartFrame;   /**< frame from which weapon cooldown is
-                                            counted */
+  uint32_t weaponCooldownFrames; ///< frames left for weapon cooldow
   uint32_t lastHurtFrame;
   uint32_t lastItemTakenFrame;
 
@@ -1291,7 +1290,7 @@ void SFG_initPlayer()
 
   SFG_playerRotateWeapon(1); // this chooses weapon with ammo available
 
-  SFG_player.weaponCooldownStartFrame = SFG_game.frame;
+  SFG_player.weaponCooldownFrames = 0;
   SFG_player.lastHurtFrame = SFG_game.frame;
   SFG_player.lastItemTakenFrame = SFG_game.frame;
 
@@ -2919,11 +2918,16 @@ void SFG_gameStepPlaying()
 
   int8_t strafe = 0;
 
+  uint8_t currentWeapon = SFG_player.weapon;
+
 #if SFG_HEADBOB_ENABLED
   int8_t bobbing = 0;
 #endif
 
   int8_t shearing = 0;
+
+  if (SFG_player.weaponCooldownFrames > 0)
+    SFG_player.weaponCooldownFrames--;
 
   if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
     SFG_game.settings = (SFG_game.settings & 0x04) ?
@@ -2933,9 +2937,7 @@ void SFG_gameStepPlaying()
   if (
     SFG_keyIsDown(SFG_KEY_B) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
-    (SFG_game.frame - SFG_player.weaponCooldownStartFrame >
-    RCL_max(SFG_MIN_WEAPON_COOLDOWN_FRAMES,
-      SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon))))
+    (SFG_player.weaponCooldownFrames == 0))
   {
     // player: attack/shoot/fire
 
@@ -3058,7 +3060,10 @@ void SFG_gameStepPlaying()
         }
       }
 
-      SFG_player.weaponCooldownStartFrame = SFG_game.frame;
+      SFG_player.weaponCooldownFrames =
+        RCL_max(
+          SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon),
+          SFG_MIN_WEAPON_COOLDOWN_FRAMES);
 
       SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
 
@@ -3079,9 +3084,11 @@ void SFG_gameStepPlaying()
   } // attack
 #endif // SFG_PREVIEW_MODE == 0
 
-  if (SFG_keyJustPressed(SFG_KEY_NEXT_WEAPON))
+  int8_t canSwitchWeapon = SFG_player.weaponCooldownFrames == 0;
+
+  if (SFG_keyJustPressed(SFG_KEY_NEXT_WEAPON) && canSwitchWeapon)
     SFG_playerRotateWeapon(1);
-  else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON))
+  else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON) && canSwitchWeapon)
     SFG_playerRotateWeapon(0);
 
   uint8_t shearingOn = SFG_game.settings & 0x04;
@@ -3119,9 +3126,12 @@ void SFG_gameStepPlaying()
 
   if (SFG_keyIsDown(SFG_KEY_C))          // C + AL/BR: weapon switching
   {
-    if (SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A))
+    if ((SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A)) &&
+      canSwitchWeapon)
       SFG_playerRotateWeapon(0);
-    else if (SFG_keyJustPressed(SFG_KEY_RIGHT) || SFG_keyJustPressed(SFG_KEY_B))
+    else if (
+      (SFG_keyJustPressed(SFG_KEY_RIGHT) || SFG_keyJustPressed(SFG_KEY_B)) &&
+      canSwitchWeapon)
       SFG_playerRotateWeapon(1);
   }
   else if (!SFG_keyIsDown(SFG_KEY_A))    // L/R: turning
@@ -3495,6 +3505,10 @@ void SFG_gameStepPlaying()
   }
 
   SFG_updateLevel();
+
+  if (SFG_player.weapon != currentWeapon) // if weapon switched, start cooldown
+    SFG_player.weaponCooldownFrames =
+      SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon) / 2;
 
 #if SFG_IMMORTAL == 0
   if (SFG_player.health == 0)
@@ -4008,12 +4022,12 @@ void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 */
 void SFG_drawWeapon(int16_t bobOffset)
 {
-  uint32_t shotAnimationFrame =
-    SFG_game.frame - SFG_player.weaponCooldownStartFrame;
-
   uint32_t animationLength =
     RCL_max(SFG_MIN_WEAPON_COOLDOWN_FRAMES,
       SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon));
+
+  uint32_t shotAnimationFrame =
+    animationLength - SFG_player.weaponCooldownFrames;
 
   bobOffset -= SFG_HUD_BAR_HEIGHT;
      
