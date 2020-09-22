@@ -159,7 +159,13 @@ void SFG_init();
 /**
   Can be redefined to platform's specifier of program memory.
 */
-#define SFG_PROGRAM_MEMORY static const
+#ifndef SFG_PROGRAM_MEMORY
+  #define SFG_PROGRAM_MEMORY static const
+#endif
+
+#ifndef SFG_PROGRAM_MEMORY_U8
+  #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
+#endif
 
 #include "images.h"
 #include "levels.h"
@@ -694,7 +700,7 @@ const uint8_t *SFG_getMonsterSprite(
         break;
     }
   
-  return SFG_monsterSprites[index];
+  return SFG_monsterSprites + index * SFG_TEXTURE_STORE_SIZE;
 }
 
 /**
@@ -798,7 +804,8 @@ static inline uint8_t
     SFG_getTexel(
       textureIndex != 255 ?
         SFG_currentLevel.textures[textureIndex] :
-        SFG_wallTextures[SFG_currentLevel.levelPointer->doorTextureIndex],
+          (SFG_wallTextures + SFG_currentLevel.levelPointer->doorTextureIndex
+          * SFG_TEXTURE_STORE_SIZE),
       u / 32,
       v / 32); 
 }
@@ -900,8 +907,8 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   else
   {
 #if SFG_DRAW_LEVEL_BACKGROUND
-    color = SFG_getTexel(
-      SFG_backgroundImages[SFG_currentLevel.backgroundImage],
+    color = SFG_getTexel(SFG_backgroundImages + 
+        SFG_currentLevel.backgroundImage * SFG_TEXTURE_STORE_SIZE,
       SFG_game.backgroundScaleMap[((pixel->position.x 
   #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex]
@@ -1336,7 +1343,7 @@ void SFG_getItemSprite(
   uint8_t elementType, const uint8_t **sprite, uint8_t *spriteSize)
 {
   *spriteSize = 0;
-  *sprite = (const uint8_t *) &(SFG_itemSprites[elementType - 1]);
+  *sprite = SFG_itemSprites + (elementType - 1) * SFG_TEXTURE_STORE_SIZE;
 
   switch (elementType)
   {
@@ -1359,8 +1366,8 @@ void SFG_getItemSprite(
     case SFG_LEVEL_ELEMENT_CARD0:
     case SFG_LEVEL_ELEMENT_CARD1:
     case SFG_LEVEL_ELEMENT_CARD2:
-      *sprite = 
-        (const uint8_t *) &(SFG_itemSprites[SFG_LEVEL_ELEMENT_CARD0 - 1]);
+      *sprite = SFG_itemSprites + 
+        (SFG_LEVEL_ELEMENT_CARD0 - 1) * SFG_TEXTURE_STORE_SIZE;
       break;
 
     case SFG_LEVEL_ELEMENT_BLOCKER:
@@ -1415,7 +1422,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =
-      SFG_wallTextures[level->textureIndices[i]];
+      SFG_wallTextures + level->textureIndices[i] * SFG_TEXTURE_STORE_SIZE;
 
   SFG_LOG("initializing doors");
 
@@ -1585,7 +1592,8 @@ void SFG_init()
     for (uint8_t y = 0; y < SFG_TEXTURE_SIZE; ++y)
       for (uint8_t x = 0; x < SFG_TEXTURE_SIZE; ++x)
       {
-        uint8_t color = SFG_getTexel(SFG_wallTextures[i],x,y) / 4;
+        uint8_t color =
+          SFG_getTexel(SFG_wallTextures + i * SFG_TEXTURE_STORE_SIZE,x,y) / 4;
 
         colorHistogram[color] += 1;
 
@@ -3927,7 +3935,7 @@ void SFG_drawStoryText()
 
     SFG_clearScreen(9);
 
-    SFG_blitImage(SFG_monsterSprites[18],
+    SFG_blitImage(SFG_monsterSprites + 18 * SFG_TEXTURE_SIZE,
       (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
       SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
       SFG_FONT_SIZE_SMALL);  
@@ -4061,7 +4069,7 @@ void SFG_drawWeapon(int16_t bobOffset)
         ((fireType == SFG_WEAPON_FIRE_TYPE_FIREBALL) ||
          (fireType == SFG_WEAPON_FIRE_TYPE_BULLET)) &&
         shotAnimationFrame < animationLength / 2)
-        SFG_blitImage(SFG_effectSprites[0],
+        SFG_blitImage(SFG_effectSprites,
           SFG_WEAPON_IMAGE_POSITION_X,
           SFG_WEAPON_IMAGE_POSITION_Y -
             (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
@@ -4069,7 +4077,7 @@ void SFG_drawWeapon(int16_t bobOffset)
     }
   }
 
-  SFG_blitImage(SFG_weaponImages[SFG_player.weapon],
+  SFG_blitImage(SFG_weaponImages + SFG_player.weapon * SFG_TEXTURE_STORE_SIZE,
   SFG_WEAPON_IMAGE_POSITION_X,
   SFG_WEAPON_IMAGE_POSITION_Y + bobOffset - 1,
   SFG_WEAPON_IMAGE_SCALE);
@@ -4118,7 +4126,7 @@ void SFG_drawMenu()
     for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
       SFG_setGamePixel(x,y,
         (y >= (SFG_TEXTURE_SIZE * BACKGROUND_SCALE)) ? 0 :
-        SFG_getTexel(SFG_backgroundImages[0],((x + scroll) / BACKGROUND_SCALE)
+        SFG_getTexel(SFG_backgroundImages,((x + scroll) / BACKGROUND_SCALE)
           % SFG_TEXTURE_SIZE,y / BACKGROUND_SCALE));
 
   uint16_t y = SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
@@ -4455,7 +4463,8 @@ void SFG_draw()
       RCL_PixelInfo p =
         RCL_mapToScreen(worldPosition,proj->position[2],SFG_player.camera);
        
-      const uint8_t *s = SFG_effectSprites[proj->type];
+      const uint8_t *s =
+        SFG_effectSprites + proj->type * SFG_TEXTURE_STORE_SIZE;
 
       int16_t spriteSize = SFG_SPRITE_SIZE_PIXELS(0);
 
