@@ -82,22 +82,6 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 }
 
-void SFG_save(uint8_t data[SFG_SAVE_SIZE])
-{
-  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
-    save.data[i] = data[i];
-
-  save.saveCookie();
-}
-
-uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
-{
-  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
-    data[i] = save.data[i];
-
-  return 1;
-}
-
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
@@ -146,6 +130,27 @@ void timerInit(uint32_t samplingRate)
   NVIC_SetVector(weirdNumber, (uint32_t) &onTimer);
   NVIC_EnableIRQ(weirdNumber);
   #undef weirdNumber
+}
+
+void SFG_save(uint8_t data[SFG_SAVE_SIZE])
+{
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    save.data[i] = data[i];
+
+  save.saveCookie();
+
+  /* ^ This causes sound to stop as it writes something to timer32, we need to
+    reinit the audio: */
+
+  timerInit(8000);
+}
+
+uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
+{
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    data[i] = save.data[i];
+
+  return 1;
 }
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)

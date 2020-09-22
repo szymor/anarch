@@ -581,8 +581,6 @@ void SFG_gameLoad()
 
   if (result == 0)
     SFG_game.saved = SFG_CANT_SAVE;
-
-  SFG_game.settings = SFG_game.save[1];
 }
 
 /**
