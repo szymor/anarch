@@ -1959,7 +1959,10 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   {
     SFG_MonsterRecord *monster = &(SFG_currentLevel.monsterRecords[i]);
 
-    if (SFG_MR_STATE(*monster) == SFG_MONSTER_STATE_INACTIVE)
+    uint16_t state = SFG_MR_STATE(*monster); 
+
+    if ((state == SFG_MONSTER_STATE_INACTIVE) ||
+        (state == SFG_MONSTER_STATE_DEAD))
       continue; 
 
     RCL_Unit monsterHeight =
@@ -3029,7 +3032,10 @@ void SFG_gameStepPlaying()
         {
           SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
 
-          if (SFG_MR_STATE(*m) == SFG_MONSTER_STATE_INACTIVE)
+          uint8_t state = SFG_MR_STATE(*m);
+
+          if ((state == SFG_MONSTER_STATE_INACTIVE) || 
+              (state == SFG_MONSTER_STATE_DEAD))
             continue;
 
           RCL_Unit pX, pY, pZ;
