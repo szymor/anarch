@@ -13,10 +13,8 @@
 */
 
 
-   #include <stdio.h>
-   #define SFG_LOG(str) printf("game: %s\n",str); // for debug only
 
-  #define SFG_START_LEVEL 8
+//  #define SFG_START_LEVEL 8
 
 #define SFG_FPS 25
 #define SFG_CAN_EXIT 0
@@ -37,6 +35,15 @@
 #include "../PokittoLib/Pokitto/POKITTO_HW/timer_11u6x.h"
 
 #include "../PokittoLib/Pokitto/Pokitto.h"
+#include "PokittoCookie.h"
+
+class SaveCookie: public Pokitto::Cookie
+{
+  public:
+    uint8_t data[SFG_SAVE_SIZE];
+};
+
+SaveCookie save;
 
 Pokitto::Core pokitto;
 
@@ -77,11 +84,18 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 
 void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 {
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    save.data[i] = data[i];
+
+  save.saveCookie();
 }
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
-  return 0;
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    data[i] = save.data[i];
+
+  return 1;
 }
 
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
@@ -152,6 +166,8 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
 int main()
 {
+  save.begin("ANARCH",sizeof(save),(char*) &save);
+
   pokitto.begin(); 
 
   timerInit(8000);
