@@ -2914,7 +2914,7 @@ void SFG_drawLevelStartOverlay()
         SFG_setGamePixel(x,y,0);
     }
 
-  if (SFG_game.saved)
+  if (SFG_game.saved == 1)
     SFG_drawText(SFG_TEXT_SAVED,SFG_HUD_MARGIN,SFG_HUD_MARGIN,
       SFG_FONT_SIZE_MEDIUM,7,255,0);
 }
