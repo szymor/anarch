@@ -156,22 +156,22 @@ uint8_t SFG_mainLoopBody();
 */
 void SFG_init();
 
-/**
-  Can be redefined to platform's specifier of program memory.
-*/
-#ifndef SFG_PROGRAM_MEMORY
-  #define SFG_PROGRAM_MEMORY static const
-#endif
+#include "settings.h"
 
-#ifndef SFG_PROGRAM_MEMORY_U8
+#if SFG_ARDUINO
+  #include <avr/pgmspace.h>
+
+  #define SFG_PROGRAM_MEMORY static const
+  #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
+  // TODO
+#else
+  #define SFG_PROGRAM_MEMORY static const
   #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
 #endif
 
 #include "images.h"
 #include "levels.h"
-#include "settings.h"
 #include "texts.h"
-
 #include "palette.h"
 
 #if SFG_TEXTURE_DISTANCE == 0
@@ -442,6 +442,14 @@ struct
                           /**< Bit array, for each map square says whether there
                                is a colliding item or not. */
 } SFG_currentLevel;
+
+#if SFG_ARDUINO
+/**
+  Copy of the current level that is stored in RAM. This is only done on Arduino
+  because accessing it in program memory directly would be difficult.
+*/
+SFG_Level SFG_ramLevel;
+#endif
 
 /**
   Helper function for accessing the itemCollisionMap bits.
@@ -1404,7 +1412,14 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 {
   SFG_LOG("setting and initializing level");
 
-  const SFG_Level *level = &SFG_levels[levelNumber];
+  const SFG_Level *level;
+
+#if SFG_ARDUINO
+  memcpy_P(&SFG_ramLevel,SFG_levelEnds + levelNumber * sizeof(SFG_Level),1);
+  level = &SFG_ramLevel;
+#else
+  level = &SFG_levels[levelNumber];
+#endif
 
   SFG_game.currentRandom = 0;
 

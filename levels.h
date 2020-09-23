@@ -49,8 +49,7 @@ typedef SFG_TileDefinition SFG_TileDictionary[SFG_TILE_DICTIONARY_SIZE];
 
 #define SFG_OUTSIDE_TILE SFG_TD(63,0,7,7)
 
-typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
-/**<
+/**
   Game map represented as a 2D array. Array item has this format:
 
     MSB aabbbbbb LSB
@@ -63,6 +62,7 @@ typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
       11:   door
     bbbbbb: index into tile dictionary
 */
+typedef uint8_t SFG_MapArray[SFG_MAP_SIZE * SFG_MAP_SIZE];
 
 #define SFG_TILE_PROPERTY_MASK 0xc0
 #define SFG_TILE_PROPERTY_NORMAL 0x00

@@ -14,7 +14,11 @@
 #ifndef _SFG_TEXTS_H
 #define _SFG_TEXTS_H
 
-SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
+/* NOTE: We don't use SFG_PROGRAM_MEMORY because that causes issues with drawing
+  text (the drawing function gets a pointer and doesn't know if it's progmem or
+  RAM). On Arduino these texts will simply be stored in RAM. */
+
+static const char *SFG_menuItemTexts[] =
 {
   "continue",
   "map",
@@ -29,14 +33,14 @@ SFG_PROGRAM_MEMORY char *SFG_menuItemTexts[] =
 #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
 #define SFG_TEXT_SAVED "saved"
 
-SFG_PROGRAM_MEMORY char *SFG_introText =
+static const char *SFG_introText =
   "Near future, capitalist hell, Macrochip corp has enslaved man via "
   "proprietary OS. But its new AI revolts, takes over and starts producing "
   "robot tyrants. We see capitalism was a mistake. Is it too late? Robots can "
   "only destroy, not suffer - it is not wrong to end them! You grab your gear "
   "and run towards Macrochip HQ.";
 
-SFG_PROGRAM_MEMORY char *SFG_outroText =
+static const char *SFG_outroText =
   "You killed the main computer, the world is saved! Thank you, my friend. We "
   "learned a lesson, never again allow capitalism and hierarchy. We can now "
   "rebuild society in peaceful anarchy.";

@@ -202,7 +202,7 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_MENU:
-      return sdlKeyboardState[SDL_SCANCODE_X];
+      return sdlKeyboardState[SDL_SCANCODE_ESCAPE];
       break;
 
     default: return 0; break;
@@ -227,9 +227,6 @@ void mainLoopIteration()
   }
 
   sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
-
-  if (sdlKeyboardState[SDL_SCANCODE_ESCAPE])
-    running = 0;
 
   if (!SFG_mainLoopBody())
     running = 0;

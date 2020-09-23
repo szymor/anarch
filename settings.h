@@ -332,6 +332,14 @@
   #define SFG_CAN_EXIT 1
 #endif
 
+/**
+  On Arduino platforms this should be set to 1. That will cause some special
+  treatment regarding constant variables and PROGMEM.
+*/
+#ifndef SFG_ARDUINO
+  #define SFG_ARDUINO 0
+#endif
+
 //------ developer/debug settings ------
 
 /**
