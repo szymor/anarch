@@ -1,0 +1,50 @@
+These are some ideas about what you can do with this game:
+
+- Play it.
+- Stream it, review it.
+- Speedrun it.
+- TAS it (create a mod that helps with this).
+- Package it, reupload it, share it.
+- Port it to your favorite platform.
+- Port to VR :)
+- Add OpenGL (or other accelerated) rendering, with true 3D, true color,
+  antialiasing, texture filtering etc.
+- Improve SW rendering on PC, e.g. use full z-buffer, particle effects etc.
+- Add procedurally generated levels.
+- Add demo recording support.
+- Write an AI that plays the game.
+- Use it to promote anarchism, free SW, suckless SW, open consoles etc.
+- Use it in demoscene.
+- Use the assets in another project.
+- Make the game run ENTIRELY in a GPU shader.
+- Embed it into some other game as an easter egg.
+- Use it in your art, e.g. if you're making a movie in which you need a public
+  domain game footage you can just use, this is for you.
+- Create an "HD" pack, upscale textures, use more colors, HQ sounds, add
+  postprocessing etc.
+- Take the assets and recreate the game in another engine, e.g. the Doom engine.
+- Take another game, e.g. Freedoom, and recreate it in this engine.
+- Create a script that will create 3D obj models of the levels, to be used in
+  Blender etc.
+- Add multiplayer, coop or arena shooter.
+- Add mid-level saving.
+- Create an automatic random public domain game screenshot generator from this.
+- Create advanced level editor.
+- Create your own levels or a whole campaign.
+- Create your own game based on this, e.g. something like Superhot.
+- Create fun mods, e.g. asset replacements.
+- Use it as a benchmark/test for computers.
+- Take the assets and use them as an inspiration for art you're creating, e.g.
+  create 3D models of the game monsters or weapons.
+- If you're creating your own project, e.g. a free HW platform, you can use this
+  to showcase what your HW can do.
+- Play around with the palette and see how it affects the visuals.
+- Use it to make educational visualization, e.g. how a single frame is rendered,
+  show casted rays on top of the level map, visualize memory content, visualize
+  repository timelapse etc.
+- Use it in education, e.g. as a part of a project in a programming class.
+- Remove ray casting and make this a top-down shooter.
+- Create an even more minimal "microAnarch" version, strip down things like
+  camera shearing, mouse control, menu, map, reduce the palette to e.g. 16 color
+  or even grayscale etc.
+- Use it in research, e.g. AI, comparison of compilers etc.
