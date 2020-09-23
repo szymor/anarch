@@ -161,8 +161,8 @@ void SFG_init();
 #if SFG_ARDUINO
   #include <avr/pgmspace.h>
 
-  #define SFG_PROGRAM_MEMORY static const
-  #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
+  #define SFG_PROGRAM_MEMORY const PROGMEM
+  #define SFG_PROGRAM_MEMORY_U8(addr) pgm_read_byte(addr)
   // TODO
 #else
   #define SFG_PROGRAM_MEMORY static const
@@ -1415,7 +1415,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   const SFG_Level *level;
 
 #if SFG_ARDUINO
-  memcpy_P(&SFG_ramLevel,SFG_levelEnds + levelNumber * sizeof(SFG_Level),1);
+  memcpy_P(&SFG_ramLevel,SFG_levels + levelNumber * sizeof(SFG_Level),sizeof(SFG_Level));
   level = &SFG_ramLevel;
 #else
   level = &SFG_levels[levelNumber];
