@@ -1,0 +1,136 @@
+These are texts used for the project promotion etc. Released under CC0, as
+everything else in this repository.
+
+<WEBSITE>
+<REPOURL>
+<LOCTOTAL>
+<MINRAM>
+<MINSIZE>
+<MINFREQ>
+            _....._
+        .-''       ''-.
+     , /     _.._      \,,,
+    / \ __  / /\ \ _____| |_
+   | ' |  '( /__\ )  | _|   |
+   |_H_|_|_|/.__.\|_|\__|_|_|
+       \               /
+        '-.__     __.-'
+             '''''
+
+============ tags ============
+
+#anarch #suckless #libregame #anarchism #freesoftware #cc0 #publicdomain
+#anarcho-pacifism #game #retro #pseudo3d #foss #free #countercomplex
+
+===== general: by length =====
+
+Anarch: a Very Special Game
+
+Anarch: super small public domain no-dependency from-scratch suckless Doom clone
+
+I've made this super small public domain no-dependency from-scratch suckless
+Doom clone.
+
+Anarch: extremely small, completely public domain no-dependency portable
+suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
+everywhere, made for the benefit of all living beings.
+
+Anarch is a completely public domain, free software 90s-style anarcho-pacifist
+Doom clone game which can fit into <MINSIZE> (including all assets), has
+extremely low hardware demands, running on platforms with <MINRAM> of RAM on
+<MINFREQ> CPU (which doesn't even has to have a floating point unit), has no
+dependencies (not even standard C library), is extremely portable, made in pure
+C99 subset of C++ completely from scratch (including the engine, all assets, the
+font, palette etc.) with only free software and released completely into the
+public domain, allowing absolutely any use. It was not made for profit or mere
+entertainment, it is an engineering art and philosofical manifesto. For more
+info see the website at <WEBSITE> or the repository at <REPOURL>.
+
+======== opengameart =========
+
+These are the assets from my public domain Doom-like game Anarch (<WEBSITE>).
+I have made them all completely myself, from scratch, including taking my own
+photos, recording my own sounds etc. I release them all under CC0 1.O, public
+domain, for any use whatsoever.
+
+========= freesound ==========
+
+Retro 8bit sound effects from my public domain game Anarch, made from my own
+recordings.
+
+======== social nets =========
+
+# Finally releasing my suckless game Anarch!
+
+I have spent a few years on this game. It is very special, one of its kind, a
+manifesto to ideas and philosophies I hold.
+
+The game is extremely small, completely public domain (CC0) free software, has
+no-dependencies, is extremely portable, suckless, made completely from-scratch
+in the 90s-style of the original Doom. I made it for the benefit of all living
+beings and am now sharing it with you. Enjoy and spread it around!
+
+<WEBSITE>
+
+<REPOURL>
+
+======= video trailer =======
+
+This is a trailer for my public domain Doom-like game Anarch. The game is very
+special, extremely small, suckless, with tiny hardware demands, running
+basically on any platforms. It has many nice properties and is one of its kind.
+It is completely free, both as in gratis and freedom. To get it, visit
+<WEBSITE>.
+
+====== wikimedia commons =====
+
+This is a screenshot from a public domain game Anarch which I made. All assets
+in the game and the whole software were created completely by me and are
+released under CC0, as is this screenshot.
+
+This is my gameplay recording of a public domain game Anarch which I made. All
+assets in the game and the whole software were created completely by me and are
+released under CC0, as is this recording.
+
+This is a public domain trailer of a public domain game Anarch which I made. All
+assets in the game and the whole software were created completely by me and are
+released under CC0, as is this trailer.
+
+This is a bytebeat soundtrack from a public domain game Anarch which I made. All
+assets in the game and the whole software were created completely by me and are
+released under CC0, as is this soundtrack.
+
+The game uses software rendering using raycasting and a custom 256 color
+palette.
+
+======= libregamewiki ========
+
+Anarch is a completely public domain, free software, 90s-style anarcho-pacifist
+Doom-like libre game. It was created by drummyfish, made with a special
+philosophy in mind.
+
+The game is made for entertainment, but also as a manifesto of certain
+philosophies and ideas, including suckless programming, extreme portability,
+anti-copyright, selflessness and anarcho-pacifism.
+
+The game is special by its properties, which include:
+
+- Extremely small size, the game can fit into <MINSIZE>, including all assets.
+- Very low hardware demands, being able to run on <MINFREQ> embedded CPUs.
+- No library dependencies – The game is written in pure C without any I/O, which
+  is left for each platform's frontend to implement.
+- Implementation simplicity – no build system is needed, only a single file
+  needs to be compiled. The whole source code has <LOCTOTAL> lines of code.
+- Extreme portability thanks to the above. Official ports exist for PC, browser
+  and embedded consoles like Pokitto and Gamebuino Meta.
+- Made completely from scratch with only free software, including the engine and
+  assets.
+- Completely public domain status, being released under CC0.
+
+The game is a "pseudo 3D" first person shooter, like Doom, and consists of 10
+levels. The graphics uses a 256 color palette and is a little simpler than that
+of Doom, having e.g. no textures on floor and ceiling and using just 32x32 pixel
+images. The engine uses software rendering and 2D raycasting for rendering.
+There are multiple enemy types, weapons and items to pick up. Music is
+procedurally generated (utilizing so called bytebeat).
+
