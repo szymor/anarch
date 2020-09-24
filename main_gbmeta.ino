@@ -15,11 +15,8 @@
 #include <Gamebuino-Meta.h>
 
 #define SFG_ARDUINO 1
-
 #define SFG_CAN_EXIT 0
-
-#define SFG_FPS 20
-
+#define SFG_FPS 30
 #define SFG_SCREEN_RESOLUTION_X 80
 #define SFG_SCREEN_RESOLUTION_Y 64
 #define SFG_RESOLUTION_SCALEDOWN 1
@@ -33,6 +30,9 @@
 #include "game.h"
 
 Gamebuino_Meta::Color palette[256];
+
+const Gamebuino_Meta::SaveDefault saveDefault[] =
+  { { 0, SAVETYPE_BLOB, SFG_SAVE_SIZE, 0 } };
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
@@ -73,15 +73,31 @@ void SFG_enableMusic(uint8_t enable)
 
 void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 {
+  gb.save.set(0,data,SFG_SAVE_SIZE);
 }
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
-  return 0;
+  gb.save.get(0,data,SFG_SAVE_SIZE);
+  return 1;
 }
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
+  switch (soundIndex)
+  {
+    case 2: 
+      gb.sound.playCancel();
+      break;
+
+    case 5:
+      gb.sound.playOK();
+      break;
+
+    default:
+      gb.sound.playTick();
+      break;
+  }
 }
 
 uint32_t SFG_getTimeMs()
@@ -92,8 +108,8 @@ uint32_t SFG_getTimeMs()
 void setup()
 {
   gb.begin();
-
   gb.setFrameRate(SFG_FPS);
+  gb.save.config(saveDefault);
 
   for (int i = 0; i < 256; ++i)
   {
@@ -104,14 +120,11 @@ void setup()
   SFG_init();
 }
 
-
 void loop()
 {
   while(!gb.update())
   {
   }
-
-  //gb.display.clear();
 
   SFG_mainLoopBody();
 }
