@@ -340,6 +340,14 @@
   #define SFG_ARDUINO 0
 #endif
 
+/**
+  If set, the menu will only display the selected item. This is good for very
+  small resolution screens that can't display all items at once.
+*/
+#ifndef SFG_SIMPLE_MENU
+  #define SFG_SIMPLE_MENU 0
+#endif
+
 //------ developer/debug settings ------
 
 /**

@@ -4133,7 +4133,8 @@ void SFG_drawMenu()
     #define SCROLL_PIXELS_PER_FRAME 1
   #endif
 
-  #define SELECTION_START_X (SFG_GAME_RESOLUTION_X / 5)
+  #define SELECTION_START_X ((SFG_GAME_RESOLUTION_X - 12 * SFG_FONT_SIZE_MEDIUM\
+    * (SFG_FONT_CHARACTER_SIZE + 1)) / 2)
 
   uint16_t scroll = (SFG_game.frame * SCROLL_PIXELS_PER_FRAME) / 64;
 
@@ -4160,6 +4161,14 @@ void SFG_drawMenu()
 
     if (item == SFG_MENU_ITEM_NONE)
       break;
+
+#if SFG_SIMPLE_MENU
+    if (i != SFG_game.selectedMenuItem)
+    {
+      i++;
+      continue;
+    }
+#endif
 
     const char *text = SFG_menuItemTexts[item];
 
