@@ -169,8 +169,13 @@ static inline SFG_TileDefinition SFG_getMapTile
 
 #define SFG_NUMBER_OF_LEVELS 10
 
-SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
-{
+/*
+  NOTE: Initially the levels were stored sequentially in one big array, but that
+  caused some issues with Arduino's PROGMEM, so now we store each level in a
+  separate variable and eventually create an array of pointers to these.
+*/
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
   {          // level 0
     {        // mapArray
     #define o 0
@@ -342,8 +347,9 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}},
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
-  } // level
-  ,
+  }; // level
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
   {          // level 1
     {        // mapArray
     #define o 0
@@ -523,8 +529,9 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}},
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
-  } // level
-  ,
+  }; // level
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level2 =
   {          // level
     {        // mapArray
     #define o 0
@@ -696,8 +703,9 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}},
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
-  } // level
-  ,
+  }; // level
+  
+SFG_PROGRAM_MEMORY SFG_Level SFG_level3 =
   {          // level 3
     {        // mapArray
     #define o 0
@@ -885,8 +893,9 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}},
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
-  } // level
-  ,
+  }; // level
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level4 =
   {          // level 4
     {        // mapArray
     #define o 0
@@ -1056,17 +1065,32 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_levels[SFG_NUMBER_OF_LEVELS] =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}},
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
-  } // level
-  ,
+  }; // level
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level5 =
   #include "/home/tastyfish/git/anarch/assets/tmp.txt"
-  ,
+  ;
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level6 =
   #include "/home/tastyfish/git/anarch/assets/tmp.txt"
-  ,
+  ;
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level7 =
   #include "/home/tastyfish/git/anarch/assets/tmp.txt"
-  ,
+  ;
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level8 =
   #include "/home/tastyfish/git/anarch/assets/tmp.txt"
-  ,
+  ;
+
+SFG_PROGRAM_MEMORY SFG_Level SFG_level9 =
   #include "/home/tastyfish/git/anarch/assets/tmp.txt"
+  ;
+
+static const SFG_Level * SFG_levels[SFG_NUMBER_OF_LEVELS] =
+{
+  &SFG_level0, &SFG_level1, &SFG_level2, &SFG_level3, &SFG_level4, &SFG_level5,
+  &SFG_level6, &SFG_level7, &SFG_level8, &SFG_level9
 };
 
 #endif // guard

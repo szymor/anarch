@@ -1415,10 +1415,10 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   const SFG_Level *level;
 
 #if SFG_ARDUINO
-  memcpy_P(&SFG_ramLevel,SFG_levels + levelNumber * sizeof(SFG_Level),sizeof(SFG_Level));
+  memcpy_P(&SFG_ramLevel,SFG_levels[levelNumber],sizeof(SFG_Level));
   level = &SFG_ramLevel;
 #else
-  level = &SFG_levels[levelNumber];
+  level = SFG_levels[levelNumber];
 #endif
 
   SFG_game.currentRandom = 0;
