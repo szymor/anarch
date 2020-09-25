@@ -3852,7 +3852,8 @@ void SFG_fillRectangle(
 
 static inline void SFG_clearScreen(uint8_t color)
 {
-  SFG_fillRectangle(0,0,SFG_GAME_RESOLUTION_X,SFG_GAME_RESOLUTION_Y,color);
+  SFG_fillRectangle(0,0,SFG_GAME_RESOLUTION_X - 1,
+    SFG_GAME_RESOLUTION_Y - 1,color);
 }
 
 /**

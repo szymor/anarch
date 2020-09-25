@@ -39,6 +39,10 @@
 
 #define MUSIC_VOLUME 4
 
+#ifdef __EMSCRIPTEN__
+  #define SFG_CAN_EXIT 0
+#endif
+
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
@@ -85,6 +89,7 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
+#ifndef __EMSCRIPTEN__
   FILE *f = fopen("anarch.sav","rb");
 
   puts("SDL: opening and reading save file");
@@ -100,6 +105,9 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
   }
 
   return 1;
+#else
+  return 0;
+#endif
 }
 
 void SFG_sleepMs(uint16_t timeMs)
@@ -111,6 +119,7 @@ void SFG_sleepMs(uint16_t timeMs)
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
+#ifndef __EMSCRIPTEN__
   int mX, mY;
 
   SDL_GetMouseState(&mX,&mY);
@@ -120,6 +129,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 
   SDL_WarpMouseInWindow(window,
     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
+#endif
 }
 
 int8_t SFG_keyPressed(uint8_t key)
@@ -357,7 +367,9 @@ int main(int argc, char *argv[])
 
   SDL_ShowCursor(0);
 
-  SFG_init(SDL_INIT_AUDIO);
+  SFG_init();
+
+  SDL_Init(SDL_INIT_AUDIO);
 
   SDL_AudioSpec audioSpec;
 
