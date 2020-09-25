@@ -3841,6 +3841,10 @@ void SFG_gameStep()
 void SFG_fillRectangle(
   uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color)
 {
+  if ((x + width >= SFG_GAME_RESOLUTION_X) ||
+      (y + height >= SFG_GAME_RESOLUTION_Y))
+    return;
+
   for (uint16_t j = y; j < y + height; ++j)
     for (uint16_t i = x; i < x + width; ++i)
       SFG_setGamePixel(i,j,color);
@@ -3932,29 +3936,25 @@ void SFG_drawMap()
 */
 void SFG_drawStoryText()
 {
-  const char *text;
-
-  uint16_t textColor;
+  const char *text = SFG_outroText;
+  uint16_t textColor = 23;
+  uint8_t clearColor = 9;
+  uint8_t sprite = 18;
 
   if (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)) // intro?  
   {
     text = SFG_introText;
-    textColor = 7;
-  
-    SFG_clearScreen(0);
+    textColor = 7; 
+    clearColor = 0;
+    sprite = SFG_game.blink * 2;
   }
-  else // outro
-  {
-    text = SFG_outroText;
-    textColor = 23;
+    
+  SFG_clearScreen(clearColor);
 
-    SFG_clearScreen(9);
-
-    SFG_blitImage(SFG_monsterSprites + 18 * SFG_TEXTURE_SIZE,
+  SFG_blitImage(SFG_monsterSprites + sprite * SFG_TEXTURE_STORE_SIZE,
       (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
       SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
       SFG_FONT_SIZE_SMALL);  
-  }
 
   uint16_t textLen = 0;
 
@@ -3965,6 +3965,20 @@ void SFG_drawStoryText()
     RCL_min(textLen,
     ((SFG_game.frameTime - SFG_game.stateChangeTime) * textLen) /
       SFG_STORYTEXT_DURATION + 1);
+
+#define CHAR_SIZE (SFG_FONT_SIZE_SMALL * (SFG_FONT_CHARACTER_SIZE + 1))
+#define LINE_LENGTH (SFG_GAME_RESOLUTION_X / CHAR_SIZE)
+#define MAX_LENGTH (((SFG_GAME_RESOLUTION_Y / CHAR_SIZE) / 2) * LINE_LENGTH  )
+
+  uint16_t drawShift = (drawLen < MAX_LENGTH) ? 0 :
+    (((drawLen - MAX_LENGTH) / LINE_LENGTH) * LINE_LENGTH);
+
+#undef CHAR_SIZE
+#undef LINE_LENGTH
+#undef MAX_LENGTH
+
+  text += drawShift;
+  drawLen -= drawShift;
 
   SFG_drawText(text,SFG_HUD_MARGIN,SFG_HUD_MARGIN,SFG_FONT_SIZE_SMALL,textColor,
     drawLen,SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN);
@@ -4124,12 +4138,14 @@ void SFG_drawMenu()
   #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE ) )
 
   #if BACKGROUND_SCALE == 0
+    #undef BACKGROUND_SCALE
     #define BACKGROUND_SCALE 1
   #endif
 
   #define SCROLL_PIXELS_PER_FRAME ((64 * SFG_GAME_RESOLUTION_X) / (8 * SFG_FPS))
 
   #if SCROLL_PIXELS_PER_FRAME == 0
+    #undef SCROLL_PIXELS_PER_FRAME
     #define SCROLL_PIXELS_PER_FRAME 1
   #endif
 

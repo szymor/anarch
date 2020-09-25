@@ -33,6 +33,10 @@
   #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1
 
+//  #define SFG_SCREEN_RESOLUTION_X 80
+//  #define SFG_SCREEN_RESOLUTION_Y 64
+//  #define SFG_SIMPLE_MENU 1
+
 #define MUSIC_VOLUME 4
 
 #include <stdio.h>
