@@ -371,8 +371,9 @@ int main(int argc, char *argv[])
 
   SDL_Init(SDL_INIT_AUDIO);
 
-  SDL_AudioSpec audioSpec;
+  SDL_AudioSpec audioSpec, audioSpec2;
 
+  SDL_memset(&audioSpec, 0, sizeof(audioSpec));
   audioSpec.callback = audioFillCallback;
   audioSpec.userdata = 0;
   audioSpec.freq = 8000;
@@ -380,7 +381,7 @@ int main(int argc, char *argv[])
   audioSpec.channels = 1;
   audioSpec.samples = 128;
 
-  if (SDL_OpenAudio(&audioSpec,0) < 0)
+  if (SDL_OpenAudio(&audioSpec,&audioSpec2) < 0)
     puts("SDL: could not initialize audio");
 
   for (int16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)

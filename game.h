@@ -2082,6 +2082,15 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     (attackType == SFG_MONSTER_ATTACK_MELEE) || 
     (attackType == SFG_MONSTER_ATTACK_EXPLODE); 
 
+  uint8_t monsterSquare[2] =
+    {
+      SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+      SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
+    };
+
+  RCL_Unit currentHeight =
+    SFG_floorCollisionHeightAt(monsterSquare[0],monsterSquare[1]);
+
   if ( // sometimes randomly attack
        !notRanged &&
        (SFG_random() < 
@@ -2144,20 +2153,13 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
             SFG_distantSoundVolume( 
               SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
               SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
-              SFG_floorHeightAt(
-                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
-                )
-              )
+              currentHeight)
             );
 
         SFG_launchProjectile(
           projectile,
           pos,
-          SFG_floorHeightAt(
-             SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-             SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
-             ) + RCL_UNITS_PER_SQUARE / 2,
+          currentHeight + RCL_UNITS_PER_SQUARE / 2,
           dir,
           0,
           SFG_PROJECTILE_SPAWN_OFFSET
@@ -2173,9 +2175,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     {
       // non-ranged monsters walk towards player
 
-      uint8_t mX = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
-      uint8_t mY = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
-
       RCL_Unit pX, pY, pZ;
       SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
 
@@ -2189,29 +2188,29 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
       {
         // walk towards player
 
-        if (mX > SFG_player.squarePosition[0])
+        if (monsterSquare[0] > SFG_player.squarePosition[0])
         {
-          if (mY > SFG_player.squarePosition[1])
+          if (monsterSquare[1] > SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_NW;
-          else if (mY < SFG_player.squarePosition[1])
+          else if (monsterSquare[1] < SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_SW;
           else
             state = SFG_MONSTER_STATE_GOING_W;
         }
-        else if (mX < SFG_player.squarePosition[0])
+        else if (monsterSquare[0] < SFG_player.squarePosition[0])
         {
-          if (mY > SFG_player.squarePosition[1])
+          if (monsterSquare[1] > SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_NE;
-          else if (mY < SFG_player.squarePosition[1])
+          else if (monsterSquare[1] < SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_SE;
           else
             state = SFG_MONSTER_STATE_GOING_E;
         }
         else
         {
-          if (mY > SFG_player.squarePosition[1])
+          if (monsterSquare[1] > SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_N;
-          else if (mY < SFG_player.squarePosition[1])
+          else if (monsterSquare[1] < SFG_player.squarePosition[1])
             state = SFG_MONSTER_STATE_GOING_S;
         }
       }
@@ -2294,9 +2293,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_distantSoundVolume( 
           SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
           SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
-          SFG_floorHeightAt(
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-            SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))) / 2);
+          currentHeight) / 2);
 
     if (add)
       state = SFG_MONSTER_STATE_IDLE;
@@ -2315,9 +2312,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   }
   else
   {
-    RCL_Unit currentHeight =
-      SFG_floorCollisionHeightAt(monster->coords[0] / 4,monster->coords[1] / 4);
-
     RCL_Unit newHeight =
       SFG_floorCollisionHeightAt(newPos[0] / 4,newPos[1] / 4);
 

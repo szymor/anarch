@@ -1,26 +1,13 @@
 general:
 
-- Force monsters that are squeezed (e.g. on door) to always move.
-- Ability to play SFX slower to e.g. give some monsters lower pitch?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - On Win$hit builds display an anti-windshit text, by macro.
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
-- weapon autoswitch: when a stronger weapon becomes available via picking up
-  ammo, maybe it should automatically be switched to (could have disable
-  setting)
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - compile on BSD and WinShit
 - make SFML frontend
-- port to GB Meta
-- save/load (optional):
-  When a level is finished, the state at the beginning of the next one (health,
-  ammo, time, ...) is automatically saved and can be restored via load option in
-  the menu. This save as well as some other things (game progress, inagme
-  settings, ...) will be preserved even adter game restart if the platform
-  implements a saving function.
-- more levels
 - disable transparency for walls for performance (setting)?
 - add time slowdown constant
 - some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
@@ -31,7 +18,6 @@ general:
 - run on raspbery pi
 - add robot deactivator item? (encourages "stealth" gameplay)
 - optional graphics enhance: vertical wall shading ("ambient occlusions")?
-- option for disabling wall transparency, for performance?
 
 level ideas:
 
@@ -153,6 +139,14 @@ bugs:
 done:
 
 - add headbob
+- save/load (optional):
+  When a level is finished, the state at the beginning of the next one (health,
+  ammo, time, ...) is automatically saved and can be restored via load option in
+  the menu. This save as well as some other things (game progress, inagme
+  settings, ...) will be preserved even adter game restart if the platform
+  implements a saving function.
+- more levels
+- port to GB Meta
 - "Smart" weapon switching. e.g. don't auto switch to knife unless necessary, or
   auto switch to a weapon from knife if ammo is picked up.
 - option for vertical auto aim
@@ -198,6 +192,12 @@ done:
 - Bytebeat is bugged on Pokitto, outputs different values than on PC. Fix this.
 
 scratched:
+- option for disabling wall transparency, for performance?
+- weapon autoswitch: when a stronger weapon becomes available via picking up
+  ammo, maybe it should automatically be switched to (could have disable
+  setting)
+- Ability to play SFX slower to e.g. give some monsters lower pitch?
+- Force monsters that are squeezed (e.g. on door) to always move.
 - try to make z-buffer 3 line instead of 1D, possibly like this (to keep
   performance):
   - at compile time selct X = power of 2 closest to vertical resolution
