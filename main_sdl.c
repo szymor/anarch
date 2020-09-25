@@ -40,7 +40,13 @@
 #define MUSIC_VOLUME 4
 
 #ifdef __EMSCRIPTEN__
+  #define SFG_FPS 30
+  #define SFG_SCREEN_RESOLUTION_X 640
+  #define SFG_SCREEN_RESOLUTION_Y 480
   #define SFG_CAN_EXIT 0
+  #define SFG_RESOLUTION_SCALEDOWN 2
+
+  #include <emscripten.h>
 #endif
 
 #include <stdio.h>
@@ -229,6 +235,13 @@ void mainLoopIteration()
 {
   SDL_Event event;
 
+#ifdef __EMSCRIPTEN__
+  // Hack, without it sound won't work because of shitty browser audio policies.
+
+  if (SFG_game.frame % 512 == 0)
+    SDL_PauseAudio(0);
+#endif
+
   while (SDL_PollEvent(&event)) // also automatically updates sdlKeyboardState
   {
     if(event.type == SDL_MOUSEWHEEL)
@@ -336,9 +349,9 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  puts("SDL: starting");
-
   puts("SDL: initializing SDL");
+
+  SFG_init();
 
   window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
@@ -367,21 +380,18 @@ int main(int argc, char *argv[])
 
   SDL_ShowCursor(0);
 
-  SFG_init();
-
   SDL_Init(SDL_INIT_AUDIO);
 
-  SDL_AudioSpec audioSpec, audioSpec2;
+  SDL_AudioSpec audioSpec;
 
   SDL_memset(&audioSpec, 0, sizeof(audioSpec));
   audioSpec.callback = audioFillCallback;
-  audioSpec.userdata = 0;
   audioSpec.freq = 8000;
   audioSpec.format = AUDIO_U16;
   audioSpec.channels = 1;
-  audioSpec.samples = 128;
+  audioSpec.samples = 1024;
 
-  if (SDL_OpenAudio(&audioSpec,&audioSpec2) < 0)
+  if (SDL_OpenAudio(&audioSpec,NULL) < 0)
     puts("SDL: could not initialize audio");
 
   for (int16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
