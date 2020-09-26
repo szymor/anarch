@@ -2966,6 +2966,8 @@ void SFG_gameStepPlaying()
     return;
   }
 
+  SFG_updateLevel();
+
   int8_t recomputeDirection = SFG_currentLevel.frameStart == SFG_game.frame;
 
   RCL_Vector2D moveOffset;
@@ -2989,160 +2991,6 @@ void SFG_gameStepPlaying()
   if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
     SFG_game.settings = (SFG_game.settings & 0x04) ?
       (SFG_game.settings & ~0x0c) : (SFG_game.settings | 0x0c );
-
-#if SFG_PREVIEW_MODE == 0
-  if (
-    SFG_keyIsDown(SFG_KEY_B) &&
-    !SFG_keyIsDown(SFG_KEY_C) &&
-    (SFG_player.weaponCooldownFrames == 0))
-  {
-    // player: attack/shoot/fire
-
-    uint8_t ammo, projectileCount, canShoot;
-
-    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
-
-    if (canShoot)
-    {
-      uint8_t sound;
-
-      switch (SFG_player.weapon)
-      {
-        case SFG_WEAPON_KNIFE:           sound = 255; break;
-        case SFG_WEAPON_ROCKET_LAUNCHER: 
-        case SFG_WEAPON_SHOTGUN:         sound = 2; break; 
-        case SFG_WEAPON_PLASMAGUN:
-        case SFG_WEAPON_SOLUTION:        sound = 4; break;
-        default:                         sound = 0; break;
-      }
-
-      if (sound != 255)
-        SFG_playGameSound(sound,255);
-
-      if (ammo != SFG_AMMO_NONE)
-        SFG_player.ammo[ammo] -= projectileCount;
-
-      uint8_t projectile;
-
-      switch (SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon))
-      {
-        case SFG_WEAPON_FIRE_TYPE_PLASMA:
-          projectile = SFG_PROJECTILE_PLASMA;
-          break;
-
-        case SFG_WEAPON_FIRE_TYPE_FIREBALL:
-          projectile = SFG_PROJECTILE_FIREBALL;
-          break;
-
-        case SFG_WEAPON_FIRE_TYPE_BULLET:
-          projectile = SFG_PROJECTILE_BULLET;
-          break;
-
-        case SFG_WEAPON_FIRE_TYPE_MELEE:
-          projectile = SFG_PROJECTILE_NONE;
-          break;
-
-        default:
-          projectile = 255;
-          break;
-      }
-          
-      if (projectile != SFG_PROJECTILE_NONE)
-      {
-        uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
-
-        RCL_Unit direction =
-          (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
-          + angleAdd;
-          
-        RCL_Unit projectileSpeed = SFG_GET_PROJECTILE_SPEED_UPS(projectile);
-        
-        /* Vertical speed will be either determined by autoaim (if shearing is
-           off) or the camera shear value. */
-        RCL_Unit verticalSpeed = (SFG_game.settings & 0x04) ?
-          (SFG_player.camera.shear * projectileSpeed) / 
-            SFG_CAMERA_MAX_SHEAR_PIXELS
-          :
-          (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
-
-        for (uint8_t i = 0; i < projectileCount; ++i)
-        {
-          SFG_launchProjectile(
-            projectile,
-            SFG_player.camera.position,
-            SFG_player.camera.height,
-            RCL_angleToDirection(direction),
-            verticalSpeed,  
-            SFG_PROJECTILE_SPAWN_OFFSET
-            );
-
-          direction += angleAdd;
-        }
-      }
-      else
-      {
-        // player's melee attack
-
-        for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-        {
-          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
-
-          uint8_t state = SFG_MR_STATE(*m);
-
-          if ((state == SFG_MONSTER_STATE_INACTIVE) || 
-              (state == SFG_MONSTER_STATE_DEAD))
-            continue;
-
-          RCL_Unit pX, pY, pZ;
-          SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
-
-          if (SFG_taxicabDistance(pX,pY,pZ,
-              SFG_player.camera.position.x,
-              SFG_player.camera.position.y,
-              SFG_player.camera.height) > SFG_MELEE_RANGE)
-            continue;
-   
-          RCL_Vector2D toMonster;
-
-          toMonster.x = pX - SFG_player.camera.position.x;
-          toMonster.y = pY - SFG_player.camera.position.y;
-
-          if (RCL_vectorsAngleCos(SFG_player.direction,toMonster) >=
-              (RCL_UNITS_PER_SQUARE - SFG_PLAYER_MELEE_ANGLE))
-          {
-            SFG_monsterChangeHealth(m,
-              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
-
-            SFG_createDust(pX,pY,pZ);
-
-            break;
-          }
-        }
-      }
-
-      SFG_player.weaponCooldownFrames =
-        RCL_max(
-          SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon),
-          SFG_MIN_WEAPON_COOLDOWN_FRAMES);
-
-      SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
-
-      if (!canShoot)
-      {
-        // No more ammo, switch to the second strongest weapon.
-
-        SFG_playerRotateWeapon(1);
-
-        uint8_t previousWeapon = SFG_player.weapon;
-
-        SFG_playerRotateWeapon(0);
-
-        if (previousWeapon > SFG_player.weapon)
-          SFG_playerRotateWeapon(1);
-      }
-    } // endif: has enough ammo?
-  } // attack
-#endif // SFG_PREVIEW_MODE == 0
 
   int8_t canSwitchWeapon = SFG_player.weaponCooldownFrames == 0;
 
@@ -3541,6 +3389,161 @@ void SFG_gameStepPlaying()
      add vertical velocity. */
 #endif
 
+#if SFG_PREVIEW_MODE == 0
+  if (
+    SFG_keyIsDown(SFG_KEY_B) &&
+    !SFG_keyIsDown(SFG_KEY_C) &&
+    (SFG_player.weaponCooldownFrames == 0))
+  {
+    /* Player attack/shoot/fire, this has to be done AFTER the player is moved,
+       otherwise he could shoot himself while running forward. */
+
+    uint8_t ammo, projectileCount, canShoot;
+
+    SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+
+    if (canShoot)
+    {
+      uint8_t sound;
+
+      switch (SFG_player.weapon)
+      {
+        case SFG_WEAPON_KNIFE:           sound = 255; break;
+        case SFG_WEAPON_ROCKET_LAUNCHER: 
+        case SFG_WEAPON_SHOTGUN:         sound = 2; break; 
+        case SFG_WEAPON_PLASMAGUN:
+        case SFG_WEAPON_SOLUTION:        sound = 4; break;
+        default:                         sound = 0; break;
+      }
+
+      if (sound != 255)
+        SFG_playGameSound(sound,255);
+
+      if (ammo != SFG_AMMO_NONE)
+        SFG_player.ammo[ammo] -= projectileCount;
+
+      uint8_t projectile;
+
+      switch (SFG_GET_WEAPON_FIRE_TYPE(SFG_player.weapon))
+      {
+        case SFG_WEAPON_FIRE_TYPE_PLASMA:
+          projectile = SFG_PROJECTILE_PLASMA;
+          break;
+
+        case SFG_WEAPON_FIRE_TYPE_FIREBALL:
+          projectile = SFG_PROJECTILE_FIREBALL;
+          break;
+
+        case SFG_WEAPON_FIRE_TYPE_BULLET:
+          projectile = SFG_PROJECTILE_BULLET;
+          break;
+
+        case SFG_WEAPON_FIRE_TYPE_MELEE:
+          projectile = SFG_PROJECTILE_NONE;
+          break;
+
+        default:
+          projectile = 255;
+          break;
+      }
+          
+      if (projectile != SFG_PROJECTILE_NONE)
+      {
+        uint16_t angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectileCount + 1);
+
+        RCL_Unit direction =
+          (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
+          + angleAdd;
+          
+        RCL_Unit projectileSpeed = SFG_GET_PROJECTILE_SPEED_UPS(projectile);
+        
+        /* Vertical speed will be either determined by autoaim (if shearing is
+           off) or the camera shear value. */
+        RCL_Unit verticalSpeed = (SFG_game.settings & 0x04) ?
+          (SFG_player.camera.shear * projectileSpeed) / 
+            SFG_CAMERA_MAX_SHEAR_PIXELS
+          :
+          (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
+
+        for (uint8_t i = 0; i < projectileCount; ++i)
+        {
+          SFG_launchProjectile(
+            projectile,
+            SFG_player.camera.position,
+            SFG_player.camera.height,
+            RCL_angleToDirection(direction),
+            verticalSpeed,  
+            SFG_PROJECTILE_SPAWN_OFFSET
+            );
+
+          direction += angleAdd;
+        }
+      }
+      else
+      {
+        // player's melee attack
+
+        for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+        {
+          SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+
+          uint8_t state = SFG_MR_STATE(*m);
+
+          if ((state == SFG_MONSTER_STATE_INACTIVE) || 
+              (state == SFG_MONSTER_STATE_DEAD))
+            continue;
+
+          RCL_Unit pX, pY, pZ;
+          SFG_getMonsterWorldPosition(m,&pX,&pY,&pZ);
+
+          if (SFG_taxicabDistance(pX,pY,pZ,
+              SFG_player.camera.position.x,
+              SFG_player.camera.position.y,
+              SFG_player.camera.height) > SFG_MELEE_RANGE)
+            continue;
+   
+          RCL_Vector2D toMonster;
+
+          toMonster.x = pX - SFG_player.camera.position.x;
+          toMonster.y = pY - SFG_player.camera.position.y;
+
+          if (RCL_vectorsAngleCos(SFG_player.direction,toMonster) >=
+              (RCL_UNITS_PER_SQUARE - SFG_PLAYER_MELEE_ANGLE))
+          {
+            SFG_monsterChangeHealth(m,
+              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE));
+
+            SFG_createDust(pX,pY,pZ);
+
+            break;
+          }
+        }
+      }
+
+      SFG_player.weaponCooldownFrames =
+        RCL_max(
+          SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon),
+          SFG_MIN_WEAPON_COOLDOWN_FRAMES);
+
+      SFG_getPlayerWeaponInfo(&ammo,&projectileCount,&canShoot);
+
+      if (!canShoot)
+      {
+        // No more ammo, switch to the second strongest weapon.
+
+        SFG_playerRotateWeapon(1);
+
+        uint8_t previousWeapon = SFG_player.weapon;
+
+        SFG_playerRotateWeapon(0);
+
+        if (previousWeapon > SFG_player.weapon)
+          SFG_playerRotateWeapon(1);
+      }
+    } // endif: has enough ammo?
+  } // attack
+#endif // SFG_PREVIEW_MODE == 0
+
   SFG_player.squarePosition[0] =
     SFG_player.camera.position.x / RCL_UNITS_PER_SQUARE;
 
@@ -3563,8 +3566,6 @@ void SFG_gameStepPlaying()
     SFG_LOG("player is squeezed");
     SFG_player.health = 0;
   }
-
-  SFG_updateLevel();
 
   if (SFG_player.weapon != currentWeapon) // if weapon switched, start cooldown
     SFG_player.weaponCooldownFrames =
@@ -4344,12 +4345,12 @@ void SFG_drawWinOverlay()
     uint32_t time = (blinkDouble & 0x01) ?
       SFG_currentLevel.completionTime10sOfS : timeTotal;
 
-    x += SFG_drawNumber(time / 10,x,y,SFG_FONT_SIZE_SMALL,7) *
-      CHAR_SIZE + 1;
+    x += (SFG_drawNumber(time / 10,x,y,SFG_FONT_SIZE_SMALL,7) + 1) *
+      CHAR_SIZE;
 
     char timeRest[5] = ".X s";
 
-    timeRest[1] = '0' + (time % 10) / 100;
+    timeRest[1] = '0' + (time % 10);
     
     SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
 #if SFG_VERY_LOW_RESOLUTION
