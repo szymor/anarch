@@ -28,16 +28,22 @@
 #define SFG_LOG(str) puts(str);
 
 //  #define SFG_START_LEVEL 6
-  #define SFG_IMMORTAL 1
-  #define SFG_UNLOCK_DOOR 1
-  #define SFG_REVEAL_MAP 1
-  #define SFG_INFINITE_AMMO 1
+//  #define SFG_IMMORTAL 1
+//  #define SFG_UNLOCK_DOOR 1
+//  #define SFG_REVEAL_MAP 1
+//  #define SFG_INFINITE_AMMO 1
 
 //  #define SFG_SCREEN_RESOLUTION_X 80
 //  #define SFG_SCREEN_RESOLUTION_Y 64
   #define SFG_SIMPLE_MENU 1
 
-#define MUSIC_VOLUME 4
+/*
+  SDL is easier to play thanks to nice controls, so make the player take full
+  damage to make it a bit harder.
+*/
+#define SFG_PLAYER_DAMAGE_MULTIPLIER 1024
+
+#define MUSIC_VOLUME 5
 
 #ifdef __EMSCRIPTEN__
   #define SFG_FPS 30

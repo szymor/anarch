@@ -1620,8 +1620,6 @@ void SFG_init()
 
   SFG_game.antiSpam = 0;
 
-  SFG_enableMusic(1);
-
   SFG_LOG("computing average texture colors")
 
   for (uint8_t i = 0; i < SFG_WALL_TEXTURE_COUNT; ++i)
@@ -1691,12 +1689,15 @@ void SFG_init()
   if (SFG_game.saved != SFG_CANT_SAVE)
   {
     SFG_LOG("settings loaded");
+    SFG_game.settings = SFG_game.save[1]; 
   }
   else
   {
     SFG_LOG("saving/loading not possible");
     SFG_game.save[0] = SFG_NUMBER_OF_LEVELS | 0xf0; // revealed all levels
   }
+
+  SFG_enableMusic(SFG_game.settings & 0x02);
 
 #if SFG_START_LEVEL == 0
   SFG_setGameState(SFG_GAME_STATE_MENU);
@@ -2761,6 +2762,15 @@ void SFG_updateLevel()
       {
         monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
           SFG_MONSTER_STATE_DYING;
+
+        if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER)
+          SFG_createExplosion(
+            SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+            SFG_floorCollisionHeightAt(
+              SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+              SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0])) +
+            RCL_UNITS_PER_SQUARE / 2);
       }
       else
       {
@@ -3772,6 +3782,15 @@ void SFG_gameStep()
         RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS / 4,
         (t * (SFG_CAMERA_MAX_SHEAR_PIXELS / 4)) / SFG_LOSE_ANIMATION_DURATION);
 
+      if (t > SFG_LOSE_ANIMATION_DURATION && 
+        (SFG_keyIsDown(SFG_KEY_A) || SFG_keyIsDown(SFG_KEY_B)))
+      {
+        for (uint8_t i = 6; i < SFG_SAVE_SIZE; ++i)
+          SFG_game.save[i] = 0;
+
+        SFG_setAndInitLevel(SFG_currentLevel.levelNumber);
+      }
+
       break;
     }
 
@@ -3862,8 +3881,8 @@ void SFG_gameStep()
 void SFG_fillRectangle(
   uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color)
 {
-  if ((x + width >= SFG_GAME_RESOLUTION_X) ||
-      (y + height >= SFG_GAME_RESOLUTION_Y))
+  if ((x + width > SFG_GAME_RESOLUTION_X) ||
+      (y + height > SFG_GAME_RESOLUTION_Y))
     return;
 
   for (uint16_t j = y; j < y + height; ++j)
@@ -3873,8 +3892,8 @@ void SFG_fillRectangle(
 
 static inline void SFG_clearScreen(uint8_t color)
 {
-  SFG_fillRectangle(0,0,SFG_GAME_RESOLUTION_X - 1,
-    SFG_GAME_RESOLUTION_Y - 1,color);
+  SFG_fillRectangle(0,0,SFG_GAME_RESOLUTION_X,
+    SFG_GAME_RESOLUTION_Y,color);
 }
 
 /**
@@ -4326,7 +4345,7 @@ void SFG_drawWinOverlay()
       SFG_currentLevel.completionTime10sOfS : timeTotal;
 
     x += SFG_drawNumber(time / 10,x,y,SFG_FONT_SIZE_SMALL,7) *
-      CHAR_SIZE;
+      CHAR_SIZE + 1;
 
     char timeRest[5] = ".X s";
 
@@ -4685,7 +4704,7 @@ uint8_t SFG_mainLoopBody()
 
     if ((steps > 1) && (SFG_game.antiSpam == 0))
     {
-      SFG_LOG("Failed to reach target FPS! Consider setting a lower value.")
+      SFG_LOG("failed to reach target FPS! consider setting a lower value")
       SFG_game.antiSpam = 30;
     }
 
