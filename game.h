@@ -2174,6 +2174,12 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
               SFG_PROJECTILE_BULLET;
             break;
 
+          case SFG_MONSTER_ATTACK_FIREBALL_PLASMA:
+            projectile = (SFG_random() < 128) ?
+              SFG_PROJECTILE_FIREBALL : 
+              SFG_PROJECTILE_PLASMA;
+            break;
+
           default:
             projectile = SFG_PROJECTILE_NONE; 
             break;
@@ -4341,7 +4347,7 @@ void SFG_drawWinOverlay()
     uint32_t time = blink ? timeTotal : SFG_currentLevel.completionTime10sOfS;
 
     x += SFG_drawNumber(time / 10,x,y,SFG_FONT_SIZE_SMALL,7) *
-      CHAR_SIZE;
+      CHAR_SIZE + SFG_FONT_SIZE_SMALL;
 
     char timeRest[5] = ".X s";
 
