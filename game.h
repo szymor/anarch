@@ -359,15 +359,15 @@ struct
                            The save contains game settings, game progress and a
                            saved position. The format is as follows:
 
-                           4b   highest level that has been reached
-                           4b   level number of the saved position (15: no save)
-                           8b   game settings (SFG_game.settings)
-                           8b   health at saved position
-                           8b   bullet ammo at saved position
-                           8b   rocket ammo at saved position
-                           8b   plasma ammo at saved position
-                           32b  little endian total play time, in 10ths of sec
-                           16b  little endian total enemies killed from start */
+                         0  4b  highest level that has been reached
+                         0  4b  level number of the saved position (15: no save)
+                         1  8b  game settings (SFG_game.settings)
+                         2  8b  health at saved position
+                         3  8b  bullet ammo at saved position
+                         4  8b  rocket ammo at saved position
+                         5  8b  plasma ammo at saved position
+                         6  32b little endian total play time, in 10ths of sec
+                         10 16b little endian total enemies killed from start */
   uint8_t continues;  ///< Whether the game continues or was exited.
 } SFG_game;
 
@@ -4173,8 +4173,8 @@ void SFG_drawMenu()
     if (item == SFG_MENU_ITEM_NONE)
       break;
 
-#if SFG_SIMPLE_MENU
-    if (i != SFG_game.selectedMenuItem)
+#if SFG_VERY_LOW_RESOLUTION
+    if (i != SFG_game.selectedMenuItem) // only display selected item     
     {
       i++;
       continue;
@@ -4182,7 +4182,6 @@ void SFG_drawMenu()
 #endif
 
     const char *text = SFG_menuItemTexts[item];
-
     uint8_t textLen = SFG_textLen(text);
 
     uint16_t drawX = (SFG_GAME_RESOLUTION_X -
@@ -4281,37 +4280,63 @@ void SFG_drawWinOverlay()
   uint32_t completionTime = SFG_MS_PER_FRAME *
     (SFG_currentLevel.frameEnd - SFG_currentLevel.frameStart); 
 
+  uint32_t completionTimeTotal = 123; // TODO
+
+  uint8_t blinkDouble = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 4;
+
+  // don't show totals in level 1:
+  blinkDouble &= (SFG_currentLevel.levelNumber != 0);
+
   if (t >= (SFG_WIN_ANIMATION_DURATION / 2))
   {
     y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
-
     x = SFG_GAME_RESOLUTION_X / 4;
 
     #define CHAR_SIZE (SFG_FONT_SIZE_SMALL * SFG_FONT_CHARACTER_SIZE)
 
-    x += SFG_drawNumber(completionTime / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
+#if SFG_VERY_LOW_RESOLUTION
+    if (blinkDouble & 0x02)
+    {
+#endif
+    uint32_t time = (blinkDouble & 0x01) ? completionTime : completionTimeTotal;
+
+    x += SFG_drawNumber(time / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
       CHAR_SIZE;
 
     char timeRest[5] = ".X s";
 
-    timeRest[1] = '0' + (completionTime % 1000) / 100;
+    timeRest[1] = '0' + (time % 1000) / 100;
     
     SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
-
+#if SFG_VERY_LOW_RESOLUTION
+    }
+    else
+    {
+#else
     x = SFG_GAME_RESOLUTION_X / 2;
-   
-    x += SFG_drawNumber(SFG_currentLevel.monstersDead,x,y,SFG_FONT_SIZE_SMALL,7) *
-      CHAR_SIZE;
+#endif
 
-    SFG_drawText("/",x,y,SFG_FONT_SIZE_SMALL,7,1,0);
-    
-    x += CHAR_SIZE;
+    if (blinkDouble & 0x01)
+    {
+      x += SFG_drawNumber(SFG_currentLevel.monstersDead,x,y,
+        SFG_FONT_SIZE_SMALL,7) * CHAR_SIZE;
 
-    x += (SFG_drawNumber(SFG_currentLevel.monsterRecordCount,x,y,
-      SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
+      SFG_drawText("/",x,y,SFG_FONT_SIZE_SMALL,7,1,0);
+
+      x += CHAR_SIZE;
+
+      x += (SFG_drawNumber(SFG_currentLevel.monsterRecordCount,x,y,
+        SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
+    }
+    else
+      x += (SFG_drawNumber(234,x,y,SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
     
     SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
     
+#if SFG_VERY_LOW_RESOLUTION
+    }
+#endif
+
     if ((t >= (SFG_WIN_ANIMATION_DURATION - 1)) && 
       (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)))
     {

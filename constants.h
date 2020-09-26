@@ -210,6 +210,13 @@
 */
 #define SFG_BASE_SPRITE_SIZE RCL_UNITS_PER_SQUARE
 
+/**
+  Says whether the game is running in very low resolution, which triggers some
+  simple rendering so that things fit the screen.
+*/
+#define SFG_VERY_LOW_RESOLUTION\
+  ((SFG_GAME_RESOLUTION_X < 90) || (SFG_GAME_RESOLUTION_Y < 70))
+
 // ----------------------------
 // derived constants
 
