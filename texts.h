@@ -32,6 +32,12 @@ static const char *SFG_menuItemTexts[] =
 #define SFG_TEXT_KILLS "kills"
 #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
 #define SFG_TEXT_SAVED "saved"
+#define SFG_VERSION_STRING "0.9d"
+/**<
+  Version numbering is following: major.minor for stable releases,
+  in-development unstable versions have the version of the latest stable +
+  "d" postfix, e.g. 1.0d. This means the "d" versions can actually differ even
+  if they're marked the same. */
 
 static const char *SFG_introText =
   "Near future, capitalist hell, Macrochip corp has enslaved man via "
