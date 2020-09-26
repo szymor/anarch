@@ -3466,7 +3466,7 @@ void SFG_gameStepPlaying()
         /* Vertical speed will be either determined by autoaim (if shearing is
            off) or the camera shear value. */
         RCL_Unit verticalSpeed = (SFG_game.settings & 0x04) ?
-          (SFG_player.camera.shear * projectileSpeed) / 
+          (SFG_player.camera.shear * projectileSpeed * 2) / // only approximate
             SFG_CAMERA_MAX_SHEAR_PIXELS
           :
           (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
