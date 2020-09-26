@@ -2,22 +2,16 @@ general:
 
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
-- On Win$hit builds display an anti-windshit text, by macro.
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - compile on BSD and WinShit
 - make SFML frontend
-- disable transparency for walls for performance (setting)?
 - add time slowdown constant
-- some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
-  back towards the player
 - compile with different compilers (gcc, clang, musl, ...) and settings, make
   a build script that creates multiple binaries (with different combinations of
   compilers and settings)
 - run on raspbery pi
-- add robot deactivator item? (encourages "stealth" gameplay)
-- optional graphics enhance: vertical wall shading ("ambient occlusions")?
 
 level ideas:
 
@@ -133,12 +127,10 @@ level ideas:
 
 bugs:
 
-- Player jumps higher on lower FPS, is able to jump on 4 squares. Also check the
-  distance jump.
-
 done:
 
 - add headbob
+- On Win$hit builds display an anti-windshit text, by macro.
 - save/load (optional):
   When a level is finished, the state at the beginning of the next one (health,
   ammo, time, ...) is automatically saved and can be restored via load option in
@@ -190,6 +182,9 @@ done:
 - Architecture change: make platform files compilable and move main.c to game.h
   (so that pokitto is .cpp, GB is .ino etc.).
 - Bytebeat is bugged on Pokitto, outputs different values than on PC. Fix this.
+- Player jumps higher on lower FPS, is able to jump on 4 squares. Also check the
+  distance jump.
+- disable transparency for walls for performance (setting)?
 
 scratched:
 - option for disabling wall transparency, for performance?
@@ -209,3 +204,7 @@ scratched:
 - add jump pads?
 - add "pletivo" transparent wall texture?
 - make monsters die when squeezed?
+- add robot deactivator item? (encourages "stealth" gameplay)
+- optional graphics enhance: vertical wall shading ("ambient occlusions")?
+- some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
+  back towards the player
