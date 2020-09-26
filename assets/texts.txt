@@ -74,6 +74,40 @@ info see the website at <WEBSITE> or the repository at <REPOURL>.
 
 ======== short manual ========
 
+Anarch is a unique suckless FPS game. Collect weapons and items and destroy
+robot enemies in your way in order to get to the level finish. Some door are
+locked and require access cards. Good luck!
+
+created by Miloslav "drummyfish" Ciz, released under CC0 1.0 (public domain)
+
+CLI flags:
+
+-h   print this help and exit
+-w   force window
+-f   force fullscreen
+
+controls:
+
+- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement
+- mouse: rotation, [LMB] shoot, [RMB] toggle free look, wheel weapon change
+- [SPACE]: jump
+- [G] [RETURN] [SHIFT]: game A button (confirm, strafe)
+- [H] [CTRL]: game B button (cancel, shoot)
+- [O] [P] [X] [Y] [Z]: change weapons
+- [TAB]: map
+- [ESCAPE]: menu
+
+general controls:
+
+- arrows: movement
+- A: confirm
+  A + arrows: strafe, look up/down
+- B: cancel, shoot
+- C:
+  C + UP: jump
+  C + DOWN: menu
+  C + LEFT/RIGHT: change weapons
+  C + A/B: change weapons
 
 ========== pokitto ===========
 

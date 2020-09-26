@@ -174,11 +174,16 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_A:
-      return sdlKeyboardState[SDL_SCANCODE_G] || sdlKeyboardState[SDL_SCANCODE_RETURN];
+      return sdlKeyboardState[SDL_SCANCODE_G] ||
+             sdlKeyboardState[SDL_SCANCODE_RETURN] ||
+             sdlKeyboardState[SDL_SCANCODE_LSHIFT];
       break;
 
     case SFG_KEY_B:
-      return sdlKeyboardState[SDL_SCANCODE_H] || (sdlMouseButtonState & SDL_BUTTON_LMASK);
+      return sdlKeyboardState[SDL_SCANCODE_H] || 
+             (sdlMouseButtonState & SDL_BUTTON_LMASK) ||
+             sdlKeyboardState[SDL_SCANCODE_LCTRL] ||
+             sdlKeyboardState[SDL_SCANCODE_RCTRL];
       break;
 
     case SFG_KEY_C:
@@ -208,6 +213,9 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_NEXT_WEAPON:
+      if (sdlKeyboardState[SDL_SCANCODE_P] || sdlKeyboardState[SDL_SCANCODE_X])
+        return 1;
+
       if (sdlMouseWheelState > 0)
       {
         sdlMouseWheelState--;
@@ -218,6 +226,10 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
+      if (sdlKeyboardState[SDL_SCANCODE_O] || sdlKeyboardState[SDL_SCANCODE_Y]
+          || sdlKeyboardState[SDL_SCANCODE_Z])
+        return 1;
+
       if (sdlMouseWheelState < 0)
       {
         sdlMouseWheelState++;
@@ -343,14 +355,24 @@ int main(int argc, char *argv[])
 
   if (argHelp)
   {
-    puts("TODOGAME, a suckless first person shooter game (SDL2 frontend)\n");
-    puts("version TODO, by Miloslav Ciz, released under CC0 1.0 + waiver of all IP");
-    puts("possible arguments:\n");
-    puts("-h       print this help and end");
-    puts("-w       force run in window");
-    puts("-f       force run fullscreen\n");
-    puts("controls:");
-    puts("TODO");
+    puts("Anarch, version " SFG_VERSION_STRING "\n");
+    puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
+    puts("robot enemies in your way in order to get to the level finish. Some door are");
+    puts("locked and require access cards. Good luck!\n");
+    puts("created by Miloslav \"drummyfish\" Ciz, released under CC0 1.0 (public domain)\n");
+    puts("CLI flags:\n");
+    puts("-h   print this help and exit");
+    puts("-w   force window");
+    puts("-f   force fullscreen\n");
+    puts("controls:\n");
+    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement");
+    puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look, wheel weapon change");
+    puts("- [SPACE]: jump");
+    puts("- [G] [RETURN] [SHIFT]: game A button (confirm, strafe)");
+    puts("- [H] [CTRL]: game B button (cancel, shoot)");
+    puts("- [O] [P] [X] [Y] [Z]: change weapons");
+    puts("- [TAB]: map");
+    puts("- [ESCAPE]: menu");
 
     return 0;
   }
