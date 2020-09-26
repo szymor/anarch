@@ -4,7 +4,7 @@
 #!/bin/bash
 
 if [ $# -ne 1 ]; then
-  echo "need a parameter (sdl, pokitto, gb, ...)"
+  echo "need a parameter (sdl, pokitto, gb, emscripten, ...)"
   exit 0
 fi
 
@@ -13,6 +13,7 @@ clear; clear;
 if [ $1 == "sdl" ]; then
 
   # PC SDL build, requires:
+  # - g++
   # - SDL2 (dev) package
 
   g++ -x c -g -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra \
@@ -30,6 +31,12 @@ elif [ $1 == "pokitto" ]; then
 
   make
   ./PokittoEmu BUILD/firmware.bin 
+elif [ $1 == "emscripten" ]; then
+
+  # emscripten (browser Javascript) build, requires:
+  # - emscripten
+
+  emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o game.html
 else
   echo "unknown parameter: $1"
 fi
