@@ -308,7 +308,7 @@ typedef struct
 struct
 {
   uint8_t state;
-  uint16_t stateChangeTime;      ///< Time in ms at which the state was changed.
+  uint32_t stateChangeTime;      ///< Time in ms at which the state was changed.
 
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
@@ -349,7 +349,6 @@ struct
                                    \____ freelook (shearing not sliding back) */
 
   uint8_t blink;      ///< Says whether blinkg is currently on or off.
-
   uint8_t saved;      /**< Helper variable to know if game was saved. Can be
                            0 (not saved), 1 (just saved) or 255 (can't save).*/
   uint8_t save[SFG_SAVE_SIZE];  /**< Stores the game save state that's kept in
@@ -370,6 +369,9 @@ struct
                          10 16b little endian total enemies killed from start */
   uint8_t continues;  ///< Whether the game continues or was exited.
 } SFG_game;
+
+#define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+  SFG_game.save[8] * 65536 + SFG_game.save[9] * 4294967296)
 
 /**
   Stores player state.
@@ -412,7 +414,7 @@ struct
 
   uint32_t timeStart;
   uint32_t frameStart;
-  uint32_t frameEnd;
+  uint32_t completionTime10sOfS; ///< Completion time in 10th of second.
 
   uint8_t floorColor;
   uint8_t ceilingColor;
@@ -631,12 +633,40 @@ uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 */
 void SFG_levelEnds()
 {
-  SFG_currentLevel.frameEnd = SFG_game.frame;
+  SFG_currentLevel.completionTime10sOfS = (SFG_MS_PER_FRAME *
+    (SFG_game.frame - SFG_currentLevel.frameStart)) / 100; 
+
   SFG_currentLevel.monstersDead = 0;
   
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     if (SFG_currentLevel.monsterRecords[i].health == 0)
       SFG_currentLevel.monstersDead++;
+
+  uint32_t totalTime = SFG_SAVE_TOTAL_TIME;
+
+  if ((SFG_currentLevel.levelNumber == 0) || (totalTime != 0))
+  {
+    SFG_LOG("Updating save totals.");
+  
+    totalTime += SFG_currentLevel.completionTime10sOfS;
+
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+      SFG_game.save[6 + i] = totalTime % 256;
+      totalTime /= 256;
+    }
+
+    SFG_game.save[10] += SFG_currentLevel.monstersDead % 256;
+    SFG_game.save[11] += SFG_currentLevel.monstersDead / 256;
+  }
+
+  SFG_game.save[0] = 
+    (SFG_game.save[0] & 0x0f) | ((SFG_currentLevel.levelNumber + 1) << 4);
+
+  SFG_game.save[2] = SFG_player.health;
+  SFG_game.save[3] = SFG_player.ammo[0];
+  SFG_game.save[4] = SFG_player.ammo[1];
+  SFG_game.save[5] = SFG_player.ammo[2];
 }
 
 static inline uint8_t SFG_RCLUnitToZBuffer(RCL_Unit x)
@@ -1427,13 +1457,13 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
     SFG_game.saved = 0;
 
   SFG_currentLevel.levelNumber = levelNumber;
-  SFG_currentLevel.frameEnd = 0;
   SFG_currentLevel.monstersDead = 0;
   SFG_currentLevel.backgroundImage = level->backgroundImage;
   SFG_currentLevel.levelPointer = level;
   SFG_currentLevel.bossCount = 0;
   SFG_currentLevel.floorColor = level->floorColor;
   SFG_currentLevel.ceilingColor = level->ceilingColor;
+  SFG_currentLevel.completionTime10sOfS = 0;
 
   for (uint8_t i = 0; i < 7; ++i)
     SFG_currentLevel.textures[i] =
@@ -3593,6 +3623,9 @@ void SFG_gameStepMenu()
     switch (item)
     {
       case SFG_MENU_ITEM_PLAY:
+        for (uint8_t i = 6; i < SFG_SAVE_SIZE; ++i) // reset totals in save
+          SFG_game.save[i] = 0;
+
         if (SFG_game.selectedLevel == 0)
           SFG_setGameState(SFG_GAME_STATE_INTRO);
         else
@@ -3601,15 +3634,27 @@ void SFG_gameStepMenu()
         break;
 
       case SFG_MENU_ITEM_LOAD:
+      {
+        SFG_gameLoad();
+
+        uint8_t saveBackup[SFG_SAVE_SIZE];
+
+        for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+          saveBackup[i] = SFG_game.save[i];
+
         SFG_setAndInitLevel(SFG_game.save[0] >> 4);
 
+        for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+          SFG_game.save[i] = saveBackup[i];
+
         SFG_player.health = SFG_game.save[2];
-        SFG_game.save[3] = SFG_player.ammo[0];
-        SFG_game.save[4] = SFG_player.ammo[1];
-        SFG_game.save[5] = SFG_player.ammo[2];
+        SFG_player.ammo[0] = SFG_game.save[3];
+        SFG_player.ammo[1] = SFG_game.save[4];
+        SFG_player.ammo[2] = SFG_game.save[5];
 
         SFG_playerRotateWeapon(0); // this chooses weapon with ammo available
         break;
+      }
 
       case SFG_MENU_ITEM_CONTINUE:
         SFG_setGameState(SFG_GAME_STATE_PLAYING);
@@ -3748,36 +3793,18 @@ void SFG_gameStep()
         else if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
             SFG_keyIsDown(SFG_KEY_LEFT))
         {
-          uint8_t tmp[4];
-
-          tmp[0] = SFG_player.health;
-          tmp[1] = SFG_player.ammo[0];
-          tmp[2] = SFG_player.ammo[1];
-          tmp[3] = SFG_player.ammo[2];
-
           SFG_setAndInitLevel(SFG_currentLevel.levelNumber + 1);
+          
+          SFG_player.health = SFG_game.save[2];
+          SFG_player.ammo[0] = SFG_game.save[3];
+          SFG_player.ammo[1] = SFG_game.save[4];
+          SFG_player.ammo[2] = SFG_game.save[5];
 
-          SFG_player.health = tmp[0];
-          SFG_player.ammo[0] = tmp[1];
-          SFG_player.ammo[1] = tmp[2];
-          SFG_player.ammo[2] = tmp[3];
-
-          if (SFG_keyIsDown(SFG_KEY_RIGHT))
+          if (SFG_keyIsDown(SFG_KEY_RIGHT) && SFG_game.saved != SFG_CANT_SAVE)
           {
             // save the current position
-
-            SFG_game.save[0] = 
-              (SFG_game.save[0] & 0x0f) | (SFG_currentLevel.levelNumber << 4);
-
-            SFG_game.save[2] = SFG_player.health;
-            SFG_game.save[3] = SFG_player.ammo[0];
-            SFG_game.save[4] = SFG_player.ammo[1];
-            SFG_game.save[5] = SFG_player.ammo[2];
-
             SFG_gameSave();
-
-            if (SFG_game.saved != SFG_CANT_SAVE)
-              SFG_game.saved = 1;
+            SFG_game.saved = 1;
           }
         }
       }
@@ -4277,15 +4304,12 @@ void SFG_drawWinOverlay()
 
   SFG_drawText(textLine,x,y,SFG_FONT_SIZE_BIG,7 + SFG_game.blink * 95,255,0);
 
-  uint32_t completionTime = SFG_MS_PER_FRAME *
-    (SFG_currentLevel.frameEnd - SFG_currentLevel.frameStart); 
-
-  uint32_t completionTimeTotal = 123; // TODO
+  uint32_t timeTotal = SFG_SAVE_TOTAL_TIME;
 
   uint8_t blinkDouble = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 4;
 
   // don't show totals in level 1:
-  blinkDouble &= (SFG_currentLevel.levelNumber != 0);
+  blinkDouble &= (SFG_currentLevel.levelNumber != 0) || (timeTotal == 0);
 
   if (t >= (SFG_WIN_ANIMATION_DURATION / 2))
   {
@@ -4298,14 +4322,15 @@ void SFG_drawWinOverlay()
     if (blinkDouble & 0x02)
     {
 #endif
-    uint32_t time = (blinkDouble & 0x01) ? completionTime : completionTimeTotal;
+    uint32_t time = (blinkDouble & 0x01) ?
+      SFG_currentLevel.completionTime10sOfS : timeTotal;
 
-    x += SFG_drawNumber(time / 1000,x,y,SFG_FONT_SIZE_SMALL,7) *
+    x += SFG_drawNumber(time / 10,x,y,SFG_FONT_SIZE_SMALL,7) *
       CHAR_SIZE;
 
     char timeRest[5] = ".X s";
 
-    timeRest[1] = '0' + (time % 1000) / 100;
+    timeRest[1] = '0' + (time % 10) / 100;
     
     SFG_drawText(timeRest,x,y,SFG_FONT_SIZE_SMALL,7,4,0);
 #if SFG_VERY_LOW_RESOLUTION
@@ -4329,7 +4354,8 @@ void SFG_drawWinOverlay()
         SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
     }
     else
-      x += (SFG_drawNumber(234,x,y,SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
+      x += (SFG_drawNumber(SFG_game.save[10] + SFG_game.save[11] * 256,x,y,
+        SFG_FONT_SIZE_SMALL,7) + 1) * CHAR_SIZE;
     
     SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
     
@@ -4678,5 +4704,7 @@ uint8_t SFG_mainLoopBody()
 
   return SFG_game.continues;
 }
+
+#undef SFG_SAVE_TOTAL_TIME
 
 #endif // guard
