@@ -28,10 +28,10 @@
 #define SFG_LOG(str) puts(str);
 
 //  #define SFG_START_LEVEL 6
-//  #define SFG_IMMORTAL 1
-//  #define SFG_UNLOCK_DOOR 1
+  #define SFG_IMMORTAL 1
+  #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
-  #define SFG_INFINITE_AMMO 1
+//  #define SFG_INFINITE_AMMO 1
 
 //  #define SFG_SCREEN_RESOLUTION_X 80
 //  #define SFG_SCREEN_RESOLUTION_Y 64
@@ -417,7 +417,11 @@ int main(int argc, char *argv[])
   audioSpec.freq = 8000;
   audioSpec.format = AUDIO_U16;
   audioSpec.channels = 1;
+#ifdef __EMSCRIPTEN__
   audioSpec.samples = 1024;
+#else
+  audioSpec.samples = 256;
+#endif
 
   if (SDL_OpenAudio(&audioSpec,NULL) < 0)
     puts("SDL: could not initialize audio");

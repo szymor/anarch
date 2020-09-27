@@ -969,7 +969,7 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
   RCL_Unit screenX = pixel->position.x * SFG_RAYCASTING_SUBSAMPLE;
 
-  for (uint8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
+  for (int_fast8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
   {
     SFG_setGamePixel(screenX,pixel->position.y,color);
     screenX++;
@@ -3968,8 +3968,8 @@ void SFG_drawMap()
         }
       }
 
-      for (uint16_t k = 0; k < SFG_MAP_PIXEL_SIZE; ++k)
-        for (uint16_t l = 0; l < SFG_MAP_PIXEL_SIZE; ++l)
+      for (int_fast16_t k = 0; k < SFG_MAP_PIXEL_SIZE; ++k)
+        for (int_fast16_t l = 0; l < SFG_MAP_PIXEL_SIZE; ++l)
           SFG_setGamePixel(x + l, y + k,color);
 
       x += SFG_MAP_PIXEL_SIZE;
@@ -4084,11 +4084,11 @@ uint8_t SFG_drawNumber(
 */
 void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
 {
-  for (uint16_t j = 0; j < width; ++j)
+  for (int_fast16_t j = 0; j < width; ++j)
   {
     uint16_t j2 = SFG_GAME_RESOLUTION_Y - 1 - j;
 
-    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+    for (int_fast16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
     {
       if ((i & 0x01) == (j & 0x01))
       {
@@ -4098,11 +4098,11 @@ void SFG_drawIndicationBorder(uint16_t width, uint8_t color)
     }
   }
 
-  for (uint16_t i = 0; i < width; ++i)
+  for (int_fast16_t i = 0; i < width; ++i)
   {
     uint16_t i2 = SFG_GAME_RESOLUTION_X - 1 - i;
 
-    for (uint16_t j = width; j < SFG_GAME_RESOLUTION_Y - width; ++j)
+    for (int_fast16_t j = width; j < SFG_GAME_RESOLUTION_Y - width; ++j)
     {
       if ((i & 0x01) == (j & 0x01))
       {
@@ -4421,7 +4421,7 @@ void SFG_draw()
   } 
   else
   { 
-    for (uint16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
+    for (int_fast16_t i = 0; i < SFG_Z_BUFFER_SIZE; ++i)
       SFG_game.zBuffer[i] = 255;
 
     int16_t weaponBobOffset = 0;
@@ -4464,7 +4464,7 @@ void SFG_draw()
     // draw sprites:
 
     // monster sprites:
-    for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+    for (int_fast16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
       SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
 
@@ -4510,7 +4510,7 @@ void SFG_draw()
     }
 
     // item sprites:
-    for (uint16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+    for (int_fast16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
       if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
       {
         RCL_Vector2D worldPosition;
