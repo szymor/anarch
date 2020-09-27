@@ -1,6 +1,7 @@
 general:
 
 - Refactor.
+- Port to ncurses?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - automatic tests: a frontend that will play the game, check the state, rendered
