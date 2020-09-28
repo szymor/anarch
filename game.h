@@ -4313,8 +4313,6 @@ void SFG_drawWinOverlay()
 
   RCL_Unit l = (t2 * STRIP_HEIGHT * 4) / SFG_WIN_ANIMATION_DURATION;
 
-  uint8_t n = (t * 5) / SFG_WIN_ANIMATION_DURATION;
-
   for (uint16_t y = STRIP_START; y < STRIP_START + l; ++y)
     for (uint16_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
       SFG_setGamePixel(x,y, 
