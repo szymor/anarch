@@ -4,19 +4,22 @@ These are some ideas about what you can do with this game:
 - Stream it, review it.
 - Speedrun it.
 - TAS it (create a mod that helps with this).
+- Hack it, break it.
 - Package it, reupload it, share it.
 - Port it to your favorite platform.
 - Port to VR :)
 - Add OpenGL (or other accelerated) rendering, with true 3D, true color,
   antialiasing, texture filtering etc.
 - Improve SW rendering on PC, e.g. use full z-buffer, particle effects etc.
-- Add procedurally generated levels.
+- Add procedurally generated levels, maybe also procedural textures etc.
+  By taking this to the extreme you could fit this game into just a few kb.
 - Add demo recording support.
 - Write an AI that plays the game.
 - Use it to promote anarchism, free SW, suckless SW, open consoles etc.
 - Use it in demoscene.
 - Use the assets in another project.
-- Make the game run ENTIRELY in a GPU shader.
+- Make the game run ENTIRELY in a GPU shader (will probably need heavier
+  modifications, e.g. removing recursion).
 - Embed it into some other game as an easter egg.
 - Use it in your art, e.g. if you're making a movie in which you need a public
   domain game footage you can just use, this is for you.
@@ -28,11 +31,15 @@ These are some ideas about what you can do with this game:
   Blender etc.
 - Add multiplayer, coop or arena shooter.
 - Add mid-level saving.
+- Compile for bare metal, boot it from USB and play.
 - Create an automatic random public domain game screenshot generator from this.
 - Create advanced level editor.
 - Create your own levels or a whole campaign.
 - Create your own game based on this, e.g. something like Superhot.
 - Create fun mods, e.g. asset replacements.
+- Create another game (or different kind of work) from the same universe
+  (consider keeping it public domain so that others can continue in the same
+  spirit), or make fan art of the game (box covers, soundtrack remixes etc.).
 - Use it as a benchmark/test for computers.
 - Take the assets and use them as an inspiration for art you're creating, e.g.
   create 3D models of the game monsters or weapons.
@@ -42,8 +49,12 @@ These are some ideas about what you can do with this game:
 - Use it to make educational visualization, e.g. how a single frame is rendered,
   show casted rays on top of the level map, visualize memory content, visualize
   repository timelapse etc.
+- Write an educational mini-book about the game's internals ala the black books.
 - Use it in education, e.g. as a part of a project in a programming class.
-- Remove ray casting and make this a top-down shooter.
+- Use it as a general do-whatever-you-want source code, e.g. to test code
+  compilers, analysis, transpilation, formatting tools, machine learning etc.
+- Remove ray casting and make this a top-down shooter, or test other rendering
+  techniques (raytracing, pathtracing, splatting, isometric 2D, ...).
 - Create an even more minimal "microAnarch" version, strip down things like
   camera shearing, mouse control, menu, map, reduce the palette to e.g. 16 color
   or even grayscale etc.
