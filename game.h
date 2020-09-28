@@ -1497,7 +1497,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 
         d->coords[0] = i;
         d->coords[1] = j;
-        d->state = SFG_DOOR_DEFAULT_STATE;
+        d->state = 0x00;
 
         SFG_currentLevel.doorRecordCount++;
       }
