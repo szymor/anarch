@@ -72,6 +72,17 @@ domain (CC0), allowing absolutely any use. It was not made for profit or just
 entertainment, it is an engineering art and a philosofical manifesto. For more
 info see the website at <WEBSITE> or the repository at <REPOURL>.
 
+Game-wise Anarch offers:
+
+- oldschool "pseudo 3D" raycasting rendering in 256 colors
+- 10 levels, both interior and exterior, 16 wall textures
+- varying floor and ceiling heights, ability to jump
+- 6 weapons using 3 types of ammo
+- 7 types of enemies
+- optional primitive save/load system
+- optional mouse support
+- hidden secrets
+
 ======== short manual ========
 
 Anarch is a unique suckless FPS game. Collect weapons and items and destroy
@@ -263,17 +274,29 @@ procedurally generated (utilizing so called bytebeat).
 
 Hello,
 
-I am releasing version 1.0 of my suckless game Anarch that's I've been working
+I am releasing version 1.0 of my suckless game Anarch that I've been working
 on on evenings for a few years now.
 
-It's probably a little different from what you expect from a typical game, it
-will seem backwards and dumb at first, but it's just trying to do things
-differently. It's not just a game but also a manifesto of some ideas I hold.
+It's probably a little different from what you expect from a typical modern
+game, it looks like from early 90s and will seem backwards and dumb at first,
+but it's just trying to do things differently. It's not just a game but also a
+manifesto of some ideas I hold.
 
 It is extremely small, completely public domain, no-dependency, no-file,
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
 everywhere, made for the benefit of all living beings. For more see the page
 at libregamewiki: <LIBREGAMEWIKILINK>.
+
+Game-wise Anarch offers:
+
+- oldschool "pseudo 3D" raycasting rendering in 256 colors
+- 10 levels, both interior and exterior, 16 wall textures
+- varying floor and ceiling heights, ability to jump
+- 6 weapons using 3 types of ammo
+- 7 types of enemies
+- optional primitive save/load system
+- optional mouse support
+- hidden secrets
 
 website: <WEBSITE>
 
