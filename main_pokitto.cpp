@@ -12,9 +12,13 @@
   whatsoever.
 */
 
-
-
 //  #define SFG_START_LEVEL 8
+
+     #include <stdio.h>
+     #define SFG_LOG(s) puts(s);
+
+//     #define SFG_UNLOCK_DOOR 1
+//     #define SFG_INFINITE_AMMO 1
 
 #define SFG_FPS 25
 #define SFG_CAN_EXIT 0
@@ -23,6 +27,7 @@
 #define SFG_SCREEN_RESOLUTION_Y 88
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_DITHERED_SHADOW 0
+#define SFG_DIMINISH_SPRITES 0
 #define SFG_FOG_DIMINISH_STEP 2048
 #define SFG_RAYCASTING_MAX_STEPS 20  
 #define SFG_RAYCASTING_MAX_HITS 5
@@ -162,8 +167,8 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    audioBuff[pos] = mixSamples(audioBuff[pos],SFG_GET_SFX_SAMPLE(soundIndex,i)
-      >> volumeShift);
+    audioBuff[pos] = mixSamples(audioBuff[pos],baseLevel +
+      (SFG_GET_SFX_SAMPLE(soundIndex,i) >> volumeShift));
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }

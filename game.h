@@ -3909,7 +3909,7 @@ static inline void SFG_clearScreen(uint8_t color)
 void SFG_drawMap()
 {
   SFG_clearScreen(0);
-    
+   
   uint16_t maxJ =
     (SFG_MAP_PIXEL_SIZE * SFG_MAP_SIZE) < SFG_GAME_RESOLUTION_Y ?
     (SFG_MAP_SIZE) : (SFG_GAME_RESOLUTION_Y / SFG_MAP_PIXEL_SIZE);
@@ -4215,7 +4215,11 @@ void SFG_drawMenu()
     SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,
     SFG_FONT_SIZE_MEDIUM);
 
+#if SFG_GAME_RESOLUTION_Y > 50
   y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
+#else
+  y = 2;
+#endif
 
   uint8_t i = 0;
 
@@ -4226,8 +4230,10 @@ void SFG_drawMenu()
     if (item == SFG_MENU_ITEM_NONE)
       break;
 
-#if SFG_VERY_LOW_RESOLUTION
-    if (i != SFG_game.selectedMenuItem) // only display selected item     
+# if SFG_GAME_RESOLUTION_Y < 70
+    // with low resolution only display the selected item
+
+    if (i != SFG_game.selectedMenuItem)
     {
       i++;
       continue;
