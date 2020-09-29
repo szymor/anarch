@@ -21,17 +21,16 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define SFG_SCREEN_RESOLUTION_X 95
-#define SFG_SCREEN_RESOLUTION_Y 43
+//#define SFG_SCREEN_RESOLUTION_X 127
+//#define SFG_SCREEN_RESOLUTION_Y 42
+#define SFG_SCREEN_RESOLUTION_X 127
+#define SFG_SCREEN_RESOLUTION_Y 42
 #define SFG_DITHERED_SHADOW 1
 #define SFG_FPS 20
 
 #include "game.h"
 
-#define NEWLINES 10
-
-#define SCREENSIZE \
-  (NEWLINES + (SFG_SCREEN_RESOLUTION_X + 1) * SFG_SCREEN_RESOLUTION_Y)
+#define SCREENSIZE ((SFG_SCREEN_RESOLUTION_X + 1) * SFG_SCREEN_RESOLUTION_Y + 1)
 
 char screen[SCREENSIZE];
 
@@ -79,13 +78,12 @@ uint32_t getTime()
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
-  screen[NEWLINES + y * (SFG_SCREEN_RESOLUTION_X + 1) + x] = 
+  screen[y * (SFG_SCREEN_RESOLUTION_X + 1) + x] = 
     shades[(colorIndex > 7) * 8 + colorIndex % 8];
 }
 
 uint32_t SFG_getTimeMs()
 {
-  clock_t timeNow = clock();
   return getTime() - timeStart;
 }
 
@@ -119,6 +117,7 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_B:      return keyStates[6]; break;
     case SFG_KEY_C:      return keyStates[7]; break;
     case SFG_KEY_MAP:    return keyStates[8]; break;
+    case SFG_KEY_JUMP:   return keyStates[4]; break;
     default:             return 0; break;
   }
 }
@@ -130,8 +129,6 @@ void SFG_enableMusic(uint8_t enable)
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
 }
-
-int nextFlush = 0;
 
 int main()
 {
@@ -145,14 +142,13 @@ int main()
 
   SFG_init();
 
+  screen[SCREENSIZE - 1] = 0; // string terminator
+
   for (uint16_t i = 0; i < TOTAL_KEYS; ++i)
     keyStates[i] = 0;
 
-  for (uint16_t i = 0; i < NEWLINES; ++i)
-    screen[i] = '\n';
-
   for (uint16_t i = 1; i <= SFG_SCREEN_RESOLUTION_Y; ++i)
-    screen[NEWLINES + i * (SFG_SCREEN_RESOLUTION_X + 1) - 1] = '\n';
+    screen[i * (SFG_SCREEN_RESOLUTION_X + 1) - 1] = '\n';
 
   setvbuf(stdout, NULL, _IOFBF, SCREENSIZE + 1);
 
@@ -176,14 +172,10 @@ int main()
       }
     }
    
-    uint32_t t = SFG_getTimeMs();
+    puts("\033[0;0H"); // move cursor to 0;0
 
-    if (t >= nextFlush)
-    {
-      puts(screen);
-      fflush(stdout);
-      nextFlush = t + 200; // 5 rendering FPS
-    }
+    puts(screen);
+    fflush(stdout);
 
     if (!SFG_mainLoopBody())
       break;
