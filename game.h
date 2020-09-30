@@ -2332,8 +2332,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
           SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
           currentHeight) / 2);
 
-    if (add)
-      state = SFG_MONSTER_STATE_IDLE;
+    state = SFG_MONSTER_STATE_IDLE;
   }
 
   int16_t newPos[2];
@@ -2349,16 +2348,33 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   }
   else
   {
-    RCL_Unit newHeight =
-      SFG_floorCollisionHeightAt(newPos[0] / 4,newPos[1] / 4);
+    uint8_t movingDiagonally = (coordAdd[0] != 0) && (coordAdd[1] != 0);
 
-    collision =
-      RCL_abs(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
+    // when moving diagonally, we need to check extra tiles
 
-    if (!collision)
-      collision = 
-        (SFG_ceilingHeightAt(newPos[0] / 4,newPos[1] / 4) - newHeight) <
-        SFG_MONSTER_COLLISION_HEIGHT;
+    for (uint8_t i = 0; i < (1 + movingDiagonally); ++i)
+    {
+      newPos[0] = monster->coords[0] + (i != 1) * coordAdd[0];
+
+      RCL_Unit newHeight =
+        SFG_floorCollisionHeightAt(
+          SFG_MONSTER_COORD_TO_SQUARES(newPos[0]),
+          SFG_MONSTER_COORD_TO_SQUARES(newPos[1]));
+
+      collision =
+        RCL_abs(currentHeight - newHeight) > RCL_CAMERA_COLL_STEP_HEIGHT;
+
+      if (!collision)
+        collision = (SFG_ceilingHeightAt(
+          SFG_MONSTER_COORD_TO_SQUARES(newPos[0]),
+          SFG_MONSTER_COORD_TO_SQUARES(newPos[1])) - newHeight) <
+          SFG_MONSTER_COLLISION_HEIGHT;
+
+      if (collision)
+        break;
+    }
+
+    newPos[0] = monster->coords[0] + coordAdd[0];
   }
 
   if (collision)

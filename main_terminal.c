@@ -21,8 +21,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-//#define SFG_SCREEN_RESOLUTION_X 127
-//#define SFG_SCREEN_RESOLUTION_Y 42
 #define SFG_SCREEN_RESOLUTION_X 127
 #define SFG_SCREEN_RESOLUTION_Y 42
 #define SFG_DITHERED_SHADOW 1
