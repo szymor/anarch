@@ -33,8 +33,8 @@
   #define SFG_REVEAL_MAP 1
 //  #define SFG_INFINITE_AMMO 1
 
-  #define SFG_SCREEN_RESOLUTION_X 88
-  #define SFG_SCREEN_RESOLUTION_Y 110
+//  #define SFG_SCREEN_RESOLUTION_X 88
+//  #define SFG_SCREEN_RESOLUTION_Y 110
 
 //  #define SFG_SCREEN_RESOLUTION_X 80
 //  #define SFG_SCREEN_RESOLUTION_Y 64
@@ -294,14 +294,12 @@ typedef void (*em_callback_func)(void);
 void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
 #endif
 
-#define AUDIO_ZERO 32768
-
 uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
 static inline uint16_t mixSamples(uint16_t sample1, uint16_t sample2)
 {
-  return (sample1 >> 1) + (sample2 >> 1);
+  return  (sample1 + sample2) >> 1;  //(sample1 >> 1) + (sample2 >> 1);
 }
 
 uint8_t musicOn = 1;
@@ -316,7 +314,7 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
       mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() << MUSIC_VOLUME) :
       audioBuff[audioPos];
 
-    audioBuff[audioPos] = AUDIO_ZERO;
+    audioBuff[audioPos] = 0;
     audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
   }
 }
@@ -330,7 +328,7 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
   uint16_t pos = audioPos;
   uint8_t volumeShift = 15 - volume / 16;
-  uint16_t baseLevel = AUDIO_ZERO - (0x8000 >> volumeShift);
+  uint16_t baseLevel = -1 * (0x8000 >> volumeShift);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
@@ -421,7 +419,7 @@ int main(int argc, char *argv[])
   SDL_memset(&audioSpec, 0, sizeof(audioSpec));
   audioSpec.callback = audioFillCallback;
   audioSpec.freq = 8000;
-  audioSpec.format = AUDIO_U16;
+  audioSpec.format = AUDIO_S16;
   audioSpec.channels = 1;
 #ifdef __EMSCRIPTEN__
   audioSpec.samples = 1024;
@@ -433,7 +431,7 @@ int main(int argc, char *argv[])
     puts("SDL: could not initialize audio");
 
   for (int16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
-    audioBuff[i] = AUDIO_ZERO;
+    audioBuff[i] = 0;
 
   SDL_PauseAudio(0);
 
