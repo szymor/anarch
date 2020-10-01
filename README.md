@@ -4,7 +4,9 @@
 
 # Anarch
 
-*suckless FPS, the best game ever made, for the benefit of all living beings*
+*extremely small, completely public domain, no-dependency, no-file,
+portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
+everywhere, made for the benefit of all living beings*
 
 ## Why this game is special
 
@@ -37,12 +39,27 @@ SDL:
 
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
+## Stats (for version 1.0)
 
-## Stats
+lines of code (80 column wrapping, a lot of empty lines):
 
-TODO file LOC summary
+| file                                  | LOC    |
+| --------------------------------------| -------|
+| game.h (main game logic)              | TODO   |
+| raycastlib.h (ray casting library)    | TODO   |
+| images.h, levels.h, sounds.h (assets) | TODO   |
+| settings.h, constants.h               | TODO   |
+| **total**                             | TODO   |
 
-TODO platform stats and sizes summary
+compiled:
+
+| binary              | size    | FPS  | resolution |  RAM usage |
+| --------------------| ------- | ---- | ---------- | ---------- |
+| GNU/Linux, SDL      | TODO    | TODO | TODO       | TODO       |
+| GNU/Linux, terminal | TODO    | TODO | TODO       | TODO       |
+| Pokitto             | TODO    | TODO | TODO       | TODO       |
+| Gamebuino Meta      | TODO    | TODO | TODO       | TODO       |
+| browser             | TODO    | TODO | TODO       | TODO       |
 
 ## manifesto
 
@@ -98,6 +115,10 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
+### How long did this take you to make?
+
+Depends from where you count. From my [first experiments with raycasting on Pokitto](https://talk.pokitto.com/t/pokitto-is-on-the-way-what-games-should-i-make/1266/64?u=drummyfish) it's some two years of relaxed evening programming, with taking quite long breaks.
+
 ### I can make this in "Unity" in a week.
 
 Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
@@ -110,7 +131,7 @@ Python scripts are only simple helpers for converting resources, which aren't re
 
 ### Why aren't you writing in assembly then?
 
-Because assembly isn't portable and even a portable assembly would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
+Because assembly isn't portable and even a "portable assembly" (bytecode) would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 
@@ -130,15 +151,16 @@ The game itself can't communicate many values directly – it is just a simple g
 - [Pacifism](https://en.wikipedia.org/wiki/Anarcho-pacifism), because true effort for equality can't be pursued by violence and other forms of oppression.
 - [Minimalism](https://suckless.org/philosophy/) and simplicity, in technology and elsewhere, as a means of freedom and beauty.
 - [Software](https://en.wikipedia.org/wiki/Free_software), [cultural](https://en.wikipedia.org/wiki/Free-culture_movement) and information freedom, opposition to intellectual property.
-- Selflessness.
+- Future proof software.
+- Selflessness, sharing.
 
-### Why raycasting and not e.g. BSP?
+### Why ray casting and not e.g. BSP?
 
-This all started with me just creating a very simlpe raycasting library while playing around with Pokitto, since raycasting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced raycasting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
+This all started with me just creating a very simple ray casting library while playing around with Pokitto, since ray casting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with ray castlib, a more advanced ray casting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
 
 ### Why CC0? Why not MIT or copyleft?
 
-Because I strongly reject the concept of intellectual property and laws in general and because I simply don't want any bullshit burdening my creation. MIT is **not** public domain dedication, it still acknowledges copyright and has a burdening requirement of having to include a copyright notice, and it is also worded kind of vaguely. Copyleft puts even heavier legal burden on users and makes us "marry the lawyers", i.e. approve of the IP bullshit and show willingness to enforce only "good" use of our art, as if we're some kind of dictator authority.
+Because I strongly reject the concept of intellectual property and laws in general and because I simply don't want any bullshit burdening my creation. MIT is **not** public domain dedication, it still acknowledges copyright and has a burdening requirement of having to include a copyright notice, and it is also worded kind of vaguely. Copyleft puts even heavier legal burden on users, is by nature unclear and makes us "marry the lawyers", i.e. approve of the IP bullshit and show willingness to enforce only "good" use of our art, as if we're some kind of dictator authority.
 
 It is shame that so little software is truly in the public domain for anyone to simply use without restriction and distraction. Yes, I am aware of CC0's shortcoming, but it's the best we have and I try to address the issues with an extra waiver.
 
@@ -148,11 +170,11 @@ I am an anarcho-pacifist programmer. You can read more about me at [my website](
 
 ### You sound like an insane person, are you crazy?
 
-I have mental issues as most people nowadays, but they don't affect my reasoning. I challenge you to critically evaluate the ideas I present to you.
+I have mental issues as most people nowadays and I go crazy from living in this world, but these don't affect my reasoning. I challenge you to critically evaluate the ideas I present.
 
 ### Can I support you?
 
-Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz).
+Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz). You can also pay what you want on itch.io.
 
 ### Fuck you.
 
@@ -190,25 +212,36 @@ portability, only backend, avoiding dependencies
 
 how to port to new platform, frontend, configs in files
 
-All global identifiers of the game code start with the prefix `SFG_` (meaning *suckless FPS game*).
 
-The **engine** -- raycastlib -- works on the principle of **raycasting** on a square grid and handles the rendering of the 3D environment (minus sprites). There is a copy of raycastlib in this repository but I maintain raycastlib as a separate project in a different repository, which you can see for more details about it. For us, the important functions interfacing with the engine are e.g. `SFG_floorHeightAt`, `SFG_ceilingHeightAt` (functions the engine uses to retirieve floor and ceiling height) and `SFG_pixelFunc` (function the engine uses to write pixels to the screen during rendering, which in turn uses each platform's specific `SFG_setPixel`).
+Main **game logic** is implemented in `game.h` file. All global identifiers of the game code start with the prefix `SFG_` (meaning *suckless FPS game*). Many identifiers also start with `RCL_` – these belong to the ray casting library.
+
+The game core only implements the back end independent of any platforms and libraries. This back end has an API – a few functions that the front end has to implement, such as `SFG_setPixel` which should write a pixel to the platform's screen. Therefore if one wants to **port** the game to a new platform, it should be enough to implement these few simple functions and adjust game settings.
+
+The **rendering engine** -- raycastlib -- works on the principle of **ray casting** on a square grid and handles the rendering of the 3D environment (minus sprites). This library also handles player's **collisions** with the level. There is a copy of raycastlib in this repository but I maintain raycastlib as a separate project in a different repository, which you can see for more details about it. For us, the important functions interfacing with the engine are e.g. `SFG_floorHeightAt`, `SFG_ceilingHeightAt` (functions the engine uses to retirieve floor and ceiling height) and `SFG_pixelFunc` (function the engine uses to write pixels to the screen during rendering, which in turn uses each platform's specific `SFG_setPixel`).
+
+Only **integer arithmetic** is used, no floating point is needed. Integers are effectively used as fixed point numbers, having `RCL_UNITS_PER_SQUARE` (1024) fractions in a unit. I.e. what we would write as 1.0 in floating point we write as 1024, 0.5 becomes 512 etc.
 
 **Mods** of the vanilla version are recommended to be made as patches, so that they can easily be combined etc. If you want your mod to remain free, please don't forget a license/waiver, even for a small mod. You can never go wrong by including it.
 
-integer math
+**Sprite** (monster, items, ...) rendering is intentionally kept simple and doesn't always give completely correct result, but is good enough. Sprite scaling due to perspective should properly be done with respect to both horizontal and vertical FOV, but for simplicity the game scales them uniformly, which is mostly good enough. Visibility is also imperfect and achieved in two ways simultaneously. Firstly a 3D visibility ray is cast towards each active sprite from player's position to check if it is visible or not (ignoring the possibility of partial occlusion). Secondly a horizontal 1D z-buffer is used solely for sprites, to not overwrite closer sprites with further ones.
 
-sprites 1D zbuffer
+All ranged attacks in the game use **projectiles**, there is no hit scan.
 
 The game uses a custom general purpose HSV-based 256 color **palette** which I again maintain as a separate project in a different repository as well (see it for more details). The advantage of the palette is the arrangement of colors that allows increasing/decreasing color value (brightness) by incrementing/decrementing the color index, which is used for dimming environment and sprites in the distance into shadow/fog without needing color mapping tables (which is what e.g. Doom did), saving memory and CPU cycles for memory access.
 
+All **assets** are embedded directly in the source code and will be part of the compiled binary. This way we don't have to use file IO at all, and the game can run on platforms without a file system. Some assets use very simple compression to reduce the binary size. Provided python scripts can be used to convert assets from common formats to the game format.
+
 All **images** in the game such as textures, sprites and backgrounds (with just a few exceptions such as font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
 
-font
+The game uses a custom very simple 4x4 **font** consisting of only upper case letters and a few symbols, to reduce its size.
 
-rng, produces all byte values
+For **RNG** a very simple 8 bit congruent generator is used, with the period 256, yielding each possible 8 bit value exactly once in a period.
 
-AI
+**AI** is very simple. Monsters update their state in fixed time ticks and move on a grid that has 4 x 4 points in one game square. Close range monsters move directly towards player and attack when close enough. Ranged monsters randomly choose to either shoot a projectile (depending on the aggressivity value of the monster's type) or move in random direction.
+
+User/platform **settings** are also part of the source code, meaning that change of settings requires recompiling the game. To change settings, take a look at the default values in `settings.h` and override the ones you want by defining them before including `game.h` in your platform's front end source code.
+
+
 
 map format
 

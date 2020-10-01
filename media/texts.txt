@@ -65,14 +65,23 @@ Doom clone game which can fit into <MINSIZE> (including all assets), has
 extremely low hardware demands, running on platforms with <MINRAM> of RAM on
 <MINFREQ> CPU (which doesn't even has to have a floating point unit), has no
 dependencies (not even standard C library), requires no filesystem (all assets
-are embedded in source code),  is extremely portable, made in pure C99 subset
+are embedded in source code), is extremely portable, made in pure C99 subset
 of C++ completely from scratch (including the engine, all assets, the font,
 palette etc.) with only free software and released completely into the public
 domain (CC0), allowing absolutely any use. It was not made for profit or just
 entertainment, it is an engineering art and a philosofical manifesto. For more
 info see the website at <WEBSITE> or the repository at <REPOURL>.
 
-Game-wise Anarch offers:
+The game has been ported to:
+
+- GNU/Linux, SDL
+- GNU/Linux, terminal
+- web browser, emscripten
+- Pokitto (220x116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
+- Gamebino Meta (80x64, 48 MHz, 32 KB RAM, 256 KB flash)
+- Win$hit 7, SDL
+
+As a game, Anarch offers:
 
 - oldschool "pseudo 3D" raycasting rendering in 256 colors
 - 10 levels, both interior and exterior, 16 wall textures
