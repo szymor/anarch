@@ -27,7 +27,7 @@
 
 #define SFG_LOG(str) puts(str);
 
-  #define SFG_START_LEVEL 1
+//  #define SFG_START_LEVEL 1
 //  #define SFG_IMMORTAL 1
   #define SFG_UNLOCK_DOOR 1
   #define SFG_REVEAL_MAP 1
@@ -45,7 +45,7 @@
 */
 #define SFG_PLAYER_DAMAGE_MULTIPLIER 1024
 
-#define MUSIC_VOLUME 5
+#define MUSIC_VOLUME 64
 
 #ifdef __EMSCRIPTEN__
   #define SFG_FPS 30
@@ -299,7 +299,8 @@ uint16_t audioPos = 0;
 
 static inline uint16_t mixSamples(uint16_t sample1, uint16_t sample2)
 {
-  return  (sample1 + sample2) >> 1;  //(sample1 >> 1) + (sample2 >> 1);
+  //return (sample1 + sample2) >> 1;  //(sample1 >> 1) + (sample2 >> 1);
+  return sample1 + sample2;  //(sample1 >> 1) + (sample2 >> 1);
 }
 
 uint8_t musicOn = 1;
@@ -311,7 +312,8 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   for (int i = 0; i < l / 2; ++i)
   {
     s16[i] = musicOn ?
-      mixSamples(audioBuff[audioPos],SFG_getNextMusicSample() << MUSIC_VOLUME) :
+      mixSamples(audioBuff[audioPos],(128 - SFG_getNextMusicSample()) 
+        * MUSIC_VOLUME) :
       audioBuff[audioPos];
 
     audioBuff[audioPos] = 0;
@@ -326,14 +328,15 @@ void SFG_enableMusic(uint8_t enable)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
+  volume = 255;
+
   uint16_t pos = audioPos;
-  uint8_t volumeShift = 15 - volume / 16;
-  uint16_t baseLevel = -1 * (0x8000 >> volumeShift);
+  uint8_t volumeScale = 1 << (volume / 32);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    audioBuff[pos] = mixSamples(audioBuff[pos],baseLevel +
-     ((SFG_GET_SFX_SAMPLE(soundIndex,i) << 8) >> volumeShift));
+    audioBuff[pos] = 
+      (128 - SFG_GET_SFX_SAMPLE(soundIndex,i)) * volumeScale;
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
