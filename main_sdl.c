@@ -33,8 +33,8 @@
   #define SFG_REVEAL_MAP 1
 //  #define SFG_INFINITE_AMMO 1
 
-//  #define SFG_SCREEN_RESOLUTION_X 127
-//  #define SFG_SCREEN_RESOLUTION_Y 42
+  #define SFG_SCREEN_RESOLUTION_X 88
+  #define SFG_SCREEN_RESOLUTION_Y 110
 
 //  #define SFG_SCREEN_RESOLUTION_X 80
 //  #define SFG_SCREEN_RESOLUTION_Y 64
@@ -144,6 +144,10 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
   SDL_WarpMouseInWindow(window,
     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
 #endif
+}
+
+void SFG_processEvent(uint8_t event, uint8_t data)
+{
 }
 
 int8_t SFG_keyPressed(uint8_t key)

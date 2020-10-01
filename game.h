@@ -118,6 +118,24 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 */
 void SFG_enableMusic(uint8_t enable);
 
+#define SFG_EVENT_VIBRATE 0  ///< the controller should vibrate (or blink etc.)
+#define SFG_EVENT_PLAYER_HURT 1 
+#define SFG_EVENT_PLAYER_DIES 2
+#define SFG_EVENT_LEVEL_STARTS 3
+#define SFG_EVENT_LEVEL_WON 4
+#define SFG_EVENT_MONSTER_DIES 5
+#define SFG_EVENT_PLAYER_TAKES_ITEM 6
+#define SFG_EVENT_EXPLOSION 7
+#define SFG_EVENT_PLAYER_TELEPORTS 8
+#define SFG_EVENT_PLAYER_CHANGES_WEAPON 9
+
+/**
+  This is an optional function that informs the frontend about special events
+  which may trigger something special, such as a controller vibration, logging
+  something etc. This function can do nothing.
+*/
+void SFG_processEvent(uint8_t event, uint8_t data);
+
 #define SFG_SAVE_SIZE 12
 
 /**
@@ -1602,8 +1620,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   SFG_game.spriteAnimationFrame = 0;
 
   SFG_initPlayer();
- 
   SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
+  SFG_processEvent(SFG_EVENT_LEVEL_STARTS,levelNumber);
 }
 
 void SFG_init()
@@ -1879,7 +1897,11 @@ void SFG_playerChangeHealth(int8_t healthAdd)
   SFG_player.health = health;
 
   if (healthAdd < 0)
+  {
     SFG_player.lastHurtFrame = SFG_game.frame;
+    SFG_processEvent(SFG_EVENT_VIBRATE,0);
+    SFG_processEvent(SFG_EVENT_PLAYER_HURT,-1 * healthAdd);
+  }
 }
 
 void SFG_playerChangeHealthWithMiltiplier(int8_t healthAdd)
@@ -1986,6 +2008,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   SFG_ProjectileRecord explosion;
 
   SFG_playGameSound(2,SFG_distantSoundVolume(x,y,z));
+  SFG_processEvent(SFG_EVENT_EXPLOSION,0);
 
   explosion.type = SFG_PROJECTILE_EXPLOSION;
 
@@ -2785,6 +2808,8 @@ void SFG_updateLevel()
         monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
           SFG_MONSTER_STATE_DYING;
 
+        SFG_processEvent(SFG_EVENT_MONSTER_DIES,SFG_MR_TYPE(*monster));
+
         if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_EXPLODER)
           SFG_createExplosion(
             SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
@@ -3318,8 +3343,11 @@ void SFG_gameStepPlaying()
 
           case SFG_LEVEL_ELEMENT_FINISH:
             SFG_levelEnds();
-            SFG_playGameSound(2,255); 
             SFG_setGameState(SFG_GAME_STATE_WIN);
+            SFG_playGameSound(2,255); 
+            SFG_processEvent(SFG_EVENT_VIBRATE,0);
+            SFG_processEvent(
+              SFG_EVENT_LEVEL_WON,SFG_currentLevel.levelNumber + 1);
             eliminate = 0;
             break;
 
@@ -3335,6 +3363,7 @@ void SFG_gameStepPlaying()
           SFG_player.lastItemTakenFrame = SFG_game.frame;
           i--;
           SFG_playGameSound(3,255);
+          SFG_processEvent(SFG_EVENT_PLAYER_TAKES_ITEM,e->type);
 #endif
         }
         else if (
@@ -3376,6 +3405,7 @@ void SFG_gameStepPlaying()
               SFG_player.justTeleported = 1;
 
               SFG_playGameSound(4,255);
+              SFG_processEvent(SFG_EVENT_PLAYER_TELEPORTS,0);
 
               break;
             }
@@ -3598,6 +3628,8 @@ void SFG_gameStepPlaying()
   {
     SFG_LOG("player dies");
     SFG_levelEnds();
+    SFG_processEvent(SFG_EVENT_VIBRATE,0);
+    SFG_processEvent(SFG_EVENT_PLAYER_DIES,0);
     SFG_setGameState(SFG_GAME_STATE_LOSE);
   }
 #endif
@@ -4707,6 +4739,8 @@ uint8_t SFG_mainLoopBody()
 
     uint8_t steps = 0;
 
+    uint8_t previousWeapon = SFG_player.weapon;
+
     // perform game logic (physics etc.), for each frame
     while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
@@ -4717,6 +4751,9 @@ uint8_t SFG_mainLoopBody()
       SFG_game.frame++;
       steps++;
     }
+
+    if (SFG_player.weapon != previousWeapon)
+      SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
 
     if ((steps > 1) && (SFG_game.antiSpam == 0))
     {

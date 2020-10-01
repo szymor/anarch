@@ -12,6 +12,8 @@
   whatsoever.
 */
 
+// #define JOYHAT  // compiles the version for Pokitto with joystick hat
+
 //  #define SFG_START_LEVEL 8
 
      #include <stdio.h>
@@ -23,8 +25,15 @@
 #define SFG_FPS 25
 #define SFG_CAN_EXIT 0
 //#define SFG_TEXTURE_DISTANCE 6000
-#define SFG_SCREEN_RESOLUTION_X 110
-#define SFG_SCREEN_RESOLUTION_Y 88
+
+#ifndef JOYHAT
+  #define SFG_SCREEN_RESOLUTION_X 110
+  #define SFG_SCREEN_RESOLUTION_Y 88
+#else
+  #define SFG_SCREEN_RESOLUTION_X 88
+  #define SFG_SCREEN_RESOLUTION_Y 110
+#endif
+
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_DITHERED_SHADOW 0
 #define SFG_DIMINISH_SPRITES 0
@@ -56,7 +65,12 @@ uint8_t *pokittoScreen;
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
+#ifndef JOYHAT
   pokittoScreen[y * SFG_SCREEN_RESOLUTION_X + x] = colorIndex;
+#else
+  pokittoScreen[x * SFG_SCREEN_RESOLUTION_Y + (SFG_SCREEN_RESOLUTION_Y - 1 - y)]
+    = colorIndex;
+#endif
 }
 
 uint32_t SFG_getTimeMs()
@@ -148,6 +162,13 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE])
     reinit the audio: */
 
   timerInit(8000);
+}
+
+void SFG_processEvent(uint8_t event, uint8_t data)
+{
+#ifdef JOYHAT
+  // TODO: vibrate
+#endif
 }
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])

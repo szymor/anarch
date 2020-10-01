@@ -103,6 +103,10 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 }
 
+void SFG_processEvent(uint8_t event, uint8_t data)
+{
+}
+
 int8_t SFG_keyPressed(uint8_t key)
 {
   switch (key)
