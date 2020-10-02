@@ -58,6 +58,8 @@
 #endif
 
 #include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
 #include <SDL2/SDL.h>
 
 #include "game.h"
