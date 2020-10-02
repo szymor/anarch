@@ -328,10 +328,8 @@ void SFG_enableMusic(uint8_t enable)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
-  volume = 255;
-
   uint16_t pos = audioPos;
-  uint8_t volumeScale = 1 << (volume / 32);
+  uint16_t volumeScale = 1 << (volume / 32);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
