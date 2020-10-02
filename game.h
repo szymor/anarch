@@ -1331,6 +1331,12 @@ void SFG_initPlayer()
   SFG_player.camera.position.y = RCL_UNITS_PER_SQUARE / 2 +
     SFG_currentLevel.levelPointer->playerStart[1] *  RCL_UNITS_PER_SQUARE;
 
+  SFG_player.squarePosition[0] =
+    SFG_player.camera.position.x / RCL_UNITS_PER_SQUARE;
+
+  SFG_player.squarePosition[1] =
+    SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
+  
   SFG_player.camera.height = 
     SFG_floorHeightAt( 
       SFG_currentLevel.levelPointer->playerStart[0],
@@ -3001,6 +3007,17 @@ void SFG_drawLevelStartOverlay()
 }
 
 /**
+  Sets player's height to match the floor height below him.
+*/
+void SFG_updatePlayerHeight()
+{
+  SFG_player.camera.height =
+    SFG_floorCollisionHeightAt(
+      SFG_player.squarePosition[0],SFG_player.squarePosition[1]) +
+      RCL_CAMERA_COLL_HEIGHT_BELOW;
+}
+
+/**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
@@ -3010,6 +3027,7 @@ void SFG_gameStepPlaying()
     SFG_keyIsDown(SFG_KEY_MENU))
   {
     SFG_setGameState(SFG_GAME_STATE_MENU);
+    SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
     return;
   }
 
@@ -3823,7 +3841,8 @@ void SFG_gameStep()
       // player die animation (lose)
 
       SFG_updateLevel(); // let monsters and other things continue moving
-    
+      SFG_updatePlayerHeight(); // in case player is on elevator    
+
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
       RCL_Unit h = SFG_floorHeightAt(SFG_player.squarePosition[0],
@@ -3902,13 +3921,17 @@ void SFG_gameStep()
       if (((SFG_game.frameTime - SFG_game.stateChangeTime) > 
            SFG_STORYTEXT_DURATION) && (SFG_keyIsDown(SFG_KEY_A) ||
            SFG_keyIsDown(SFG_KEY_B)))
+      {
         SFG_setGameState(SFG_GAME_STATE_MENU);
+        SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
+      }
 
       break;
 
     case SFG_GAME_STATE_LEVEL_START:
     {
       SFG_updateLevel();
+      SFG_updatePlayerHeight(); // in case player is on elevator
 
       if (SFG_currentLevel.levelNumber > (SFG_game.save[0] & 0x0f))
       {
