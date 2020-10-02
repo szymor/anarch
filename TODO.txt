@@ -1,5 +1,7 @@
 general:
 
+- SDL: handle the quit signal so that the program can be closed by closing the
+  window.
 - Refactor.
 - Port to ncurses?
 - Rewrite python scripts to C (faster, less bloat).
