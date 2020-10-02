@@ -129,6 +129,8 @@ level ideas:
 
 bugs:
 
+- On desktop, SDL makes a high-pitched noise with music on for some reason.
+
 done:
 
 - add headbob
