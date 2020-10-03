@@ -44,6 +44,7 @@
   damage to make it a bit harder.
 */
 #define SFG_PLAYER_DAMAGE_MULTIPLIER 1024
+#define SFG_DITHERED_SHADOW 1
 
 #define MUSIC_VOLUME 64
 
@@ -270,13 +271,15 @@ void mainLoopIteration()
 
   while (SDL_PollEvent(&event)) // also automatically updates sdlKeyboardState
   {
-    if(event.type == SDL_MOUSEWHEEL)
+    if (event.type == SDL_MOUSEWHEEL)
     {
       if (event.wheel.y > 0) // scroll up
         sdlMouseWheelState++;
       else if (event.wheel.y < 0) // scroll down
         sdlMouseWheelState--;
     }
+    else if (event.type == SDL_QUIT)
+      running = 0;
   }
 
   sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
@@ -342,6 +345,11 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
   }
 }
 
+void handleSignal(int signal)
+{
+  running = 0;
+}
+
 int main(int argc, char *argv[])
 {
   uint8_t argHelp = 0;
@@ -386,7 +394,7 @@ int main(int argc, char *argv[])
 
   puts("SDL: initializing SDL");
 
-  SFG_init();
+  SFG_init(SDL_INIT_EVERYTHING);
 
   window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
@@ -416,6 +424,10 @@ int main(int argc, char *argv[])
   SDL_ShowCursor(0);
 
   SDL_Init(SDL_INIT_AUDIO);
+
+  signal(SIGINT,handleSignal);
+  signal(SIGQUIT,handleSignal);
+  signal(SIGTERM,handleSignal);
 
   SDL_AudioSpec audioSpec;
 
