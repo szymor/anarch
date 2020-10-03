@@ -69,7 +69,7 @@
 /**
   How quickly player turns left/right, in degrees per second.
 */
-#define SFG_PLAYER_TURN_SPEED 210
+#define SFG_PLAYER_TURN_SPEED 180
 
 /**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
@@ -175,6 +175,14 @@
 */
 #ifndef SFG_HEADBOB_OFFSET
   #define SFG_HEADBOB_OFFSET 200
+#endif
+
+/**
+  If head bob is on, this additionally sets additional camera shear bob, in
+  pixels, which can make bobbing look more "advanced". 0 turns this option off.
+*/
+#ifndef SFG_HEADBOB_SHEAR
+  #define SFG_HEADBOB_SHEAR 0
 #endif
 
 /**

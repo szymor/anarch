@@ -4301,7 +4301,7 @@ void SFG_drawMenu()
     if (item == SFG_MENU_ITEM_NONE)
       break;
 
-# if SFG_GAME_RESOLUTION_Y < 70
+#if SFG_GAME_RESOLUTION_Y < 70
     // with low resolution only display the selected item
 
     if (i != SFG_game.selectedMenuItem)
@@ -4504,11 +4504,20 @@ void SFG_draw()
 #if SFG_HEADBOB_ENABLED
     RCL_Unit headBobOffset = 0;
 
+#if SFG_HEADBOB_SHEAR != 0
+    int16_t headBobShearOffset;
+#endif
+
     if (SFG_game.state != SFG_GAME_STATE_LOSE)
     {
       RCL_Unit bobSin = RCL_sin(SFG_player.headBobFrame);
 
       headBobOffset = (bobSin * SFG_HEADBOB_OFFSET) / RCL_UNITS_PER_SQUARE;
+
+#if SFG_HEADBOB_SHEAR != 0
+      headBobShearOffset = (bobSin * SFG_HEADBOB_SHEAR) / RCL_UNITS_PER_SQUARE;
+      SFG_player.camera.shear += headBobShearOffset;
+#endif
 
       weaponBobOffset =
         (bobSin * SFG_WEAPONBOB_OFFSET_PIXELS) / (RCL_UNITS_PER_SQUARE) + 
@@ -4527,7 +4536,7 @@ void SFG_draw()
     // add head bob just for the rendering (we'll will substract it back later)
 
     SFG_player.camera.height += headBobOffset;
-#endif
+#endif // headbob enabled?
 
     RCL_renderComplex(
       SFG_player.camera,
@@ -4673,7 +4682,12 @@ void SFG_draw()
 #if SFG_HEADBOB_ENABLED
     // after rendering sprites substract back the head bob offset
     SFG_player.camera.height -= headBobOffset;
+
+#if SFG_HEADBOB_SHEAR != 0
+    SFG_player.camera.shear -= headBobShearOffset;
 #endif
+
+#endif // head bob enabled?
 
 #if SFG_PREVIEW_MODE == 0
     SFG_drawWeapon(weaponBobOffset);
