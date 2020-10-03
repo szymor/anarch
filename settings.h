@@ -67,6 +67,11 @@
 #endif
 
 /**
+  How quickly player turns left/right, in degrees per second.
+*/
+#define SFG_PLAYER_TURN_SPEED 210
+
+/**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
   distance will be replaced by an average constant color, which can help
   performance. Value 0 turns texturing completely off, which is much faster than

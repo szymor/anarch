@@ -14,6 +14,9 @@
 
 #include <Gamebuino-Meta.h>
 
+  #define SFG_IMMORTAL 1
+  #define SFG_INFINITE_AMMO 1
+
 #define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
 #define SFG_FPS 17
@@ -25,6 +28,7 @@
 #define SFG_RAYCASTING_SUBSAMPLE 3
 #define SFG_DIMINISH_SPRITES 0
 #define SFG_DITHERED_SHADOW 0
+#define SFG_PLAYER_TURN_SPEED 150
 
 #include "game.h"
 
@@ -155,6 +159,9 @@ void loop()
 
   SFG_mainLoopBody();
 
+#if 0
+  // debuggin performance
   gb.display.setCursor(1,1);
   gb.display.print(gb.getCpuLoad());
+#endif 
 }

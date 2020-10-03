@@ -17,11 +17,6 @@
 #define _SFG_CONSTANTS_H
 
 /**
-  How quickly player turns left/right, in degrees per second.
-*/
-#define SFG_PLAYER_TURN_SPEED 210
-
-/**
   How quickly player moves, in squares per second.
 */
 #define SFG_PLAYER_MOVE_SPEED 7
@@ -556,17 +551,29 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
   fff:   half speed in game squares per second
   lllll: eigth of frames to live
 */
+
+#define LOW_FPS (SFG_FPS < 20) ///< low FPS needs low speeds, because collisions
+
 SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {
   /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,400),
   /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(10,1000),
+
+#if LOW_FPS
+  /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(17,500),
+#else
   /* plasma    */ SFG_PROJECTILE_ATTRIBUTE(18,500),
+#endif
+
   /* dust      */ SFG_PROJECTILE_ATTRIBUTE(0,450),
-#if SFG_FPS < 20
-  /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(20,1000) // high speed could miss things
+
+#if LOW_FPS
+  /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(17,1000)
 #else
   /* bullet    */ SFG_PROJECTILE_ATTRIBUTE(28,1000)
 #endif
 };
+
+#undef LOW_FPS
 
 #endif // guard
