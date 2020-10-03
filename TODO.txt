@@ -1,8 +1,8 @@
 general:
 
-- SDL: handle the quit signal so that the program can be closed by closing the
-  window.
 - Refactor.
+- Add option for advanced head bobbing which will also shear the camera along
+  with offsetting it.
 - Port to ncurses?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
@@ -136,6 +136,8 @@ bugs:
 done:
 
 - add headbob
+- SDL: handle the quit signal so that the program can be closed by closing the
+  window.
 - On Win$hit builds display an anti-windshit text, by macro.
 - save/load (optional):
   When a level is finished, the state at the beginning of the next one (health,
