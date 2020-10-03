@@ -105,7 +105,7 @@
   CPU performance and memory).
 */
 #ifndef SFG_DITHERED_SHADOW
-  #define SFG_DITHERED_SHADOW 1
+  #define SFG_DITHERED_SHADOW 0
 #endif
 
 /**
@@ -135,7 +135,7 @@
 /**
   How many times rendering should be subsampled horizontally. Bigger number
   can significantly improve performance (by casting fewer rays), but can look
-  a little worse.
+  a little worse. This number should be a divisor of SFG_SCREEN_RESOLUTION_X!
 */
 #ifndef SFG_RAYCASTING_SUBSAMPLE
   #define SFG_RAYCASTING_SUBSAMPLE 1

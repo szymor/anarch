@@ -16,20 +16,27 @@
 
 #define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
-#define SFG_FPS 30
-#define SFG_SCREEN_RESOLUTION_X 80
+#define SFG_FPS 17
+#define SFG_SCREEN_RESOLUTION_X 78
 #define SFG_SCREEN_RESOLUTION_Y 64
 #define SFG_RESOLUTION_SCALEDOWN 1
-#define SFG_RAYCASTING_MAX_STEPS 20  
-#define SFG_RAYCASTING_MAX_HITS 5
-#define SFG_RAYCASTING_SUBSAMPLE 2
+#define SFG_RAYCASTING_MAX_STEPS 11
+#define SFG_RAYCASTING_MAX_HITS 3
+#define SFG_RAYCASTING_SUBSAMPLE 3
 #define SFG_DIMINISH_SPRITES 0
-
 #define SFG_DITHERED_SHADOW 0
 
 #include "game.h"
 
 Gamebuino_Meta::Color palette[256];
+
+uint8_t blinkFramesLeft;
+
+void blinkLED(Gamebuino_Meta::Color color)
+{
+  gb.lights.fill(color);
+  blinkFramesLeft = 5;
+}
 
 const Gamebuino_Meta::SaveDefault saveDefault[] =
   { { 0, SAVETYPE_BLOB, SFG_SAVE_SIZE, 0 } };
@@ -61,6 +68,17 @@ int8_t SFG_keyPressed(uint8_t key)
   }
 
   return gb.buttons.timeHeld(button) > 0;
+}
+
+void SFG_processEvent(uint8_t event, uint8_t value)
+{
+  switch (event)
+  {
+    case SFG_EVENT_LEVEL_STARTS: blinkLED(BLUE); break;
+    case SFG_EVENT_PLAYER_HURT: blinkLED(RED); break;
+    case SFG_EVENT_LEVEL_WON: blinkLED(YELLOW); break;
+    default: break;
+  }
 }
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
@@ -118,6 +136,7 @@ void setup()
   }
 
   SFG_init();
+  blinkLED(RED);
 }
 
 void loop()
@@ -126,5 +145,16 @@ void loop()
   {
   }
 
+  if (blinkFramesLeft != 0)
+  {
+    if (blinkFramesLeft == 1)
+      gb.lights.clear();
+
+    blinkFramesLeft--;
+  }
+
   SFG_mainLoopBody();
+
+  gb.display.setCursor(1,1);
+  gb.display.print(gb.getCpuLoad());
 }
