@@ -194,7 +194,7 @@ images.h         images (textures, sprites) from assets folder converted to C
 levels.h         levels from assets folder converted to C
 main_*.*         fronted implement. for various platforms, passed to compiler
 palette.h        game 256 color palette
-raycastlib.h     raycasting library
+raycastlib.h     ray casting library
 settings.h       game settings that users can change (FPS, resolution, ...)
 sounds.h         sounds from assets folder converted to C
 texts.h          game texts
@@ -203,16 +203,6 @@ HTMLshell.html   HTML shell for emscripten (browser) version
 index.html       game website
 README.md        this readme
 ```
-
-TODO
-
-source files
-
-portability, only backend, avoiding dependencies
-
-how to port to new platform, frontend, configs in files
-
-
 Main **game logic** is implemented in `game.h` file. All global identifiers of the game code start with the prefix `SFG_` (meaning *suckless FPS game*). Many identifiers also start with `RCL_` – these belong to the ray casting library.
 
 The game core only implements the back end independent of any platforms and libraries. This back end has an API – a few functions that the front end has to implement, such as `SFG_setPixel` which should write a pixel to the platform's screen. Therefore if one wants to **port** the game to a new platform, it should be enough to implement these few simple functions and adjust game settings.
@@ -241,15 +231,15 @@ For **RNG** a very simple 8 bit congruent generator is used, with the period 256
 
 User/platform **settings** are also part of the source code, meaning that change of settings requires recompiling the game. To change settings, take a look at the default values in `settings.h` and override the ones you want by defining them before including `game.h` in your platform's front end source code.
 
+To increase **performance**, you can adjust some settings, see settings.h and search for "performance". Many small performance tweaks exist. If you need a drastic improvement, you can set ray casting subsampling to 2 or 3, which will decrease the horizontal resolution of raycasting rendering by given factor, reducing the number of rays cast, while keeping the resolution of everything else (vertical, GUI, sprites, ...) the same. You can also divide the whole game resolution by setting the resolution scaledown, or even turn texturing completely off.
 
+**Levels** are stored in levels.h as structs that are manually editable, but also use a little bit of compression principles to not take up too much space, as each level is 64 x 64 squares, with each square having a floor heigh, ceiling heigh, floor texture, ceiling texture plus special properties (door, elevator etc.). There is a python script that allows to create levels in image editors such as GIMP. A level consists of a tile dictionary, recordind up to 64 tile types, the map, being a 2D array of values that combine an index pointing to the tile dictionary plus the special properties (doors, elevator, ...), a list of up to 128 level elements (monsters, items, door locks, ...), and other special records (floor/ceiling color, wall textures used in the level, player start position, ...).
 
-map format
+The game uses a deterministic **game loop**, meaning every main loop/simulation iteration has a constant time step, independently of actual rendering FPS. The time step is determined by the FPS setting. If this FPS can't be reached, the game will appear slowed down, so set the FPS to the value that your platform can handle. It is important to note that different settings, most imporantly the FPS, will affect the simulation, so that the game with different settings behaves slightly differenly and in the extreme cases (very low/high FPS) can become weird and buggy.
 
-main loop, constant time step
+**Saving/loading** is an optional feature. If it is not present (frontend doesn't implement the API save/load functions), all levels are unlocked from the start and no state survives the game restart. If the feature is implemented, progress, settings and a saved position is preserved in permanent storage. What the permanent storage actually is depends on the front end implementation – it can be a file, EEPROM, a cookie etc., the game doesn't care. Only a few bytes are required to be saved. Saving of game position is primitive: position can only be saved at the start of a level, allowing to store only a few values such as health and ammo.
 
-saving/loading is optional
-
-optimizations, move computations to compile time, approximations (taxicab, ...), precomputations, -O3
+TODO: optimizations, move computations to compile time, approximations (taxicab, ...), precomputations, -O3
 
 ## usage rights
 
