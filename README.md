@@ -39,7 +39,7 @@ SDL:
 
 ![](https://talk.pokitto.com/uploads/default/original/2X/e/e69a5e26aee3bd726494e793770911ab83345187.png)
 
-## Stats (for version 1.0)
+## Stats and comparisons (for version 1.0)
 
 lines of code (80 column wrapping, a lot of empty lines):
 
@@ -60,6 +60,33 @@ compiled:
 | Pokitto             | TODO    | TODO | TODO       | TODO       |
 | Gamebuino Meta      | TODO    | TODO | TODO       | TODO       |
 | browser             | TODO    | TODO | TODO       | TODO       |
+
+system requirements:
+
+| type               | Anarch                           | Wolf 3D             | Doom              |
+| ------------------ | -------------------------------- | ------------------- | ----------------- |
+| CPU                | 50 MHz, 32 bit                   | Intel 286, 16 bit   | Intel 386, 32 bit |
+| RAM                | 32 KB                            | 528 KB              | 4 MB              |
+| storage            | 200 KB                           | 8 MB                | 12 MB             |
+| display            | 32 x 32, 8 colors, double buffer | ?                   | ?                 |
+| additional         | 7 buttons                        | HDD                 | HDD               |
+
+features:
+
+| type                          | Anarch                           | Wolf 3D           | Doom              |
+| ----------------------------- | -------------------------------- | ----------------- | ----------------- |
+| levels                        | 10                               | 1O (shareware)    | 10 (shareware)    |
+| variable floor/ceiling height | yes                              | no                | yes               |
+| engine                        | ray casting                      | ray casting       | BSP               |
+| movement inertia              | no                               | no                | yes               |
+| head/weapon bobbing           | yes                              | no                | yes               |
+| shearing (up/down look)       | yes                              | no                | no                |
+| non-square based levels       | no                               | no                | yes               |
+| jumping                       | yes                              | no                | no                |
+| weapons                       | 6                                | 4                 | 8                 |
+| enemy types                   | 7                                | 9                 | 10                |
+| ammo types                    | 3                                | 1                 | 4                 |
+| difficulty levels             | no                               | 4                 | 5                 |
 
 ## manifesto
 
@@ -156,7 +183,7 @@ The game itself can't communicate many values directly – it is just a simple g
 
 ### Why ray casting and not e.g. BSP?
 
-This all started with me just creating a very simple ray casting library while playing around with Pokitto, since ray casting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with ray castlib, a more advanced ray casting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
+This all started with me just creating a very simple ray casting library while playing around with Pokitto, since ray casting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced ray casting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
 
 ### Why CC0? Why not MIT or copyleft?
 
@@ -182,6 +209,9 @@ Peace.
 
 ## code guide
 
+Most things should be obvious and are documented in the source code itself. This
+is just an extra helper.
+
 The repository structure is following:
 
 ```
@@ -203,6 +233,7 @@ HTMLshell.html   HTML shell for emscripten (browser) version
 index.html       game website
 README.md        this readme
 ```
+
 Main **game logic** is implemented in `game.h` file. All global identifiers of the game code start with the prefix `SFG_` (meaning *suckless FPS game*). Many identifiers also start with `RCL_` – these belong to the ray casting library.
 
 The game core only implements the back end independent of any platforms and libraries. This back end has an API – a few functions that the front end has to implement, such as `SFG_setPixel` which should write a pixel to the platform's screen. Therefore if one wants to **port** the game to a new platform, it should be enough to implement these few simple functions and adjust game settings.
@@ -215,23 +246,25 @@ Only **integer arithmetic** is used, no floating point is needed. Integers are e
 
 **Sprite** (monster, items, ...) rendering is intentionally kept simple and doesn't always give completely correct result, but is good enough. Sprite scaling due to perspective should properly be done with respect to both horizontal and vertical FOV, but for simplicity the game scales them uniformly, which is mostly good enough. Visibility is also imperfect and achieved in two ways simultaneously. Firstly a 3D visibility ray is cast towards each active sprite from player's position to check if it is visible or not (ignoring the possibility of partial occlusion). Secondly a horizontal 1D z-buffer is used solely for sprites, to not overwrite closer sprites with further ones.
 
+**Monster sprites** only have one facing direction: to the player. To keep things small, each monster has only a few frames of animations: usually 1 idle frame, 1 waling frame, 1 attacking frame. For dying animation a universal "dying" frame exists for all mosnters.
+
 All ranged attacks in the game use **projectiles**, there is no hit scan.
 
 The game uses a custom general purpose HSV-based 256 color **palette** which I again maintain as a separate project in a different repository as well (see it for more details). The advantage of the palette is the arrangement of colors that allows increasing/decreasing color value (brightness) by incrementing/decrementing the color index, which is used for dimming environment and sprites in the distance into shadow/fog without needing color mapping tables (which is what e.g. Doom did), saving memory and CPU cycles for memory access.
 
 All **assets** are embedded directly in the source code and will be part of the compiled binary. This way we don't have to use file IO at all, and the game can run on platforms without a file system. Some assets use very simple compression to reduce the binary size. Provided python scripts can be used to convert assets from common formats to the game format.
 
-All **images** in the game such as textures, sprites and backgrounds (with just a few exceptions such as font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
+All **images** in the game such as textures, sprites and backgrounds (with an exception of the font) are 32 x 32 pixels in 16 colors, i.e. 4 bits per pixel. The 16 color palette is specific to each image and is a subpalette of the main 256 color palette. The palette is stored before the image data, so each image takes 16 + (32 * 32) / 2 = 528 bytes. This makes images relatively small, working with them is easy and the code is faster than would be for arbitrary size images. One color (red) is used to indicate transparency.
 
 The game uses a custom very simple 4x4 **font** consisting of only upper case letters and a few symbols, to reduce its size.
 
 For **RNG** a very simple 8 bit congruent generator is used, with the period 256, yielding each possible 8 bit value exactly once in a period.
 
-**AI** is very simple. Monsters update their state in fixed time ticks and move on a grid that has 4 x 4 points in one game square. Close range monsters move directly towards player and attack when close enough. Ranged monsters randomly choose to either shoot a projectile (depending on the aggressivity value of the monster's type) or move in random direction.
+**AI** is very simple. Monsters update their state in fixed time ticks and move on a grid that has 4 x 4 points in one game square. Monsters don't have any direction, just 2D position (no height). Close range monsters move directly towards player and attack when close enough. Ranged monsters randomly choose to either shoot a projectile (depending on the aggressivity value of the monster's type) or move in random direction.
 
 User/platform **settings** are also part of the source code, meaning that change of settings requires recompiling the game. To change settings, take a look at the default values in `settings.h` and override the ones you want by defining them before including `game.h` in your platform's front end source code.
 
-To increase **performance**, you can adjust some settings, see settings.h and search for "performance". Many small performance tweaks exist. If you need a drastic improvement, you can set ray casting subsampling to 2 or 3, which will decrease the horizontal resolution of raycasting rendering by given factor, reducing the number of rays cast, while keeping the resolution of everything else (vertical, GUI, sprites, ...) the same. You can also divide the whole game resolution by setting the resolution scaledown, or even turn texturing completely off.
+To increase **performance**, you can adjust some settings, see settings.h and search for "performance". Many small performance tweaks exist. If you need a drastic improvement, you can set ray casting subsampling to 2 or 3, which will decrease the horizontal resolution of raycasting rendering by given factor, reducing the number of rays cast, while keeping the resolution of everything else (vertical, GUI, sprites, ...) the same. You can also divide the whole game resolution by setting the resolution scaledown, or even turn texturing completely off. Also don't forget to use optimization flags of your compiler, they make the biggest difference.
 
 **Levels** are stored in levels.h as structs that are manually editable, but also use a little bit of compression principles to not take up too much space, as each level is 64 x 64 squares, with each square having a floor heigh, ceiling heigh, floor texture, ceiling texture plus special properties (door, elevator etc.). There is a python script that allows to create levels in image editors such as GIMP. A level consists of a tile dictionary, recordind up to 64 tile types, the map, being a 2D array of values that combine an index pointing to the tile dictionary plus the special properties (doors, elevator, ...), a list of up to 128 level elements (monsters, items, door locks, ...), and other special records (floor/ceiling color, wall textures used in the level, player start position, ...).
 
@@ -239,7 +272,7 @@ The game uses a deterministic **game loop**, meaning every main loop/simulation 
 
 **Saving/loading** is an optional feature. If it is not present (frontend doesn't implement the API save/load functions), all levels are unlocked from the start and no state survives the game restart. If the feature is implemented, progress, settings and a saved position is preserved in permanent storage. What the permanent storage actually is depends on the front end implementation – it can be a file, EEPROM, a cookie etc., the game doesn't care. Only a few bytes are required to be saved. Saving of game position is primitive: position can only be saved at the start of a level, allowing to store only a few values such as health and ammo.
 
-TODO: optimizations, move computations to compile time, approximations (taxicab, ...), precomputations, -O3
+Good performance is achieved by multiple techniques. Macros are used a lot to move computation from run time to compile time and also reduce the binary size. E.g. the game resolution is a constant and can't change during gameplay, allowing the compiler to precompute many expression with resolution values in them. Powers of 2 are used whenever possible. Approximations such as taxicab distances are used. Some "accelerating" structures are also used, e.g. a 2D bit array for item collisions. Don't forget to compile the game with -O3.
 
 ## usage rights
 
