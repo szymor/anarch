@@ -342,8 +342,8 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
-    audioBuff[pos] = 
-      (128 - SFG_GET_SFX_SAMPLE(soundIndex,i)) * volumeScale;
+    audioBuff[pos] = mixSamples(audioBuff[pos], 
+      (128 - SFG_GET_SFX_SAMPLE(soundIndex,i)) * volumeScale);
 
     pos = (pos < SFG_SFX_SAMPLE_COUNT - 1) ? (pos + 1) : 0;
   }
