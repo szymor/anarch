@@ -2290,8 +2290,9 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
           state = SFG_MONSTER_STATE_ATTACKING;
 
-          SFG_playerChangeHealthWithMiltiplier(
-            -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
+          if (SFG_game.state == SFG_GAME_STATE_PLAYING)
+            SFG_playerChangeHealthWithMiltiplier(
+              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
               
           SFG_playGameSound(3,255);
         }
@@ -2520,7 +2521,10 @@ void SFG_updateLevel()
             SFG_player.camera.height))
         {
           eliminate = 1;
-          SFG_playerChangeHealthWithMiltiplier(-1 * SFG_getDamageValue(attackType));
+
+          if (SFG_game.state == SFG_GAME_STATE_PLAYING) // don't hurt at start
+            SFG_playerChangeHealthWithMiltiplier(
+              -1 * SFG_getDamageValue(attackType));
         }
 
       /* Check collision with the map (we don't use SFG_floorCollisionHeightAt
