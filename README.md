@@ -75,7 +75,7 @@ features:
 
 | type                          | Anarch                           | Wolf 3D           | Doom              |
 | ----------------------------- | -------------------------------- | ----------------- | ----------------- |
-| levels                        | 10                               | 1O (shareware)    | 10 (shareware)    |
+| levels                        | 10                               | 10 (shareware)    | 10 (shareware)    |
 | variable floor/ceiling height | yes                              | no                | yes               |
 | engine                        | ray casting                      | ray casting       | BSP               |
 | movement inertia              | no                               | no                | yes               |
