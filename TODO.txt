@@ -131,7 +131,9 @@ level ideas:
 
 bugs:
 
-- On desktop, SDL makes a high-pitched noise with music on for some reason.
+- On desktop, SDL makes a high-pitched noise because of DC offset. Maybe put an
+  average DC offset for each track into assets so that music player can use this
+  to normalize the track?
 
 done:
 
