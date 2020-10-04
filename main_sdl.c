@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
 
   puts("SDL: initializing SDL");
 
-  SFG_init(SDL_INIT_EVERYTHING);
+  SFG_init();
 
   window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
