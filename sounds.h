@@ -34,6 +34,14 @@
   + sampleIndex / 2) << (4 * ((sampleIndex % 2) != 0))) & 0xf0)
 
 #define SFG_TRACK_SAMPLES (512 * 1024)
+#define SFG_TRACK_COUNT 6
+
+/**
+  Average value of each music track, can be used to correct DC offset issues if
+  they appear.
+*/
+SFG_PROGRAM_MEMORY uint8_t SFG_musicTrackAverages[SFG_TRACK_COUNT] =
+  {14,7,248,148,6,8};
 
 struct
 { // all should be initialized to 0
@@ -53,7 +61,7 @@ uint8_t SFG_getNextMusicSample()
   {
     SFG_MusicState.track++;
 
-    if (SFG_MusicState.track >= 6)
+    if (SFG_MusicState.track >= SFG_TRACK_COUNT)
       SFG_MusicState.track = 0;
 
     SFG_MusicState.t = 0;
