@@ -50,7 +50,7 @@
 #define SFG_DITHERED_SHADOW 1
 #define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
 
-#define MUSIC_VOLUME 64
+#define MUSIC_VOLUME 16
 
 #ifdef __EMSCRIPTEN__
   #define SFG_FPS 30
@@ -314,6 +314,17 @@ static inline uint16_t mixSamples(uint16_t sample1, uint16_t sample2)
 
 uint8_t musicOn = 1;
 
+
+uint8_t aaa[] =
+{
+14,
+7,
+248,
+148,
+6,
+8
+}; 
+
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
   uint16_t *s16 = (uint16_t *) s;
@@ -321,9 +332,9 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   for (int i = 0; i < l / 2; ++i)
   {
     s16[i] = musicOn ?
-      mixSamples(audioBuff[audioPos],(128 - SFG_getNextMusicSample()) 
-        * MUSIC_VOLUME) :
-      audioBuff[audioPos];
+      mixSamples(audioBuff[audioPos], MUSIC_VOLUME *
+      (SFG_musicTrackAverages[SFG_MusicState.track] - SFG_getNextMusicSample()))
+      : audioBuff[audioPos];
 
     audioBuff[audioPos] = 0;
     audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
@@ -338,7 +349,7 @@ void SFG_enableMusic(uint8_t enable)
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
   uint16_t pos = audioPos;
-  uint16_t volumeScale = 1 << (volume / 32);
+  uint16_t volumeScale = 1 << (volume / 36);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
