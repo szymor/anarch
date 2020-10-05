@@ -14,7 +14,13 @@ everywhere, made for the benefit of all living beings*
 - **100% non-commercial**, free of any ads, spyware, microtransactions, corporate logos, planned obsolescence etc.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
 - **Suckless, KISS, minimal, simple**, short code (< 10000 LOC TODO).
-- **Extremely portable** (much more than Doom). So far tested on GNU/Linux PC, Pokitto, TODO.
+- **Extremely portable** (much more than Doom). So far officially ported to and tested on:
+  - GNU/Linux PC, SDL
+  - GNU/Linux PC, terminal
+  - Browser
+  - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
+  - Gamebino Meta (80 x 64, 48 MHz, 32 KB RAM, 256 KB flash)
+  - TODO
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple.
 - Can fit into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler.
@@ -53,19 +59,19 @@ lines of code (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary              | size    | FPS  | resolution |  RAM usage |
-| --------------------| ------- | ---- | ---------- | ---------- |
-| GNU/Linux, SDL      | TODO    | TODO | TODO       | TODO       |
-| GNU/Linux, terminal | TODO    | TODO | TODO       | TODO       |
-| Pokitto             | TODO    | TODO | TODO       | TODO       |
-| Gamebuino Meta      | TODO    | TODO | TODO       | TODO       |
-| browser             | TODO    | TODO | TODO       | TODO       |
+| binary               | size    | FPS  | resolution |  RAM usage |
+| -------------------- | ------- | ---- | ---------- | ---------- |
+| GNU/Linux, SDL       | TODO    | TODO | TODO       | TODO       |
+| GNU/Linux, terminal  | TODO    | TODO | TODO       | TODO       |
+| Pokitto              | TODO    | TODO | TODO       | TODO       |
+| Gamebuino Meta       | TODO    | TODO | TODO       | TODO       |
+| browser              | TODO    | TODO | TODO       | TODO       |
 
 system requirements:
 
 | type               | Anarch                           | Wolf 3D             | Doom              |
 | ------------------ | -------------------------------- | ------------------- | ----------------- |
-| CPU                | 50 MHz, 32 bit                   | Intel 286, 16 bit   | Intel 386, 32 bit |
+| CPU                | 40 MHz, 32 bit                   | Intel 286, 16 bit   | Intel 386, 32 bit |
 | RAM                | 32 KB                            | 528 KB              | 4 MB              |
 | storage            | 200 KB                           | 8 MB                | 12 MB             |
 | display            | 32 x 32, 8 colors, double buffer | ?                   | ?                 |
@@ -75,7 +81,7 @@ features:
 
 | type                          | Anarch                           | Wolf 3D           | Doom              |
 | ----------------------------- | -------------------------------- | ----------------- | ----------------- |
-| levels                        | 10                               | 10 (shareware)    | 10 (shareware)    |
+| levels                        | 10                               | 60 (10 shareware) | 27 (9 shareware)  |
 | variable floor/ceiling height | yes                              | no                | yes               |
 | engine                        | ray casting                      | ray casting       | BSP               |
 | movement inertia              | no                               | no                | yes               |
@@ -86,6 +92,7 @@ features:
 | weapons                       | 6                                | 4                 | 8                 |
 | enemy types                   | 7                                | 9                 | 10                |
 | ammo types                    | 3                                | 1                 | 4                 |
+| armor                         | no                               | no                | yes               |
 | difficulty levels             | no                               | 4                 | 5                 |
 
 ## manifesto
@@ -264,7 +271,7 @@ For **RNG** a very simple 8 bit congruent generator is used, with the period 256
 
 User/platform **settings** are also part of the source code, meaning that change of settings requires recompiling the game. To change settings, take a look at the default values in `settings.h` and override the ones you want by defining them before including `game.h` in your platform's front end source code.
 
-To increase **performance**, you can adjust some settings, see settings.h and search for "performance". Many small performance tweaks exist. If you need a drastic improvement, you can set ray casting subsampling to 2 or 3, which will decrease the horizontal resolution of raycasting rendering by given factor, reducing the number of rays cast, while keeping the resolution of everything else (vertical, GUI, sprites, ...) the same. You can also divide the whole game resolution by setting the resolution scaledown, or even turn texturing completely off. You can gain or lose a huge amount of performance in your implementation of the `SFG_setPixel` function which is evaluated for every single pixel in every frame, so try to optimize here as much as possible. Also don't forget to use optimization flags of your compiler, they make the biggest difference. You can also try to disable music and similat things.
+To increase **performance**, you can adjust some settings, see settings.h and search for "performance". Many small performance tweaks exist. If you need a drastic improvement, you can set ray casting subsampling to 2 or 3, which will decrease the horizontal resolution of raycasting rendering by given factor, reducing the number of rays cast, while keeping the resolution of everything else (vertical, GUI, sprites, ...) the same. You can also divide the whole game resolution by setting the resolution scaledown, or even turn texturing completely off. You can gain or lose a huge amount of performance in your implementation of the `SFG_setPixel` function which is evaluated for every single pixel in every frame, so try to optimize here as much as possible. Also don't forget to use optimization flags of your compiler, they make the biggest difference. You can also try to disable music, set the horizontal resolution to power of 2 and similat things.
 
 **Levels** are stored in levels.h as structs that are manually editable, but also use a little bit of compression principles to not take up too much space, as each level is 64 x 64 squares, with each square having a floor heigh, ceiling heigh, floor texture, ceiling texture plus special properties (door, elevator etc.). There is a python script that allows to create levels in image editors such as GIMP. A level consists of a tile dictionary, recordind up to 64 tile types, the map, being a 2D array of values that combine an index pointing to the tile dictionary plus the special properties (doors, elevator, ...), a list of up to 128 level elements (monsters, items, door locks, ...), and other special records (floor/ceiling color, wall textures used in the level, player start position, ...).
 
