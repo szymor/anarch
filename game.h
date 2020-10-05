@@ -3623,14 +3623,20 @@ void SFG_gameStepPlaying()
     SFG_getMapRevealBit(
       SFG_player.squarePosition[0],
       SFG_player.squarePosition[1]);
+              
+  uint8_t properties;
+
+  SFG_getMapTile(SFG_currentLevel.levelPointer,SFG_player.squarePosition[0],
+    SFG_player.squarePosition[1],&properties);
 
   if ( // squeezer check
-    (SFG_ceilingHeightAt(
+     (properties == SFG_TILE_PROPERTY_SQUEEZER) &&
+     ((SFG_ceilingHeightAt(
        SFG_player.squarePosition[0],SFG_player.squarePosition[1]) -
      SFG_floorHeightAt(
        SFG_player.squarePosition[0],SFG_player.squarePosition[1]))
      <
-     (RCL_CAMERA_COLL_HEIGHT_ABOVE + RCL_CAMERA_COLL_HEIGHT_BELOW))
+     (RCL_CAMERA_COLL_HEIGHT_ABOVE + RCL_CAMERA_COLL_HEIGHT_BELOW)))
   {
     SFG_LOG("player is squeezed");
     SFG_player.health = 0;

@@ -131,10 +131,6 @@ level ideas:
 
 bugs:
 
-- On desktop, SDL makes a high-pitched noise because of DC offset. Maybe put an
-  average DC offset for each track into assets so that music player can use this
-  to normalize the track?
-
 done:
 
 - add headbob
@@ -195,6 +191,11 @@ done:
 - Player jumps higher on lower FPS, is able to jump on 4 squares. Also check the
   distance jump.
 - disable transparency for walls for performance (setting)?
+- On desktop, SDL makes a high-pitched noise because of DC offset. Maybe put an
+  average DC offset for each track into assets so that music player can use this
+  to normalize the track?
+- Player is sometimes squeezed to death in door (appeared in level 9).
+  Investigate, fix.
 
 scratched:
 - option for disabling wall transparency, for performance?
