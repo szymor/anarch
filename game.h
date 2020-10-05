@@ -1891,34 +1891,32 @@ RCL_Vector2D SFG_resolveCollisionWithElement(
 }
 
 /**
-  Adds or substracts player's health, which either hurts him (negative value)
-  or heals him (positive value).
+  Adds or substracts player's health during the playing state due to taking
+  damage (negative value) or getting healed. Negative value will be corrected by
+  SFG_PLAYER_DAMAGE_MULTIPLIER in this function.
 */
 void SFG_playerChangeHealth(int8_t healthAdd)
-{
-  int16_t health = SFG_player.health;
-  health += healthAdd;
-  health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
-
-  SFG_player.health = health;
+{          
+  if (SFG_game.state != SFG_GAME_STATE_PLAYING)
+    return; // don't hurt during level starting phase
 
   if (healthAdd < 0)
   {
-    SFG_player.lastHurtFrame = SFG_game.frame;
-    SFG_processEvent(SFG_EVENT_VIBRATE,0);
-    SFG_processEvent(SFG_EVENT_PLAYER_HURT,-1 * healthAdd);
-  }
-}
-
-void SFG_playerChangeHealthWithMiltiplier(int8_t healthAdd)
-{
-  if (healthAdd < 0)
     healthAdd =
       RCL_min(-1,
       (((RCL_Unit) healthAdd) * SFG_PLAYER_DAMAGE_MULTIPLIER) /
       RCL_UNITS_PER_SQUARE);
 
-  SFG_playerChangeHealth(healthAdd);
+    SFG_player.lastHurtFrame = SFG_game.frame;
+    SFG_processEvent(SFG_EVENT_VIBRATE,0);
+    SFG_processEvent(SFG_EVENT_PLAYER_HURT,-1 * healthAdd);
+  }
+
+  int16_t health = SFG_player.health;
+  health += healthAdd;
+  health = RCL_clamp(health,0,SFG_PLAYER_MAX_HEALTH);
+
+  SFG_player.health = health;
 }
 
 uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
@@ -2034,7 +2032,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
 
   if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_PUSH_AWAY_DISTANCE))
-    SFG_playerChangeHealthWithMiltiplier(-1 * damage);
+    SFG_playerChangeHealth(-1 * damage);
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
@@ -2290,9 +2288,8 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
           state = SFG_MONSTER_STATE_ATTACKING;
 
-          if (SFG_game.state == SFG_GAME_STATE_PLAYING)
-            SFG_playerChangeHealthWithMiltiplier(
-              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
+          SFG_playerChangeHealth(
+            -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
               
           SFG_playGameSound(3,255);
         }
@@ -2522,9 +2519,7 @@ void SFG_updateLevel()
         {
           eliminate = 1;
 
-          if (SFG_game.state == SFG_GAME_STATE_PLAYING) // don't hurt at start
-            SFG_playerChangeHealthWithMiltiplier(
-              -1 * SFG_getDamageValue(attackType));
+          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
         }
 
       /* Check collision with the map (we don't use SFG_floorCollisionHeightAt
