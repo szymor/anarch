@@ -10,17 +10,20 @@ fi
 
 clear; clear; 
 
-if [ $1 == "sdl" ]; then
+C_FLAGS='-x c -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o game'
 
+if [ $1 == "sdl" ]; then
   # PC SDL build, requires:
   # - g++
   # - SDL2 (dev) package
 
-  g++ -x c -g -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra \
-  -Wno-unused-parameter -Wno-missing-field-initializers -o game main_sdl.c \
-  -lSDL2 2>&1 >/dev/null && ./game
-elif [ $1 == "pokitto" ]; then
+  g++ ${C_FLAGS} main_sdl.c -lSDL2 2>&1 >/dev/null && ./game
+elif [ $1 == "terminal" ]; then
+  # PC terminal build, requires:
+  # - g++
 
+  g++ ${C_FLAGS} main_terminal.c 2>&1 >/dev/null && ./game
+elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
   #   "Pokitto" subfolder of PokittoLib
@@ -32,7 +35,6 @@ elif [ $1 == "pokitto" ]; then
   make
   ./PokittoEmu BUILD/firmware.bin 
 elif [ $1 == "emscripten" ]; then
-
   # emscripten (browser Javascript) build, requires:
   # - emscripten
 
