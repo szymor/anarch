@@ -3,7 +3,8 @@ general:
 - Refactor.
 - Add option for advanced head bobbing which will also shear the camera along
   with offsetting it.
-- Port to ncurses?
+- Port to OpenDingux.
+- Port to some fantasy console?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - automatic tests: a frontend that will play the game, check the state, rendered
@@ -219,3 +220,4 @@ scratched:
 - optional graphics enhance: vertical wall shading ("ambient occlusions")?
 - some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
   back towards the player
+- Port to ncurses?
