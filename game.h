@@ -4702,7 +4702,7 @@ void SFG_draw()
 
     // bar
 
-    uint8_t color = 5;
+    uint8_t color = 61;
 
     for (uint16_t j = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
       j < SFG_GAME_RESOLUTION_Y; ++j)
@@ -4710,7 +4710,7 @@ void SFG_draw()
       for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
         SFG_setGamePixel(i,j,color);
 
-      color = 2;
+      color = 48;
     }
 
     #define TEXT_Y (SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - \
@@ -4721,7 +4721,7 @@ void SFG_draw()
       SFG_HUD_MARGIN,
       TEXT_Y,
       SFG_FONT_SIZE_MEDIUM,
-      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 4 : 175);
+      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 6 : 175);
 
     SFG_drawNumber( // ammo
       SFG_player.weapon != SFG_WEAPON_KNIFE ?
@@ -4730,7 +4730,7 @@ void SFG_draw()
         (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM * 3,
       TEXT_Y,
       SFG_FONT_SIZE_MEDIUM,
-      4); 
+      6); 
 
     for (uint8_t i = 0; i < 3; ++i) // access cards
       if ( 
