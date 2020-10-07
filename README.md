@@ -4,9 +4,20 @@
 
 # Anarch
 
+[TODO website link]()
+
 *extremely small, completely public domain, no-dependency, no-file,
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
 everywhere, made for the benefit of all living beings*
+
+- [why this game is special](#why-this-game-is-special)
+- [stats and comparisons (for version 1.0)](#stats-and-comparisons-for-version-10)
+- [manifesto](#manifesto)
+- [FAQ](#faq)
+- [code guide](#code-guide)
+- [contributing](#contributing)
+- [usage rights](#usage-rights)
+
 
 ## Why this game is special
 
@@ -281,11 +292,17 @@ The game uses a deterministic **game loop**, meaning every main loop/simulation 
 
 Performance and small size are achieved by multiple **optimization** techniques. Macros are used a lot to move computation from run time to compile time and also reduce the binary size. E.g. the game resolution is a constant and can't change during gameplay, allowing the compiler to precompute many expression with resolution values in them. Powers of 2 are used whenever possible. Approximations such as taxicab distances are used. Some "accelerating" structures are also used, e.g. a 2D bit array for item collisions. Don't forget to compile the game with -O3.
 
+## contributing
+
+**I am not acception any contributions to this repository**, however you can, and are encouraged to, **fork** the repo and do whatever you want with it. This is because I want to keep the original repository completely my own work to prevent the risk of "intellectual property" complications with multiple authors (e.g. a contributor starting to say he agreed to the waiver by mistake) and to make it as clear as possible that this is truly public domain. Yes, **I am afraid of free contribution from volunteers – this is what copyright laws have achieved**. If you dislike this situation, stop supporting copyright and IP laws. Outside this repo of course we can collaborate without borders.
+
+I welcome feedback, such as bug reports, which you can create here on GL as an issue, report to me via email etc.
+
 ## usage rights
 
 **tl;dr: everything in this repository is CC0 + a waiver of all rights, completely public domain as much as humanly possible, do absolutely anything you want**
 
-I, Miloslav Číž (drummyfish), have created everything in this repository, including but not limited to code, graphics, sprites, palettes, fonts, sounds, music and texts, completely myself from scratch, using completely and exclusive free as in freedom software, without accepting any contributions, with the goal of creating a completely original art which is not a derivative work of anyone else's existing work, so that I could assure that by waiving my intellectual property rights the work will become completely public domain with as little doubt as posible.
+I, Miloslav Číž (drummyfish), have created everything in this repository, including but not limited to code, graphics, sprites, palettes, fonts, sounds, music, storyline and texts, even the font in the video trailer and drum sound samples for the soundtrack, completely myself from scratch, using completely and exclusive free as in freedom software, without accepting any contributions, with the goal of creating a completely original art which is not a derivative work of anyone else's existing work, so that I could assure that by waiving my intellectual property rights the work will become completely public domain with as little doubt as posible.
 
 This work's goal is to never be encumbered by any exclusive intellectual property rights, it is intended to always stay completely and forever in the public domain, available for any use whatsoever.
 
