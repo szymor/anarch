@@ -352,7 +352,6 @@ struct
                                                      drawing. */
   uint32_t frameTime; ///< Keeps a constant time (in ms) during a frame
   uint32_t frame;
-  uint32_t lastFrameTimeMs;
   uint8_t selectedMenuItem;
   uint8_t selectedLevel;   ///< Level to play selected in the main menu.
   uint8_t antiSpam;   ///< Prevents log message spamming.
@@ -1320,6 +1319,8 @@ void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
 
+  SFG_game.frameTime = SFG_getTimeMs();
+
   SFG_player.camera.resolution.x =
     SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
 
@@ -1694,7 +1695,6 @@ void SFG_init()
 
   SFG_game.backgroundScroll = 0;
   SFG_currentLevel.levelPointer = 0;
-  SFG_game.lastFrameTimeMs = SFG_getTimeMs();
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
   SFG_game.settings = 0x03;
@@ -4771,31 +4771,28 @@ uint8_t SFG_mainLoopBody()
      Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
   uint32_t timeNow = SFG_getTimeMs();
-  uint32_t timeNextFrame = SFG_game.lastFrameTimeMs + SFG_MS_PER_FRAME;
+  int32_t timeSinceLastFrame = timeNow - SFG_game.frameTime;
 
-  SFG_game.frameTime = timeNow;
-
-  if (timeNow >= timeNextFrame)
+  if (timeSinceLastFrame >= SFG_MS_PER_FRAME)
   {
-    uint32_t timeSinceLastFrame = timeNow - SFG_game.lastFrameTimeMs;
-
     uint8_t steps = 0;
 
-    uint8_t previousWeapon = SFG_player.weapon;
-
-    // perform game logic (physics etc.), for each frame
     while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
+      uint8_t previousWeapon = SFG_player.weapon;
+
+      SFG_game.frameTime += SFG_MS_PER_FRAME;
+
       SFG_gameStep();
+
+      if (SFG_player.weapon != previousWeapon)
+        SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
 
       timeSinceLastFrame -= SFG_MS_PER_FRAME;
 
       SFG_game.frame++;
       steps++;
     }
-
-    if (SFG_player.weapon != previousWeapon)
-      SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
 
     if ((steps > 1) && (SFG_game.antiSpam == 0))
     {
@@ -4808,12 +4805,10 @@ uint8_t SFG_mainLoopBody()
 
     // render noly once
     SFG_draw();
-
-    SFG_game.lastFrameTimeMs = timeNow;
   }
   else
   {
-    SFG_sleepMs((timeNextFrame - timeNow) / 2); // wait, relieve CPU
+    SFG_sleepMs((SFG_game.frameTime + SFG_MS_PER_FRAME - timeNow) / 2); // wait, relieve CPU
   }
 
   return SFG_game.continues;
