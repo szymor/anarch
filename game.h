@@ -4510,7 +4510,7 @@ void SFG_draw()
     RCL_Unit headBobOffset = 0;
 
 #if SFG_HEADBOB_SHEAR != 0
-    int16_t headBobShearOffset;
+    int16_t headBobShearOffset = 0;
 #endif
 
     if (SFG_game.state != SFG_GAME_STATE_LOSE)

@@ -1,4 +1,4 @@
-# Build script for Anarch.
+# Optional helper build script for Anarch.
 # by drummyfish, released under CC0 1.0, public domain
 #
 # usage:
@@ -22,17 +22,27 @@ if [ $# -eq 2 ]; then
   COMPILER=$2
 fi
 
+echo "compiling"
+
 if [ $1 == "sdl" ]; then
   # PC SDL build, requires:
   # - g++
   # - SDL2 (dev) package
 
-  ${COMPILER} ${C_FLAGS} main_sdl.c -lSDL2 2>&1 >/dev/null && ./game
+  COMMAND="${COMPILER} ${C_FLAGS} main_sdl.c -lSDL2"
+
+  echo ${COMMAND}
+
+  ${COMMAND} && ./game
 elif [ $1 == "terminal" ]; then
   # PC terminal build, requires:
   # - g++
 
-  ${COMPILER} ${C_FLAGS} main_terminal.c 2>&1 >/dev/null && ./game
+  COMMAND="${COMPILER} ${C_FLAGS} main_terminal.c"
+
+  echo ${COMMAND}
+
+  ${COMMAND} && ./game
 elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
