@@ -306,10 +306,9 @@ void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infin
 uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
-static inline uint16_t mixSamples(uint16_t sample1, uint16_t sample2)
+static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
 {
-  //return (sample1 + sample2) >> 1;  //(sample1 >> 1) + (sample2 >> 1);
-  return sample1 + sample2;  //(sample1 >> 1) + (sample2 >> 1);
+  return (sample1 + sample2) / 2;
 }
 
 uint8_t musicOn = 1;

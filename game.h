@@ -1620,7 +1620,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
     }
   } 
 
-  SFG_currentLevel.timeStart = SFG_getTimeMs(); 
+  SFG_currentLevel.timeStart = SFG_game.frameTime; 
   SFG_currentLevel.frameStart = SFG_game.frame;
 
   SFG_game.spriteAnimationFrame = 0;
