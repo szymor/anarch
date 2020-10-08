@@ -313,17 +313,6 @@ static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
 
 uint8_t musicOn = 1;
 
-
-uint8_t aaa[] =
-{
-14,
-7,
-248,
-148,
-6,
-8
-}; 
-
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
   uint16_t *s16 = (uint16_t *) s;

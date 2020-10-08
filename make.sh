@@ -1,9 +1,13 @@
 # Build script for Anarch.
 # by drummyfish, released under CC0 1.0, public domain
+#
+# usage:
+#
+# ./make.sh platform [compiler]
 
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ]; then
   echo "need a parameter (sdl, pokitto, gb, emscripten, ...)"
   exit 0
 fi
@@ -12,17 +16,23 @@ clear; clear;
 
 C_FLAGS='-x c -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o game'
 
+COMPILER='g++'
+
+if [ $# -eq 2 ]; then
+  COMPILER=$2
+fi
+
 if [ $1 == "sdl" ]; then
   # PC SDL build, requires:
   # - g++
   # - SDL2 (dev) package
 
-  g++ ${C_FLAGS} main_sdl.c -lSDL2 2>&1 >/dev/null && ./game
+  ${COMPILER} ${C_FLAGS} main_sdl.c -lSDL2 2>&1 >/dev/null && ./game
 elif [ $1 == "terminal" ]; then
   # PC terminal build, requires:
   # - g++
 
-  g++ ${C_FLAGS} main_terminal.c 2>&1 >/dev/null && ./game
+  ${COMPILER} ${C_FLAGS} main_terminal.c 2>&1 >/dev/null && ./game
 elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 

@@ -18,7 +18,6 @@ everywhere, made for the benefit of all living beings*
 - [contributing](#contributing)
 - [usage rights](#usage-rights)
 
-
 ## Why this game is special
 
 - **Completely public domain (CC0) free softare, free culture, libre game** for the benefit of all living beings in the Universe, **no conoditions on use whatsoever**. **All art is original** work and licensed CC0 (as well as code).
@@ -70,13 +69,13 @@ lines of code (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary               | size    | FPS  | resolution |  RAM usage |
-| -------------------- | ------- | ---- | ---------- | ---------- |
-| GNU/Linux, SDL       | TODO    | TODO | TODO       | TODO       |
-| GNU/Linux, terminal  | TODO    | TODO | TODO       | TODO       |
-| Pokitto              | TODO    | TODO | TODO       | TODO       |
-| Gamebuino Meta       | TODO    | TODO | TODO       | TODO       |
-| browser              | TODO    | TODO | TODO       | TODO       |
+| binary               | size                     | FPS  | resolution | RAM usage  |
+| -------------------- | ------------------------ | ---- | ---------- | ---------- |
+| GNU/Linux, SDL       | TODO (gcc), TODO (clang) | TODO | TODO       | TODO       |
+| GNU/Linux, terminal  | TODO (gcc), TODO (clang) | TODO | TODO       | TODO       |
+| Pokitto              | TODO                     | TODO | TODO       | TODO       |
+| Gamebuino Meta       | TODO                     | TODO | TODO       | TODO       |
+| browser              | TODO (JS script)         | TODO | TODO       | TODO       |
 
 system requirements:
 
@@ -196,8 +195,9 @@ The game itself can't communicate many values directly – it is just a simple g
 - [Pacifism](https://en.wikipedia.org/wiki/Anarcho-pacifism), because true effort for equality can't be pursued by violence and other forms of oppression.
 - [Minimalism](https://suckless.org/philosophy/) and simplicity, in technology and elsewhere, as a means of freedom and beauty.
 - [Software](https://en.wikipedia.org/wiki/Free_software), [cultural](https://en.wikipedia.org/wiki/Free-culture_movement) and information freedom, opposition to intellectual property.
-- Future proof software.
-- Selflessness, sharing.
+- Future proof technology.
+- Vegetarianism, veganism, equality of life forms.
+- Selflessness, sharing, collaboration, caring about others.
 
 ### Why ray casting and not e.g. BSP?
 
