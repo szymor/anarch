@@ -209,6 +209,10 @@ Because I strongly reject the concept of intellectual property and laws in gener
 
 It is shame that so little software is truly in the public domain for anyone to simply use without restriction and distraction. Yes, I am aware of CC0's shortcoming, but it's the best we have and I try to address the issues with an extra waiver.
 
+### I've found a bug. What do?
+
+Firstly don't panic and please don't hate me, I didn't put that bug there intentionally. Send me a mail or open an issue on GL to let me know and I'll probably try to fix it. If I for some reason can't, ask some other programmer, or fix it yourself, it most likely isn't as difficult as fixing a bug in 1M LOC program wrapped in layers of "design patterns" and written in 10 languages. 
+
 ### Who are you?
 
 I am an anarcho-pacifist programmer. You can read more about me at [my website](https://www.tastyfish.cz). You can read my political manifesto here: [Non-Competitive Society](https://gitlab.com/drummyfish/my_writings/-/blob/master/non-competitive%20society.pdf).
