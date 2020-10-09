@@ -113,9 +113,9 @@ From engineering point of view our technology is the worst in history – softwa
 
 This game is a result of my grief about this deeply sad and frightening state of our world. It is my desperate attempt at showing that something, or rather everything, is wrong. I have put great effort in creating this completely from the ground up so that I could waive all my rights and give this away to everyone. I think it is a great shame of mankind that until now there has been no such a game completely, truly and genuinely in the public domain for all people to freely play, for students and teachers to freely study and teach, for artists and programmers to freely hack, improve and remix.
 
-This game is also designed to be truly good technology as much as possible, with as few burdens to anyone as possible, for both users and programmers. It is designed to last for centuries without maintenance – by only relying on a C compiler, a relatively simple and perhaps the most essential piece of software, and by avoiding all unnecessary dependencies, both HW and SW, the game is almost certainly guaranteed to be easily compilable long time in the future, probably even shortly after the inevitable technological collapse. It is free and simple, modifiable by anyone with programming skills, not just legally but also practically (i.e. it is suckless). The design follows the essential rules of minimalism, simplicity, efficiency, elegance, hackability, openness.
+This game is also designed to be truly good technology, with as few burdens to anyone as possible, for users, programmers, distributors etc. It is designed to last for centuries without maintenance – by only relying on a C compiler, a relatively simple and perhaps the most essential piece of software, and by avoiding all unnecessary dependencies, both HW and SW, the game is almost certainly guaranteed to be easily compilable long time in the future, probably even shortly after we will have partlialy recovered from the inevitable technological collapse. The game is free and simple, modifiable by anyone with basic programming skills, not just legally but also practically (i.e. it is suckless). The design follows the essential rules of minimalism, simplicity, efficiency, elegance, hackability, openness.
 
-As any disturbance to the status quo, my project too gets a lot of hate, being called backwards, accused of utilizing wrong programming practice, or just being a bad game in general. Nevertheless, it has only been made with love and sincere rational belief in its philosophies. I do not see it as a step backwards, but rather a step in a different, better direction. I believe that if you judge it with an open mind, you may find the hidden truth and revise your views of technology, its philosophy and its future, as I have. This game has been made for you and I hope you will find it useful.
+As any disturbance of the status quo, my project too gets a lot of hate, being called backwards, accused of utilizing wrong programming practice, or just being a bad game in general. Nevertheless, it has only been made with love and sincere rational belief in its philosophies. I do not see it as a step backwards, but rather a step in a different, better direction. I believe that if you judge it with an open mind, you may find the hidden truth and revise your views of technology, its philosophy and its future, as I have. This game has been made for you and I hope you will find it useful.
 
 ## FAQ
 
@@ -165,7 +165,7 @@ Depends from where you count. From my [first experiments with raycasting on Poki
 
 ### I can make this in "Unity" in a week.
 
-Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, it won't offer the same freedom, independence, portability, performance, beauty, it won't carry the message.
+Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, efficient technology, users' freedom, it won't offer the same independence, portability, performance, beauty, it will probably die along with your "Unity", it will be encoumbered by licenses of your asset store, it won't carry the important messages.
 
 ### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
 
@@ -208,6 +208,10 @@ This all started with me just creating a very simple ray casting library while p
 Because I strongly reject the concept of intellectual property and laws in general and because I simply don't want any bullshit burdening my creation. MIT is **not** public domain dedication, it still acknowledges copyright and has a burdening requirement of having to include a copyright notice, and it is also worded kind of vaguely. Copyleft puts even heavier legal burden on users, is by nature unclear and makes us "marry the lawyers", i.e. approve of the IP bullshit and show willingness to enforce only "good" use of our art, as if we're some kind of dictator authority.
 
 It is shame that so little software is truly in the public domain for anyone to simply use without restriction and distraction. Yes, I am aware of CC0's shortcoming, but it's the best we have and I try to address the issues with an extra waiver.
+
+### I've found a bug. What do?
+
+Firstly don't panic and please don't hate me, I didn't put that bug there intentionally. Send me a mail or open an issue on GL to let me know and I'll probably try to fix it. If I for some reason can't, ask some other programmer, or fix it yourself, it most likely isn't as difficult as fixing a bug in 1M LOC program wrapped in layers of "design patterns" and written in 10 languages. 
 
 ### Who are you?
 
