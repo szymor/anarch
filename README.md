@@ -219,7 +219,7 @@ I have mental issues as most people nowadays and I go crazy from living in this 
 
 ### Can I support you?
 
-Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz). You can also pay what you want on itch.io.
+Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz#support). You can also pay what you want on itch.io.
 
 ### Fuck you.
 
