@@ -21,20 +21,33 @@
   #define SFG_OS_IS_MALWARE 1
 #endif
 
-#define SFG_BACKGROUND_BLUR 1
-
-#define SFG_FPS 60
-
-#define SFG_LOG(str) puts(str);
-
 //  #define SFG_START_LEVEL 1
 //  #define SFG_IMMORTAL 1
 //  #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
 //  #define SFG_INFINITE_AMMO 1
 
-  #define SFG_SCREEN_RESOLUTION_X 800
-  #define SFG_SCREEN_RESOLUTION_Y 600
+#ifndef GAME_LQ
+  // higher quality
+  #define SFG_FPS 60
+  #define SFG_LOG(str) puts(str);
+  #define SFG_SCREEN_RESOLUTION_X 700
+  #define SFG_SCREEN_RESOLUTION_Y 512
+  #define SFG_DITHERED_SHADOW 1
+  #define SFG_DIMINISH_SPRITES 1
+  #define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
+  #define SFG_BACKGROUND_BLUR 1
+#else
+  // lower quality
+  #define SFG_FPS 35
+  #define SFG_SCREEN_RESOLUTION_X 640
+  #define SFG_SCREEN_RESOLUTION_Y 480
+  #define SFG_RAYCASTING_SUBSAMPLE 2
+  #define SFG_RESOLUTION_SCALEDOWN 2
+  #define SFG_DIMINISH_SPRITES 0
+  #define SFG_DITHERED_SHADOW 0
+  #define SFG_BACKGROUND_BLUR 0
+#endif
 
 //  #define SFG_SCREEN_RESOLUTION_X 88
 //  #define SFG_SCREEN_RESOLUTION_Y 110
@@ -47,8 +60,6 @@
   damage to make it a bit harder.
 */
 #define SFG_PLAYER_DAMAGE_MULTIPLIER 1024
-#define SFG_DITHERED_SHADOW 1
-#define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
 
 #define MUSIC_VOLUME 16
 

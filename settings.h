@@ -73,10 +73,11 @@
 
 /**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
-  distance will be replaced by an average constant color, which can help
-  performance. Value 0 turns texturing completely off, which is much faster than
-  having just a low value, values >= 65535 activate texturing completely, which
-  can be a little faster than setting having a high value lower than this limit.
+  distance will be replaced by an average constant color, which maybe can help
+  performance and also serves as an antialiasim (2 level MIP map). Value 0 turns
+  texturing completely off, which is much faster than having just a low value,
+  values >= 65535 activate texturing completely, which can be a little faster
+  than setting having a high value lower than this limit.
 */
 #ifndef SFG_TEXTURE_DISTANCE
   #define SFG_TEXTURE_DISTANCE 100000
