@@ -73,8 +73,11 @@
   #include <emscripten.h>
 #endif
 
+#if !SFG_OS_IS_MALWARE
+  #include <signal.h>
+#endif
+
 #include <stdio.h>
-#include <signal.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
 
@@ -439,9 +442,11 @@ int main(int argc, char *argv[])
 
   SDL_Init(SDL_INIT_AUDIO);
 
+#if !SFG_OS_IS_MALWARE
   signal(SIGINT,handleSignal);
   signal(SIGQUIT,handleSignal);
   signal(SIGTERM,handleSignal);
+#endif
 
   SDL_AudioSpec audioSpec;
 
