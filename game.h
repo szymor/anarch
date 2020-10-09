@@ -181,7 +181,6 @@ void SFG_init();
 
   #define SFG_PROGRAM_MEMORY const PROGMEM
   #define SFG_PROGRAM_MEMORY_U8(addr) pgm_read_byte(addr)
-  // TODO
 #else
   #define SFG_PROGRAM_MEMORY static const
   #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
@@ -503,7 +502,7 @@ uint8_t SFG_getItemCollisionMapBit(uint8_t x, uint8_t y)
 }
 
 #if SFG_DITHERED_SHADOW
-SFG_PROGRAM_MEMORY uint8_t SFG_ditheringPatterns[] =
+static const uint8_t SFG_ditheringPatterns[] =
 {
   0,0,0,0,
   0,0,0,0,
@@ -833,7 +832,7 @@ void SFG_recomputePLayerDirection()
 #if SFG_BACKGROUND_BLUR != 0
 uint8_t SFG_backgroundBlurIndex = 0;
 
-SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
+static const int8_t SFG_backgroundBlurOffsets[8] =
   {
     0  * SFG_BACKGROUND_BLUR,
     16 * SFG_BACKGROUND_BLUR,
@@ -843,7 +842,6 @@ SFG_PROGRAM_MEMORY int8_t SFG_backgroundBlurOffsets[9] =
     4  * SFG_BACKGROUND_BLUR,
     15 * SFG_BACKGROUND_BLUR,
     9  * SFG_BACKGROUND_BLUR,
-    7  * SFG_BACKGROUND_BLUR
   };
 #endif
 
@@ -973,11 +971,13 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
   #if SFG_BACKGROUND_BLUR != 0
         + SFG_backgroundBlurOffsets[SFG_backgroundBlurIndex + 1]
   #endif
-        ) % SFG_GAME_RESOLUTION_Y ])                                               
+        ) % SFG_GAME_RESOLUTION_Y])                                               
       );
 
   #if SFG_BACKGROUND_BLUR != 0
-    SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 0x07;
+
+SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 8;
+//    SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 0x07;
   #endif
 #else
     color = 1;
@@ -4803,12 +4803,14 @@ uint8_t SFG_mainLoopBody()
     if (SFG_game.antiSpam > 0)
       SFG_game.antiSpam--;
 
-    // render noly once
+    // render only once
     SFG_draw();
   }
   else
   {
-    SFG_sleepMs((SFG_game.frameTime + SFG_MS_PER_FRAME - timeNow) / 2); // wait, relieve CPU
+    // wait, relieve CPU
+    SFG_sleepMs(RCL_max(1,
+      (3 * (SFG_game.frameTime + SFG_MS_PER_FRAME - timeNow)) / 4));
   }
 
   return SFG_game.continues;

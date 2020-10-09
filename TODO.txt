@@ -1,8 +1,6 @@
 general:
 
 - Refactor.
-- Add option for advanced head bobbing which will also shear the camera along
-  with offsetting it.
 - Port to OpenDingux.
 - Port to some fantasy console?
 - Rewrite python scripts to C (faster, less bloat).
@@ -13,9 +11,6 @@ general:
 - compile on BSD and WinShit
 - make SFML frontend
 - add time slowdown constant
-- compile with different compilers (gcc, clang, musl, ...) and settings, make
-  a build script that creates multiple binaries (with different combinations of
-  compilers and settings)
 - run on raspbery pi
 
 level ideas:
@@ -197,6 +192,11 @@ done:
   to normalize the track?
 - Player is sometimes squeezed to death in door (appeared in level 9).
   Investigate, fix.
+- Add option for advanced head bobbing which will also shear the camera along
+  with offsetting it.
+- compile with different compilers (gcc, clang, musl, ...) and settings, make
+  a build script that creates multiple binaries (with different combinations of
+  compilers and settings)
 
 scratched:
 - option for disabling wall transparency, for performance?
