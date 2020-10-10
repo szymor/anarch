@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <unistd.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@
 #define SFG_SCREEN_RESOLUTION_X 127
 #define SFG_SCREEN_RESOLUTION_Y 42
 #define SFG_DITHERED_SHADOW 1
-#define SFG_FPS 20
+#define SFG_FPS 30
 
 #include "game.h"
 
@@ -134,9 +135,21 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
 }
 
+int running = 1;
+
+void handleSignal(int signal)
+{
+  puts("\033[?25h"); // show cursor
+  running = 0;
+}
+
 int main()
 {
   int devFile;
+
+  signal(SIGINT,handleSignal);
+  signal(SIGQUIT,handleSignal);
+  signal(SIGTERM,handleSignal);
 
   timeStart = getTime();
 
@@ -157,7 +170,12 @@ int main()
 
   setvbuf(stdout, NULL, _IOFBF, SCREENSIZE + 1);
 
-  while (1)
+  for (uint8_t i = 0; i < 100; ++i) // clear screen
+    putchar('\n');
+      
+  puts("\033[?25l"); // hide cursor
+  
+  while (running)
   {
     while (1)
     {
@@ -178,11 +196,12 @@ int main()
     }
    
     puts("\033[0;0H"); // move cursor to 0;0
-
     puts(screen);
     fflush(stdout);
 
     if (!SFG_mainLoopBody())
-      break;
+      running = 0;
   }
+    
+  puts("\033[?25h"); // show cursor
 }

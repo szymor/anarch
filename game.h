@@ -1712,7 +1712,7 @@ void SFG_init()
   else
   {
     SFG_LOG("saving/loading not possible");
-    SFG_game.save[0] = SFG_NUMBER_OF_LEVELS | 0xf0; // revealed all levels
+    SFG_game.save[0] = (SFG_NUMBER_OF_LEVELS - 1) | 0xf0; // revealed all levels
   }
 
   SFG_enableMusic(SFG_game.settings & 0x02);
@@ -3734,7 +3734,7 @@ void SFG_gameStepMenu()
         SFG_player.ammo[1] = SFG_game.save[4];
         SFG_player.ammo[2] = SFG_game.save[5];
 
-        SFG_playerRotateWeapon(0); // this chooses weapon with ammo available
+        SFG_playerRotateWeapon(1); // this chooses weapon with ammo available
         break;
       }
 
@@ -4069,10 +4069,11 @@ void SFG_drawStoryText()
     
   SFG_clearScreen(clearColor);
 
-  SFG_blitImage(SFG_monsterSprites + sprite * SFG_TEXTURE_STORE_SIZE,
-      (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
-      SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
-      SFG_FONT_SIZE_SMALL);  
+  if (SFG_GAME_RESOLUTION_Y > 50) 
+    SFG_blitImage(SFG_monsterSprites + sprite * SFG_TEXTURE_STORE_SIZE,
+        (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
+        SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
+        SFG_FONT_SIZE_SMALL);  
 
   uint16_t textLen = 0;
 
