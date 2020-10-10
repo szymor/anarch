@@ -69,13 +69,13 @@ lines of code (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary               | size                                 | FPS  | resolution | RAM usage  |
-| -------------------- | ------------------------------------ | ---- | ---------- | ---------- |
-| GNU/Linux, SDL       | TODO (gcc), TODO (clang), TODO (tcc) | TODO | TODO       | TODO       |
-| GNU/Linux, terminal  | TODO (gcc), TODO (clang), TODO (tcc) | TODO | TODO       | TODO       |
-| Pokitto              | TODO                                 | TODO | TODO       | TODO       |
-| Gamebuino Meta       | TODO                                 | TODO | TODO       | TODO       |
-| browser              | TODO (JS script)                     | TODO | TODO       | TODO       |
+| binary               | size                                 | target FPS  | resolution | RAM usage  |
+| -------------------- | ------------------------------------ | ----------- | ---------- | ---------- |
+| GNU/Linux, SDL       | TODO (gcc), TODO (clang), TODO (tcc) | TODO        | TODO       | TODO       |
+| GNU/Linux, terminal  | TODO (gcc), TODO (clang), TODO (tcc) | TODO        | TODO       | TODO       |
+| Pokitto              | TODO                                 | TODO        | TODO       | TODO       |
+| Gamebuino Meta       | TODO                                 | TODO        | TODO       | TODO       |
+| browser              | TODO (JS script)                     | TODO        | TODO       | TODO       |
 
 system requirements:
 
@@ -85,7 +85,7 @@ system requirements:
 | RAM                | 32 KB                            | 528 KB              | 4 MB              |
 | storage            | 200 KB                           | 8 MB                | 12 MB             |
 | display            | 32 x 32, 8 colors, double buffer | ?                   | ?                 |
-| additional         | 7 buttons                        | HDD                 | HDD               |
+| additional         | 7 buttons, frame buffer          | HDD, frame buffer   | HDD, frame buffer |
 
 features:
 
