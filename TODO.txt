@@ -1,6 +1,6 @@
 general:
 
-- High pitch noise in SDL music AGAIN!
+- Add SW buttons to emscripten version so that it's playable on mobiles.
 - Refactor.
 - Port to OpenDingux.
 - Port to some fantasy console?
@@ -198,6 +198,7 @@ done:
 - compile with different compilers (gcc, clang, musl, ...) and settings, make
   a build script that creates multiple binaries (with different combinations of
   compilers and settings)
+- High pitch noise in SDL music AGAIN!
 
 scratched:
 - option for disabling wall transparency, for performance?
