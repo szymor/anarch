@@ -69,13 +69,13 @@ lines of code (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary               | size                     | FPS  | resolution | RAM usage  |
-| -------------------- | ------------------------ | ---- | ---------- | ---------- |
-| GNU/Linux, SDL       | TODO (gcc), TODO (clang) | TODO | TODO       | TODO       |
-| GNU/Linux, terminal  | TODO (gcc), TODO (clang) | TODO | TODO       | TODO       |
-| Pokitto              | TODO                     | TODO | TODO       | TODO       |
-| Gamebuino Meta       | TODO                     | TODO | TODO       | TODO       |
-| browser              | TODO (JS script)         | TODO | TODO       | TODO       |
+| binary               | size                                 | FPS  | resolution | RAM usage  |
+| -------------------- | ------------------------------------ | ---- | ---------- | ---------- |
+| GNU/Linux, SDL       | TODO (gcc), TODO (clang), TODO (tcc) | TODO | TODO       | TODO       |
+| GNU/Linux, terminal  | TODO (gcc), TODO (clang), TODO (tcc) | TODO | TODO       | TODO       |
+| Pokitto              | TODO                                 | TODO | TODO       | TODO       |
+| Gamebuino Meta       | TODO                                 | TODO | TODO       | TODO       |
+| browser              | TODO (JS script)                     | TODO | TODO       | TODO       |
 
 system requirements:
 
@@ -317,3 +317,4 @@ I therefore release everything in this repository under CC0 1.0 (public domain, 
 I would like to ask you, without it being any requirement at all, to please support free software and free culture by sharing at least some of your own work in a similar way I do with this project.
 
 If you'd like to support me or just read something about me and my projects, visit my site: [www.tastyfish.cz](http://www.tastyfish.cz/).
+

@@ -26,7 +26,11 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.908
+  version: 0.908d
+
+  Version numbering: major.minor[d], id 'd' is appended, this is a
+  in-development version based on the previous stable major.minor version. Two
+  'd' versions with the same version number, .e.g. 1.0d, may be different.
 */
 
 #include <stdint.h>
@@ -840,7 +844,7 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
         CORRECT(X,y)
 
-#endif
+#endif // RCL_RECTILINEAR
       }
       else
       {
@@ -864,8 +868,7 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 
 #undef CORRECT
 
-          // ^ / 4 is here to prevent overflow
-#endif
+#endif // RCL_RECTILINEAR
       }
 
 #if !RCL_RECTILINEAR

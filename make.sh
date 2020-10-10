@@ -20,6 +20,12 @@ COMPILER='g++'
 
 if [ $# -eq 2 ]; then
   COMPILER=$2
+
+  if [ $2 == "tcc" ]; then # you'll probably want to modify this
+    C_FLAGS="${C_FLAGS} -L/usr/lib/x86_64-linux-gnu/pulseaudio/ 
+      -I/home/tastyfish/git/tcc/tcc-0.9.27/include
+      -I/usr/lib/gcc/x86_64-linux-gnu/8/include/"
+  fi
 fi
 
 echo "compiling"
