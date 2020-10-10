@@ -66,6 +66,10 @@
   #define SFG_LOG(str) ; ///< Can be redefined to log messages for better debug.
 #endif
 
+#ifndef SFG_CPU_LOAD
+  #define SFG_CPU_LOAD(percent) ; ///< Can be redefined to check CPU load in %.
+#endif
+
 /** 
   Returns 1 (0) if given key is pressed (not pressed). At least the mandatory
   keys have to be implemented, the optional keys don't have to ever return 1.
@@ -4805,6 +4809,9 @@ uint8_t SFG_mainLoopBody()
 
     // render only once
     SFG_draw();
+
+    if (SFG_game.frame % 16 == 0)
+      SFG_CPU_LOAD(((SFG_getTimeMs() - timeNow) * 100) / SFG_MS_PER_FRAME);
   }
   else
   {

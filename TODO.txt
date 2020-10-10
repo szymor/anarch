@@ -1,5 +1,6 @@
 general:
 
+- High pitch noise in SDL music AGAIN!
 - Refactor.
 - Port to OpenDingux.
 - Port to some fantasy console?
