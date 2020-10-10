@@ -325,7 +325,7 @@ uint16_t audioPos = 0;
 
 static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
 {
-  return (sample1 + sample2) / 2;
+  return sample1 + sample2;
 }
 
 uint8_t musicOn = 1;
@@ -338,7 +338,7 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   {
     s16[i] = musicOn ?
       mixSamples(audioBuff[audioPos], MUSIC_VOLUME *
-      (SFG_musicTrackAverages[SFG_MusicState.track] - SFG_getNextMusicSample()))
+      (SFG_getNextMusicSample()- SFG_musicTrackAverages[SFG_MusicState.track]))
       : audioBuff[audioPos];
 
     audioBuff[audioPos] = 0;
@@ -354,7 +354,7 @@ void SFG_enableMusic(uint8_t enable)
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
   uint16_t pos = audioPos;
-  uint16_t volumeScale = 1 << (volume / 36);
+  uint16_t volumeScale = 1 << (volume / 37);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
