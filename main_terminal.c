@@ -5,6 +5,8 @@
   priviledges (sudo) to work! This frontend is more of an experiment, don't
   expect it to work perfectly and everywhere.
 
+  Needs to be run with sudo.
+
   by Miloslav Ciz (drummyfish), 2019
 
   Released under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
@@ -138,7 +140,8 @@ int main()
 
   timeStart = getTime();
 
-  devFile = open("/dev/input/event0", O_RDONLY);
+  devFile = open("/dev/input/event0",O_RDONLY); 
+  // ^ replace with your specific keyboard file
 
   fcntl(devFile, F_SETFL, O_NONBLOCK);
 

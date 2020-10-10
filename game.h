@@ -67,7 +67,7 @@
 #endif
 
 #ifndef SFG_CPU_LOAD
-  #define SFG_CPU_LOAD(percent) ; ///< Can be redefined to check CPU load in %.
+  #define SFG_CPU_LOAD(percent) {} ///< Can be redefined to check CPU load in %.
 #endif
 
 /** 

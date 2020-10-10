@@ -48,7 +48,7 @@ elif [ $1 == "terminal" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./game
+  ${COMMAND} && sudo ./game
 elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
