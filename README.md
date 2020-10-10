@@ -66,8 +66,8 @@ source code stats (80 column wrapping, a lot of empty lines):
 | images.h, levels.h, sounds.h (assets) | TODO    | TODO      |
 | settings.h, constants.h               | TODO    | TODO      |
 | **total**                             | TODO    | TODO      |
-| Doom                                  | TODO    | TODO      |
-| Wolf 3D                               | TODO    | TODO      |
+| Doom source code                      | 38000   | 1.6 MB    |
+| Wolf 3D source code                   | 25000   | 916 KB    |
 
 compiled:
 
