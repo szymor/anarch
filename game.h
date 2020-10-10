@@ -28,6 +28,8 @@
 /*
   The following keys are mandatory to be implemented on any platform in order
   for the game to be playable.
+
+  Enums are bloat :)
 */
 #define SFG_KEY_UP 0
 #define SFG_KEY_RIGHT 1
@@ -55,15 +57,14 @@
 /* ============================= PORTING =================================== */
 
 /* When porting, do the following:
-   - Include this file (and possibly other optionaly files) in your main_*
-     frontend source.
+   - Include this file (and possibly other optionaly files, like sounds.h) in
+     your main_*.c frontend source.
    - Implement the following functions in your frontend source.
    - Call SFG_init() from your frontend initialization code.
-   - Call SFG_mainLoopBody() from within your frontend main loop.
-*/
+   - Call SFG_mainLoopBody() from within your frontend main loop. */
 
 #ifndef SFG_LOG
-  #define SFG_LOG(str) ; ///< Can be redefined to log messages for better debug.
+  #define SFG_LOG(str) {} ///< Can be redefined to log game messages.
 #endif
 
 #ifndef SFG_CPU_LOAD
@@ -73,16 +74,16 @@
 /** 
   Returns 1 (0) if given key is pressed (not pressed). At least the mandatory
   keys have to be implemented, the optional keys don't have to ever return 1.
-  See the key contant definitions to see which ones are mandatory.
+  See the key constant definitions to see which ones are mandatory.
 */
 int8_t SFG_keyPressed(uint8_t key);
 
 /**
-  Optinal function for mouse/analog controls, gets mouse x and y offset in
-  pixels from the game screen center (to achieve classic FPS mouse controls the
-  platform should center the mouse at the end). If the platform isn't using a
-  mouse, this function can simply return [0,0] offets at each call, or even
-  do nothing (leave the variables as are).
+  Optinal function for mouse/joystick/analog controls, gets mouse x and y offset
+  in pixels from the game screen center (to achieve classic FPS mouse controls
+  the platform should center the mouse after the call). If the platform isn't
+  using a mouse, this function can simply return [0,0] offets at each call, or
+  even do nothing at all (leave the variables as are).
 */
 void SFG_getMouseOffset(int16_t *x, int16_t *y);
 
@@ -99,8 +100,9 @@ uint32_t SFG_getTimeMs();
 void SFG_sleepMs(uint16_t timeMs);
 
 /**
-  Set specified screen pixel. The function doesn't have to check whether
-  the coordinates are within screen.
+  Set specified screen pixel. ColorIndex is the index of the game's palette.
+  The function doesn't have to (and shouldn't, for the sake of performance)
+  check whether the coordinates are within screen.
 */
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 
@@ -117,8 +119,8 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
 /**
   Informs the frontend whether music should get enabled/disabled. Playing music
-  is optional and the frontend can ignore it. If a frontend wants to implement
-  music, it can use the one provided in sounds.h or use its own.
+  is optional and the frontend can ignore this. If a frontend wants to implement
+  music, it can use the bytebeat provided in sounds.h or use its own.
 */
 void SFG_enableMusic(uint8_t enable);
 
@@ -135,18 +137,19 @@ void SFG_enableMusic(uint8_t enable);
 
 /**
   This is an optional function that informs the frontend about special events
-  which may trigger something special, such as a controller vibration, logging
-  something etc. This function can do nothing.
+  which may trigger something special on the platform, such as a controller
+  vibration, logging etc. This implementation of this function can be left
+  empty.
 */
 void SFG_processEvent(uint8_t event, uint8_t data);
 
 #define SFG_SAVE_SIZE 12
 
 /**
-  Optional function for permanently saving game state. Platform that don't have
-  permanent storage may let this function do nothing. If implemented, the
-  function should save the passed data into its permanent storage, e.g. a file,
-  a cookie etc.
+  Optional function for permanently saving the game state. Platforms that don't
+  have permanent storage (HDD, EEPROM etc.)  may let this function simply do
+  nothing. If implemented, the function should save the passed data into its
+  permanent storage, e.g. a file, a cookie etc.
 */
 void SFG_save(uint8_t data[SFG_SAVE_SIZE]);
 
@@ -161,20 +164,22 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE]);
   array as is).
 
   This function should return 1 if saving/loading is possible and 0 if not (this
-  will be used by the game to detect this capability).
+  will be used by the game to detect saving/loading capability).
 */
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
 
 /* ========================================================================= */
 
 /**
-  Game main loop body, call this inside the platform's specific main loop.
-  Returns 1 if the game continues, 0 if the game was exited.
+  Game main loop body, call this inside your platform's specific main loop.
+  Returns 1 if the game continues, 0 if the game was exited and program should
+  halt. This functions handles reaching the target FPS and sleeping for
+  relieving CPU, so don't do this.
 */
 uint8_t SFG_mainLoopBody();
 
 /**
-  Initializes the whole program, call this in the platform initialization.
+  Initializes the game, call this in the platform's initialization code.
 */
 void SFG_init();
 
@@ -190,7 +195,7 @@ void SFG_init();
   #define SFG_PROGRAM_MEMORY_U8(addr) ((uint8_t) (*(addr)))
 #endif
 
-#include "images.h"
+#include "images.h" // don't change the order of these includes
 #include "levels.h"
 #include "texts.h"
 #include "palette.h"
@@ -212,15 +217,14 @@ void SFG_init();
 typedef struct
 {
   uint8_t coords[2];
-  uint8_t state;     /**< door state in format:
+  uint8_t state;    /**< door state in format:
                           
-                          MSB  ccbaaaaa  LSB
+                         MSB  ccbaaaaa  LSB
 
-                          aaaaa: current door height (how much they're open)
-                          b:     whether currently going up (0) or down (1)
-                          cc:    by which card (key) the door is unlocked, 00
-                                 means no card (unlocked), 1 means card 0 etc.
-                     */
+                         aaaaa: current door height (how much they're open)
+                         b:     whether currently going up (0) or down (1)
+                         cc:    by which card (key) the door is unlocked, 00
+                                means no card (unlocked), 1 means card 0 etc. */
 } SFG_DoorRecord;
 
 #define SFG_SPRITE_SIZE(size0to3) \
@@ -252,9 +256,9 @@ typedef uint8_t SFG_ItemRecord;
 
 typedef struct 
 {
-  uint8_t stateType;     /**< Holds state (lower 4 bits) and type of monster
-                              (upper 4 bits). */
-  uint8_t coords[2];     /**< monster position, in 1/4s of a square */
+  uint8_t stateType;  /**< Holds state (lower 4 bits) and type of monster (upper
+                           4 bits). */
+  uint8_t coords[2];  /**< monster position, in 1/4s of a square */
   uint8_t health;
 } SFG_MonsterRecord;
 
@@ -289,7 +293,7 @@ typedef struct
 typedef struct
 {
   uint8_t  type;
-  uint8_t  doubleFramesToLive; /**< This number times two (because 256 could be
+  uint8_t  doubleFramesToLive; /**< This number times two (because 255 could be
                                     too little at high FPS) says after how many
                                     frames the projectile is destroyed. */
   uint16_t position[3]; /**< Current position, stored as u16 to save space, as
@@ -328,37 +332,32 @@ typedef struct
 */
 struct
 {
-  uint8_t state;
+  uint8_t state;                 ///< Current game state.
   uint32_t stateChangeTime;      ///< Time in ms at which the state was changed.
-
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
-
   uint8_t soundsPlayedThisFrame; /**< Each bit says whether given sound was
                                     played this frame, prevents playing too many
                                     sounds at once. */
-
   RCL_RayConstraints rayConstraints;
   uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, each value
                                     stores the number of frames for which the
                                     key has been held. */
   uint8_t zBuffer[SFG_Z_BUFFER_SIZE];
-
   uint8_t textureAverageColors[SFG_WALL_TEXTURE_COUNT]; /**< Contains average
                                     color for each wall texture. */
-
   int8_t backgroundScaleMap[SFG_GAME_RESOLUTION_Y];
   uint16_t backgroundScroll;
   uint8_t spriteSamplingPoints[SFG_MAX_SPRITE_SIZE]; /**< Helper for
                                                      precomputing sprite
                                                      sampling positions for
                                                      drawing. */
-  uint32_t frameTime; ///< Keeps a constant time (in ms) during a frame
-  uint32_t frame;
+  uint32_t frameTime;      ///< time (in ms) of the current frame start
+  uint32_t frame;          ///< frame number
   uint8_t selectedMenuItem;
-  uint8_t selectedLevel;   ///< Level to play selected in the main menu.
-  uint8_t antiSpam;   ///< Prevents log message spamming.
-  uint8_t settings;   /**< Dynamic game settings (can be changed at runtime),
+  uint8_t selectedLevel;   ///< level to play selected in the main menu
+  uint8_t antiSpam;        ///< Prevents log message spamming.
+  uint8_t settings;   /**< dynamic game settings (can be changed at runtime),
                            bit meaning:
 
                            MSB -------- LSB
@@ -367,7 +366,6 @@ struct
                                    ||\__ music
                                    |\___ shearing
                                    \____ freelook (shearing not sliding back) */
-
   uint8_t blink;      ///< Says whether blinkg is currently on or off.
   uint8_t saved;      /**< Helper variable to know if game was saved. Can be
                            0 (not saved), 1 (just saved) or 255 (can't save).*/
@@ -407,19 +405,15 @@ struct
                                   air. */
   uint16_t headBobFrame;
   uint8_t  weapon;                 ///< currently selected weapon
-
   uint8_t  health;
-
-  uint32_t weaponCooldownFrames; ///< frames left for weapon cooldow
+  uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldow
   uint32_t lastHurtFrame;
   uint32_t lastItemTakenFrame;
-
   uint8_t  ammo[SFG_AMMO_TOTAL];
-
-  uint8_t  cards;                /**< Lowest 3 bits say which access cards have
-                                 been taken., the next 3 bits say which cards
-                                 should be blinking in the HUD, the last
-                                 2 bits are a blink reset counter. */
+  uint8_t  cards;                  /**< Lowest 3 bits say which access cards
+                                   have been taken., the next 3 bits say
+                                   which cards should be blinking in the HUD,
+                                   the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
 } SFG_player;
 
@@ -430,12 +424,10 @@ struct
 {
   const SFG_Level *levelPointer;
   uint8_t levelNumber;
-  const uint8_t* textures[7];
-
+  const uint8_t* textures[7];    ///< textures the level is using
   uint32_t timeStart;
   uint32_t frameStart;
-  uint32_t completionTime10sOfS; ///< Completion time in 10th of second.
-
+  uint32_t completionTime10sOfS; ///< completion time in 10th of second
   uint8_t floorColor;
   uint8_t ceilingColor;
 
@@ -459,7 +451,6 @@ struct
   uint8_t teleportCount;
   uint16_t mapRevealMask; /**< Bits say which parts of the map have been
                                revealed. */
-
   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
                           /**< Bit array, for each map square says whether there
                                is a colliding item or not. */
@@ -468,7 +459,8 @@ struct
 #if SFG_ARDUINO
 /**
   Copy of the current level that is stored in RAM. This is only done on Arduino
-  because accessing it in program memory directly would be difficult.
+  because accessing it in program memory (PROGMEM) directly would be a pain.
+  Because of this Arduino needs more RAM.
 */
 SFG_Level SFG_ramLevel;
 #endif
@@ -703,7 +695,7 @@ const uint8_t *SFG_getMonsterSprite(
 {
   uint8_t index = 
     state == SFG_MONSTER_STATE_DEAD ? 18 : 17;
-  // ^ makes the code smaller compared to returning pointers
+  // ^ makes the compiled binary smaller compared to returning pointers directly
 
   if ((state != SFG_MONSTER_STATE_DYING) && (state != SFG_MONSTER_STATE_DEAD))
     switch (monsterType)
@@ -862,9 +854,7 @@ static inline uint8_t
       textureIndex != 255 ?
         SFG_currentLevel.textures[textureIndex] :
           (SFG_wallTextures + SFG_currentLevel.levelPointer->doorTextureIndex
-          * SFG_TEXTURE_STORE_SIZE),
-      u / 32,
-      v / 32); 
+          * SFG_TEXTURE_STORE_SIZE), u / 32, v / 32); 
 }
 
 static inline uint8_t SFG_getTexelAverage(uint8_t textureIndex)
@@ -4499,7 +4489,7 @@ void SFG_draw()
     return;
   }
 
-  if (SFG_keyPressed(SFG_KEY_MAP) || (SFG_game.state == SFG_GAME_STATE_MAP))
+  if (SFG_keyIsDown(SFG_KEY_MAP) || (SFG_game.state == SFG_GAME_STATE_MAP))
   {
     SFG_drawMap();
   } 

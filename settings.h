@@ -26,7 +26,9 @@
   the game may actually become slowed down if FPS is set too high. Too high or
   too low FPS can also negatively affect game speeds which are computed as
   integers and rounding errors can occur soon, so don't set this to extreme
-  values (try to keep from 20 to 100).
+  values (try to keep between 20 to 100). FPS also determines the game
+  simulation step length, so different FPS values may result in very slight
+  differences in game behavior (not noticeable but affecting demos etc.).
 */
 #ifndef SFG_FPS
   #define SFG_FPS 60

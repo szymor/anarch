@@ -57,15 +57,17 @@ SDL:
 
 ## Stats and comparisons (for version 1.0)
 
-lines of code (80 column wrapping, a lot of empty lines):
+source code stats (80 column wrapping, a lot of empty lines):
 
-| file                                  | LOC    |
-| --------------------------------------| -------|
-| game.h (main game logic)              | TODO   |
-| raycastlib.h (ray casting library)    | TODO   |
-| images.h, levels.h, sounds.h (assets) | TODO   |
-| settings.h, constants.h               | TODO   |
-| **total**                             | TODO   |
+| file                                  | LOC     | file size |
+| --------------------------------------| ------- | --------- |
+| game.h (main game logic)              | TODO    | TODO      |
+| raycastlib.h (ray casting library)    | TODO    | TODO      |
+| images.h, levels.h, sounds.h (assets) | TODO    | TODO      |
+| settings.h, constants.h               | TODO    | TODO      |
+| **total**                             | TODO    | TODO      |
+| Doom                                  | TODO    | TODO      |
+| Wolf 3D                               | TODO    | TODO      |
 
 compiled:
 
