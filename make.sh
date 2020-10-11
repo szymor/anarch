@@ -64,7 +64,7 @@ elif [ $1 == "emscripten" ]; then
   # emscripten (browser Javascript) build, requires:
   # - emscripten
 
-  emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o game.html
+  ../emsdk/upstream/emscripten/emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o game.html -s EXPORTED_FUNCTIONS='["_main","_webButton"]' -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]'
 else
   echo "unknown parameter: $1"
 fi

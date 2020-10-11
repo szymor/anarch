@@ -88,6 +88,7 @@
 #include "sounds.h"
 
 const uint8_t *sdlKeyboardState;
+uint8_t webKeyboardState[SFG_KEY_COUNT];
 uint8_t sdlMouseButtonState = 0;
 int8_t sdlMouseWheelState = 0;
 
@@ -155,6 +156,13 @@ void SFG_sleepMs(uint16_t timeMs)
 #endif
 }
 
+#ifdef __EMSCRIPTEN__
+void webButton(uint8_t key, uint8_t down)
+{
+  webKeyboardState[key] = down;
+}
+#endif
+
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 #ifndef __EMSCRIPTEN__
@@ -176,6 +184,9 @@ void SFG_processEvent(uint8_t event, uint8_t data)
 
 int8_t SFG_keyPressed(uint8_t key)
 {
+  if (webKeyboardState[key]) 
+    return 1;
+
   switch (key)
   {
     case SFG_KEY_UP:
@@ -375,6 +386,9 @@ int main(int argc, char *argv[])
   uint8_t argHelp = 0;
   uint8_t argForceWindow = 0;
   uint8_t argForceFullscreen = 0;
+
+  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
+    webKeyboardState[i] = 0;
 
   for (uint8_t i = 1; i < argc; ++i)
   {
