@@ -22,7 +22,7 @@
 //     #define SFG_UNLOCK_DOOR 1
 //     #define SFG_INFINITE_AMMO 1
 
-#define SFG_FPS 25
+#define SFG_FPS 22
 #define SFG_CAN_EXIT 0
 //#define SFG_TEXTURE_DISTANCE 6000
 
