@@ -127,6 +127,10 @@ level ideas:
 
 bugs:
 
+- Player can be thrown inside a wall (by an explosion it seems), seems to happen
+  near door. If this can't be prevented completely, automatically unstuck the
+  player into a playable area.
+
 done:
 
 - add headbob
