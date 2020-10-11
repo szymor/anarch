@@ -1,9 +1,7 @@
 general:
 
-- Add SW buttons to emscripten version so that it's playable on mobiles.
 - Refactor.
 - Port to OpenDingux.
-- Port to some fantasy console?
 - Rewrite python scripts to C (faster, less bloat).
 - Try to recolor textures and give them a bit more of variety.
 - automatic tests: a frontend that will play the game, check the state, rendered
@@ -12,6 +10,7 @@ general:
 - compile on BSD and WinShit
 - make SFML frontend
 - add time slowdown constant
+- Port to some fantasy console?
 - run on raspbery pi
 
 level ideas:
@@ -199,6 +198,7 @@ done:
   a build script that creates multiple binaries (with different combinations of
   compilers and settings)
 - High pitch noise in SDL music AGAIN!
+- Add SW buttons to emscripten version so that it's playable on mobiles.
 
 scratched:
 - option for disabling wall transparency, for performance?

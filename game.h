@@ -448,7 +448,7 @@ struct
   uint8_t bossCount;
   uint8_t monstersDead;
   uint8_t backgroundImage;
-  uint8_t teleportCount;
+  uint8_t teleporterCount;
   uint16_t mapRevealMask; /**< Bits say which parts of the map have been
                                revealed. */
   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
@@ -1407,7 +1407,7 @@ void SFG_getItemSprite(
     case SFG_LEVEL_ELEMENT_TREE:
     case SFG_LEVEL_ELEMENT_RUIN:
     case SFG_LEVEL_ELEMENT_LAMP:
-    case SFG_LEVEL_ELEMENT_TELEPORT:
+    case SFG_LEVEL_ELEMENT_TELEPORTER:
       *spriteSize = 2;
       break;
 
@@ -1493,7 +1493,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   SFG_currentLevel.checkedDoorIndex = 0;
   SFG_currentLevel.doorRecordCount = 0;
   SFG_currentLevel.projectileRecordCount = 0;
-  SFG_currentLevel.teleportCount = 0;
+  SFG_currentLevel.teleporterCount = 0;
   SFG_currentLevel.mapRevealMask = 
 #if SFG_REVEAL_MAP
     0xffff;
@@ -1553,8 +1553,6 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
     {
       if (SFG_LEVEL_ELEMENT_TYPE_IS_MOSTER(e->type))
       {
-        SFG_LOG("adding monster");
-
         monster =
         &(SFG_currentLevel.monsterRecords[SFG_currentLevel.monsterRecordCount]);
 
@@ -1575,20 +1573,17 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
       else if ((e->type < SFG_LEVEL_ELEMENT_LOCK0) ||
         (e->type > SFG_LEVEL_ELEMENT_LOCK2))
       {
-        SFG_LOG("adding item");
         SFG_currentLevel.itemRecords[SFG_currentLevel.itemRecordCount] = i;
         SFG_currentLevel.itemRecordCount++;
 
-        if (e->type == SFG_LEVEL_ELEMENT_TELEPORT)
-          SFG_currentLevel.teleportCount++;
+        if (e->type == SFG_LEVEL_ELEMENT_TELEPORTER)
+          SFG_currentLevel.teleporterCount++;
 
         if (SFG_itemCollides(e->type))
           SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],1);
       }
       else
       {
-        SFG_LOG("adding door lock");
-      
         uint8_t properties;
      
         SFG_getMapTile(level,e->coords[0],e->coords[1],&properties);
@@ -1766,18 +1761,14 @@ uint8_t SFG_launchProjectile(
   
   p.position[0] =
     shootFrom.x + (direction.x * offsetDistance) / RCL_UNITS_PER_SQUARE;
-
   p.position[1] = 
     shootFrom.y + (direction.y * offsetDistance) / RCL_UNITS_PER_SQUARE; 
-
   p.position[2] = shootFromHeight;
 
   p.direction[0] = 
     (direction.x * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
-
   p.direction[1] =
     (direction.y * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
-
   p.direction[2] = verticalSpeed;
 
   return SFG_createProjectile(p);
@@ -1807,9 +1798,7 @@ uint8_t SFG_pushAway(
     l = RCL_UNITS_PER_SQUARE;
   }
   else if (l >= distance)
-  {
     return 0;
-  }
 
   RCL_Vector2D offset;
 
@@ -3268,7 +3257,7 @@ void SFG_gameStepPlaying()
     }
   }
 
-  uint8_t collidesWithTeleport = 0;
+  uint8_t collidesWithTeleporter = 0;
 
   /* item collisions with player (only those that don't stop player's movement,
      as those are handled differently, via itemCollisionMap): */
@@ -3347,8 +3336,8 @@ void SFG_gameStepPlaying()
             SFG_player.cards |= 1 << (e->type - SFG_LEVEL_ELEMENT_CARD0);
             break;
 
-          case SFG_LEVEL_ELEMENT_TELEPORT:
-            collidesWithTeleport = 1;
+          case SFG_LEVEL_ELEMENT_TELEPORTER:
+            collidesWithTeleporter = 1;
             eliminate = 0;
             break;
 
@@ -3378,14 +3367,14 @@ void SFG_gameStepPlaying()
 #endif
         }
         else if (
-          e->type == SFG_LEVEL_ELEMENT_TELEPORT &&
-          SFG_currentLevel.teleportCount > 1 &&
+          e->type == SFG_LEVEL_ELEMENT_TELEPORTER &&
+          SFG_currentLevel.teleporterCount > 1 &&
           !SFG_player.justTeleported)
         {
-          // teleport to random destination teleport
+          // teleport to random destination teleporter
 
-          uint8_t teleportNumber =
-            SFG_random() % (SFG_currentLevel.teleportCount - 1) + 1;
+          uint8_t teleporterNumber =
+            SFG_random() % (SFG_currentLevel.teleporterCount - 1) + 1;
 
           for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
           {
@@ -3394,10 +3383,10 @@ void SFG_gameStepPlaying()
                 [SFG_currentLevel.itemRecords[j] &
                 ~SFG_ITEM_RECORD_ACTIVE_MASK];
 
-            if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORT) && (j != i))
-              teleportNumber--;
+            if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORTER) && (j != i))
+              teleporterNumber--;
 
-            if (teleportNumber == 0)
+            if (teleporterNumber == 0)
             {
               SFG_player.camera.position.x =
                 SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[0]);
@@ -3410,7 +3399,7 @@ void SFG_gameStepPlaying()
                 RCL_CAMERA_COLL_HEIGHT_BELOW;
 
               SFG_currentLevel.itemRecords[j] |= SFG_ITEM_RECORD_ACTIVE_MASK;
-              /* ^ we have to make the new teleport immediately active so
+              /* ^ we have to make the new teleporter immediately active so
                  that it will immediately collide */
 
               SFG_player.justTeleported = 1;
@@ -3426,7 +3415,7 @@ void SFG_gameStepPlaying()
     } 
   } // item collision check
 
-  if (!collidesWithTeleport)
+  if (!collidesWithTeleporter)
     SFG_player.justTeleported = 0;
 
 #if SFG_PREVIEW_MODE
@@ -4551,7 +4540,6 @@ void SFG_draw()
     for (int_fast16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     {
       SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
-
       uint8_t state = SFG_MR_STATE(m);
 
       if (state != SFG_MONSTER_STATE_INACTIVE)
@@ -4568,8 +4556,7 @@ void SFG_draw()
           SFG_floorHeightAt(
             SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
             SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
-            + 
-            SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
+            + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
 
         RCL_PixelInfo p =
           RCL_mapToScreen(worldPosition,worldHeight,SFG_player.camera);
@@ -4624,11 +4611,10 @@ void SFG_draw()
 
           if (p.depth > 0 &&
             SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
-            SFG_drawScaledSprite(
-              sprite,
-              p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
-              RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),p.depth),
-              p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+            SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
+              p.position.y,
+              RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
+              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
         }
       }
 
@@ -4660,8 +4646,7 @@ void SFG_draw()
           RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(proj->type) / 2);
 
         // grow the explosion/dust sprite as an animation
-        spriteSize =
-          (
+        spriteSize = (
             SFG_SPRITE_SIZE_PIXELS(2) *
             RCL_sin(          
               ((doubleFramesToLive -
