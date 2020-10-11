@@ -199,6 +199,8 @@ done:
   compilers and settings)
 - High pitch noise in SDL music AGAIN!
 - Add SW buttons to emscripten version so that it's playable on mobiles.
+- When SDL level starts without moving the mouse, the camera sometimes rotates
+  wildly.
 
 scratched:
 - option for disabling wall transparency, for performance?

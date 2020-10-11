@@ -163,9 +163,15 @@ void webButton(uint8_t key, uint8_t down)
 }
 #endif
 
+int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
+                          this is needed to fix an SDL limitation. */
+
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 #ifndef __EMSCRIPTEN__
+  if (mouseMoved)
+  {
+
   int mX, mY;
 
   SDL_GetMouseState(&mX,&mY);
@@ -175,6 +181,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 
   SDL_WarpMouseInWindow(window,
     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
+  }
 #endif
 }
 
@@ -312,6 +319,8 @@ void mainLoopIteration()
     }
     else if (event.type == SDL_QUIT)
       running = 0;
+    else if (event.type == SDL_MOUSEMOTION)
+      mouseMoved = 1; 
   }
 
   sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
@@ -428,8 +437,6 @@ int main(int argc, char *argv[])
 
   puts("SDL: initializing SDL");
 
-  SFG_init();
-
   window =
     SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED, SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y,
@@ -454,8 +461,6 @@ int main(int argc, char *argv[])
   }
 
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
-
-  SDL_ShowCursor(0);
 
   SDL_Init(SDL_INIT_AUDIO);
 
@@ -487,6 +492,15 @@ int main(int argc, char *argv[])
   SDL_PauseAudio(0);
 
   running = 1;
+
+  SDL_ShowCursor(0);
+
+  SFG_init();
+
+  SDL_PumpEvents();
+
+  SDL_WarpMouseInWindow(window,
+    SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(mainLoopIteration,0,1);
