@@ -86,7 +86,7 @@
   Distance at which level elements (sprites) collide, in RCL_Unit (1024 per
   square).
 */
-#define SFG_ELEMENT_COLLISION_RADIUS 1900
+#define SFG_ELEMENT_COLLISION_RADIUS 1800
 
 /**
   Height, in RCL_Units, at which collisions happen with level elements
@@ -95,15 +95,18 @@
 #define SFG_ELEMENT_COLLISION_HEIGHT 1024
 
 /**
-  Distance at which explosion does damage and throws away the player and
-  monsters, in RCL_Units.
+  Distance at which explosion does damage and throws away the player, in
+  RCL_Units. Should be higher than SFG_ELEMENT_COLLISION_RADIUS so that
+  exploded rockets also hurt the target.
 */
-#define SFG_EXPLOSION_RADIUS 2048 
+#define SFG_EXPLOSION_RADIUS 2000
 
 /**
-  Distance in RCL_Units which the player is pushed away by an explosion.
+  Distance in RCL_Units which the player is pushed away by an explosion. Watch
+  out, a slightly higher value can make player go through walls. Rather keep
+  this under RCL_UNITS_PER_SQUARE;
 */
-#define SFG_EXPLOSION_PUSH_AWAY_DISTANCE 1200
+#define SFG_EXPLOSION_PUSH_AWAY_DISTANCE 1023
 
 /**
   How much damage triggers a barrel explosion.
@@ -552,7 +555,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
   lllll: eigth of frames to live
 */
 
-#define LOW_FPS (SFG_FPS < 20) ///< low FPS needs low speeds, because collisions
+#define LOW_FPS (SFG_FPS < 24) ///< low FPS needs low speeds, because collisions
 
 SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {

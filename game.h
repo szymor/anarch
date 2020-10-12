@@ -1797,8 +1797,6 @@ uint8_t SFG_pushAway(
     fromCenter = RCL_angleToDirection(preferredDirection);
     l = RCL_UNITS_PER_SQUARE;
   }
-  else if (l >= distance)
-    return 0;
 
   RCL_Vector2D offset;
 
@@ -2014,8 +2012,13 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 
   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
 
-  if (SFG_pushPlayerAway(x,y,SFG_EXPLOSION_PUSH_AWAY_DISTANCE))
+  if (SFG_taxicabDistance(x,y,z,SFG_player.camera.position.x,
+    SFG_player.camera.position.y,SFG_player.camera.height)
+    <= SFG_EXPLOSION_RADIUS)
+  {
     SFG_playerChangeHealth(-1 * damage);
+    SFG_pushPlayerAway(x,y,SFG_EXPLOSION_PUSH_AWAY_DISTANCE);
+  }
 
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
