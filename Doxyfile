@@ -1,4 +1,4 @@
-# Anarch Doyfile (a configuration for automatic docs generator Doxygen)
+# Anarch Doxyfile (a configuration for automatic docs generator Doxygen)
 
 PROJECT_NAME               = "Anarch"
 DOXYFILE_ENCODING          = UTF-8
