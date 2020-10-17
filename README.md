@@ -63,6 +63,7 @@ source code stats (80 column wrapping, a lot of empty lines):
 | --------------------------------------| ------- | --------- |
 | game.h (main game logic)              | TODO    | TODO      |
 | raycastlib.h (ray casting library)    | TODO    | TODO      |
+| smallinput.h (test helper)            | TODO    | TODO      |
 | images.h, levels.h, sounds.h (assets) | TODO    | TODO      |
 | settings.h, constants.h               | TODO    | TODO      |
 | **total**                             | TODO    | TODO      |
@@ -250,6 +251,7 @@ main_*.*         fronted implement. for various platforms, passed to compiler
 palette.h        game 256 color palette
 raycastlib.h     ray casting library
 settings.h       game settings that users can change (FPS, resolution, ...)
+smallinput.h     helper for some frontends and tests, not needed for the game
 sounds.h         sounds from assets folder converted to C
 texts.h          game texts
 make.sh          compiling script constaining compiler settings

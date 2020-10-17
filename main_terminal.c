@@ -24,6 +24,8 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "smallinput.h"
+
 #define SFG_SCREEN_RESOLUTION_X 127
 #define SFG_SCREEN_RESOLUTION_Y 42
 #define SFG_DITHERED_SHADOW 1
@@ -42,33 +44,6 @@ const char shades[] = // adjust according to your terminal
   }; 
 
 uint32_t timeStart;
-
-typedef struct
-{
-  struct timeval time;
-    __u16 type;
-    __u16 code;
-    __s32 value;
-} InputEvent;
-
-InputEvent event;
-
-#define TOTAL_KEYS 9
-
-uint16_t keyCodes[TOTAL_KEYS] =
-  {
-    KEY_W,
-    KEY_S,
-    KEY_A,
-    KEY_D,
-    KEY_SPACE,
-    KEY_H,
-    KEY_J,
-    KEY_K,
-    KEY_Q
-  };
-
-uint8_t keyStates[TOTAL_KEYS];
 
 uint32_t getTime()
 {
@@ -104,6 +79,12 @@ void SFG_sleepMs(uint16_t timeMs)
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
+  int32_t a,b;
+
+  input_getMousePos(&a,&b);
+  *x = a;
+  *y = b;
+  input_setMousePos(0,0);
 }
 
 void SFG_processEvent(uint8_t event, uint8_t data)
@@ -114,15 +95,15 @@ int8_t SFG_keyPressed(uint8_t key)
 {
   switch (key)
   {
-    case SFG_KEY_UP:     return keyStates[0]; break;
-    case SFG_KEY_RIGHT:  return keyStates[3]; break;
-    case SFG_KEY_DOWN:   return keyStates[1]; break;
-    case SFG_KEY_LEFT:   return keyStates[2]; break;
-    case SFG_KEY_A:      return keyStates[5]; break;
-    case SFG_KEY_B:      return keyStates[6]; break;
-    case SFG_KEY_C:      return keyStates[7]; break;
-    case SFG_KEY_MAP:    return keyStates[8]; break;
-    case SFG_KEY_JUMP:   return keyStates[4]; break;
+    case SFG_KEY_UP:     return input_getKey('w') || input_getKey(SMALLINPUT_ARROW_UP); break;
+    case SFG_KEY_RIGHT:  return input_getKey('d') || input_getKey(SMALLINPUT_ARROW_RIGHT); break;
+    case SFG_KEY_DOWN:   return input_getKey('s') || input_getKey(SMALLINPUT_ARROW_DOWN); break;
+    case SFG_KEY_LEFT:   return input_getKey('a') || input_getKey(SMALLINPUT_ARROW_LEFT); break;
+    case SFG_KEY_A:      return input_getKey('g'); break;
+    case SFG_KEY_B:      return input_getKey('h') || input_getKey(SMALLINPUT_MOUSE_L); break;
+    case SFG_KEY_C:      return input_getKey('j'); break;
+    case SFG_KEY_MAP:    return input_getKey(SMALLINPUT_TAB); break;
+    case SFG_KEY_JUMP:   return input_getKey(' '); break;
     default:             return 0; break;
   }
 }
@@ -145,25 +126,16 @@ void handleSignal(int signal)
 
 int main()
 {
-  int devFile;
-
   signal(SIGINT,handleSignal);
   signal(SIGQUIT,handleSignal);
   signal(SIGTERM,handleSignal);
 
   timeStart = getTime();
 
-  devFile = open("/dev/input/event0",O_RDONLY); 
-  // ^ replace with your specific keyboard file
-
-  fcntl(devFile, F_SETFL, O_NONBLOCK);
-
+  input_init();
   SFG_init();
 
   screen[SCREENSIZE - 1] = 0; // string terminator
-
-  for (uint16_t i = 0; i < TOTAL_KEYS; ++i)
-    keyStates[i] = 0;
 
   for (uint16_t i = 1; i <= SFG_SCREEN_RESOLUTION_Y; ++i)
     screen[i * (SFG_SCREEN_RESOLUTION_X + 1) - 1] = '\n';
@@ -177,24 +149,8 @@ int main()
   
   while (running)
   {
-    while (1)
-    {
-      int n = read(devFile, &event, sizeof(event));
-
-      if (n <= 0)
-        break;
-
-      if (event.type == EV_KEY && (event.value == 1 || event.value == 0))
-      {
-        for (uint8_t i = 0; i < TOTAL_KEYS; ++i)
-          if (event.code == keyCodes[i])
-          {
-            keyStates[i] = event.value;
-            break;
-          }
-      }
-    }
-   
+    input_update();
+  
     puts("\033[0;0H"); // move cursor to 0;0
     puts(screen);
     fflush(stdout);
@@ -202,6 +158,8 @@ int main()
     if (!SFG_mainLoopBody())
       running = 0;
   }
-    
+
   puts("\033[?25h"); // show cursor
+    
+  input_end();
 }
