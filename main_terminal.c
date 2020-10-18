@@ -108,7 +108,7 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_NEXT_WEAPON: return input_getKey('2'); break;
     case SFG_KEY_PREVIOUS_WEAPON: return input_getKey('1'); break;
     case SFG_KEY_TOGGLE_FREELOOK: return input_getKey(SMALLINPUT_MOUSE_R); break;
-    default:             return 0; breakdwwwwwwawwwwwwwwwwwwawwwwwwwwwwwsswswswsdwswwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwsswwwwwwwwwd
+    default:             return 0; break;
   }
 }
 
