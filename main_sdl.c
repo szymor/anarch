@@ -202,7 +202,7 @@ int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 #if DEMO
-  // For some reason mouse doesn't desyncs, so don't allow it for demos.
+  // For some reason mouse desyncs, so don't allow it for demos.
   return;
 #endif
 
