@@ -71,6 +71,13 @@
   #define SFG_CPU_LOAD(percent) {} ///< Can be redefined to check CPU load in %.
 #endif
 
+#ifndef SFG_GAME_STEP_COMMAND
+  #define SFG_GAME_STEP_COMMAND {} /**< Will be called each simlation step (good
+                                   for creating deterministic behavior such as
+                                   demos (main loop iteration calls potentially
+                                   multiple simulation steps). */
+#endif
+
 /** 
   Returns 1 (0) if given key is pressed (not pressed). At least the mandatory
   keys have to be implemented, the optional keys don't have to ever return 1.
@@ -3803,6 +3810,8 @@ void SFG_gameStepMenu()
 */
 void SFG_gameStep()
 {
+  SFG_GAME_STEP_COMMAND
+
   SFG_game.soundsPlayedThisFrame = 0;
   
   SFG_game.blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
