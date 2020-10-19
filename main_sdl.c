@@ -25,35 +25,6 @@
   #define SFG_OS_IS_MALWARE 1
 #endif
 
-#define DEMO 0 // 0: SDL input, 1: smallinput rec demo, 2: smallinput play demo
-
-#if DEMO
-  /* 
-    Demo support is very basic and isn't mean for users, it is there for
-    programmers and devs (testing, recording trailer footage, ...). Normally
-    SDL's multiplatform input system is used, with demos enables smallinput
-    library, which can record and play back input, is used (but it only works
-    with Linux, requires root and doesn't support so many things, e.g. wheel).
-  */
-  #include "smallinput.h"
-
-  #define SFG_GAME_STEP_COMMAND input_update();
-
-  #if DEMO == 1
-    #define DEMO_MAX_LENGTH 1000000
-    uint8_t demoRecord[DEMO_MAX_LENGTH];
-  #else // DEMO == 2
-    uint8_t demoRecord[] =
-    { // paste demo record here
-//      #include "demo.dem"
-67,0,0,0,1,83,72,0,0,0,2,83,79,0,0,0,1,83,81,0,0,0,2,83,87,0,0,0,1,83,92,0,
-0,0,2,83,116,0,0,0,1,87,120,0,0,0,2,87,126,0,0,0,1,87,130,0,0,0,2,87,148,0,0,0,
-1,83,151,0,0,0,2,83,157,0,0,0,1,83,161,0,0,0,2,83,166,0,0,0,1,83,171,0,0,0,2,83,
-201,0,0,0,1,71,255,255,255,255,255,
-    };
-  #endif
-#endif
-
 //  #define SFG_START_LEVEL 1
   #define SFG_IMMORTAL 1
   #define SFG_UNLOCK_DOOR 1
@@ -201,11 +172,6 @@ int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
-#if DEMO
-  // For some reason mouse desyncs, so don't allow it for demos.
-  return;
-#endif
-
 #ifndef __EMSCRIPTEN__
   if (mouseMoved)
   {
@@ -229,32 +195,6 @@ void SFG_processEvent(uint8_t event, uint8_t data)
 
 int8_t SFG_keyPressed(uint8_t key)
 {
-#if DEMO
-  switch (key)
-  {
-    case SFG_KEY_UP: return input_getKey('w') || 
-                     input_getKey(SMALLINPUT_ARROW_UP); break;
-    case SFG_KEY_RIGHT: return input_getKey('e') || 
-                               input_getKey(SMALLINPUT_ARROW_RIGHT); break;
-    case SFG_KEY_DOWN: return input_getKey('s') ||
-                              input_getKey(SMALLINPUT_ARROW_DOWN); break;
-    case SFG_KEY_LEFT: return input_getKey('q') ||
-                              input_getKey(SMALLINPUT_ARROW_LEFT); break;
-    case SFG_KEY_A: return input_getKey('g') || input_getKey(SMALLINPUT_RETURN); break;
-    case SFG_KEY_B: return input_getKey('h') || input_getKey(SMALLINPUT_MOUSE_L); break;
-    case SFG_KEY_C: return input_getKey('j'); break;
-    case SFG_KEY_JUMP: return input_getKey(' '); break;
-    case SFG_KEY_STRAFE_LEFT: return input_getKey('a'); break;
-    case SFG_KEY_STRAFE_RIGHT: return input_getKey('d'); break;
-    case SFG_KEY_MAP: return input_getKey(SMALLINPUT_TAB); break;
-    case SFG_KEY_TOGGLE_FREELOOK: return input_getKey(SMALLINPUT_MOUSE_R); break;
-    case SFG_KEY_MENU: return input_getKey(SMALLINPUT_ESCAPE); break;
-    case SFG_KEY_PREVIOUS_WEAPON: return input_getKey('o'); break;
-    case SFG_KEY_NEXT_WEAPON: return input_getKey('p'); break;
-    default: return 0;
-  }
-#endif
-
   if (webKeyboardState[key]) 
     return 1;
 
@@ -372,7 +312,6 @@ void mainLoopIteration()
     SDL_PauseAudio(0);
 #endif
 
-#if !DEMO
   while (SDL_PollEvent(&event)) // also automatically updates sdlKeyboardState
   {
     if (event.type == SDL_MOUSEWHEEL)
@@ -387,7 +326,6 @@ void mainLoopIteration()
     else if (event.type == SDL_MOUSEMOTION)
       mouseMoved = 1; 
   }
-#endif
 
   sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
 
@@ -504,7 +442,7 @@ int main(int argc, char *argv[])
   puts("SDL: initializing SDL");
 
   window =
-    SDL_CreateWindow("raycasting", SDL_WINDOWPOS_UNDEFINED,
+    SDL_CreateWindow("Anarch", SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED, SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y,
     SDL_WINDOW_SHOWN); 
 
@@ -563,18 +501,10 @@ int main(int argc, char *argv[])
 
   SFG_init();
 
-#if DEMO == 0
   SDL_PumpEvents();
 
   SDL_WarpMouseInWindow(window,
     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
-#elif DEMO == 1
-  if (!input_init(SMALLINPUT_MODE_RECORD,demoRecord,DEMO_MAX_LENGTH))
-    return 1;
-#else // DEMO == 2
-  if (!input_init(SMALLINPUT_MODE_PLAY,demoRecord,sizeof(demoRecord)))
-    return 1;
-#endif
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(mainLoopIteration,0,1);
@@ -592,15 +522,6 @@ int main(int argc, char *argv[])
   SDL_CloseAudio();
 
   puts("SDL: ending");
-
-#if DEMO
-  input_end();
-
-  #if DEMO == 1
-    puts("recorded demo:");
-    input_printRecord();
-  #endif
-#endif
 
   return 0;
 }

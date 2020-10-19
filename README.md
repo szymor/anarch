@@ -63,7 +63,7 @@ source code stats (80 column wrapping, a lot of empty lines):
 | --------------------------------------| ------- | --------- |
 | game.h (main game logic)              | TODO    | TODO      |
 | raycastlib.h (ray casting library)    | TODO    | TODO      |
-| smallinput.h (test helper)            | TODO    | TODO      |
+| smallinput.h (for terminal frontend)  | TODO    | TODO      |
 | images.h, levels.h, sounds.h (assets) | TODO    | TODO      |
 | settings.h, constants.h               | TODO    | TODO      |
 | **total**                             | TODO    | TODO      |
