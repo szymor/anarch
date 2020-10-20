@@ -4763,6 +4763,10 @@ uint8_t SFG_mainLoopBody()
      delta time. */
   uint32_t timeNow = SFG_getTimeMs();
 
+#if SFG_TIME_MULTIPLIER != 1024
+  timeNow = (timeNow * SFG_TIME_MULTIPLIER) / 1024;
+#endif
+
   int32_t timeSinceLastFrame = timeNow - SFG_game.frameTime;
 
   if (timeSinceLastFrame >= SFG_MS_PER_FRAME)

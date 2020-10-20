@@ -20,6 +20,15 @@
 #define _SFG_SETTINGS_H
 
 /**
+  Time multiplier in SFG_Units (1.0 == 1024). This can be used to slow down or
+  speed up the game.
+*/
+
+#ifndef SFG_TIME_MULTIPLIER
+  #define SFG_TIME_MULTIPLIER 1024
+#endif
+
+/**
   Target FPS (frames per second). This sets the game logic FPS and will try to
   render at the same rate. If such fast rendering can't be achieved, frames will
   be droped, but the game logic will still be forced to run at this speed, so
@@ -32,6 +41,12 @@
 */
 #ifndef SFG_FPS
   #define SFG_FPS 60
+#endif
+
+#define SFG_FPS ((SFG_FPS * SFG_TIME_MULTIPLIER) / 1024)
+
+#if SFG_FPS == 0
+  #define SFG_FPS 1
 #endif
 
 /**
