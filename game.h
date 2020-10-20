@@ -1320,8 +1320,6 @@ void SFG_initPlayer()
 {
   RCL_initCamera(&SFG_player.camera);
 
-  SFG_game.frameTime = SFG_getTimeMs();
-
   SFG_player.camera.resolution.x =
     SFG_GAME_RESOLUTION_X / SFG_RAYCASTING_SUBSAMPLE;
 
@@ -1632,6 +1630,7 @@ void SFG_init()
   SFG_LOG("initializing game")
 
   SFG_game.frame = 0;
+  SFG_game.frameTime = 0;
   SFG_game.currentRandom = 0;
   SFG_game.continues = 1;
 
@@ -4763,6 +4762,7 @@ uint8_t SFG_mainLoopBody()
      Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
   uint32_t timeNow = SFG_getTimeMs();
+
   int32_t timeSinceLastFrame = timeNow - SFG_game.frameTime;
 
   if (timeSinceLastFrame >= SFG_MS_PER_FRAME)
