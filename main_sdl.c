@@ -31,6 +31,8 @@
 //  #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1
 
+// #define SFG_TIME_MULTIPLIER 512
+
 // uncomment for perfomance debug 
 //#define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 

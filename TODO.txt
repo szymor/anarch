@@ -1,15 +1,15 @@
 general:
 
 - Refactor.
+- Polish controls (bindings, mouse sensitivity etc.).
+- Polish weapon switching, maybe add a key to switch to previous weapon?
 - Port to OpenDingux.
-- Rewrite python scripts to C (faster, less bloat).
-- Try to recolor textures and give them a bit more of variety.
+- Rewrite python scripts to C (faster, less bloat, fewer dependencies).
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - compile on BSD and WinShit
 - make SFML frontend
-- add time slowdown constant
 - Port to some fantasy console?
 - run on raspbery pi
 
@@ -124,6 +124,7 @@ level ideas:
   over a hole, leading to an easter egg
 - start of level: a corner blocked by an invisible wall, to indicate entrance    DONE
 - small pyramid from diffetently elevated floor tiles
+- add time slowdown constant
 
 bugs:
 
@@ -204,6 +205,7 @@ done:
 - Player can be thrown inside a wall (by an explosion it seems), seems to happen
   near door. If this can't be prevented completely, automatically unstuck the
   player into a playable area.
+- Try to recolor textures and give them a bit more of variety.
 
 scratched:
 - option for disabling wall transparency, for performance?

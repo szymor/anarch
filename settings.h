@@ -21,7 +21,9 @@
 
 /**
   Time multiplier in SFG_Units (1.0 == 1024). This can be used to slow down or
-  speed up the game.
+  speed up the game. Note that this also changes the rendering FPS accordingly
+  (e.g. half FPS at half speed), so if you want to keep the FPS, divide it by
+  the multiplier value.
 */
 
 #ifndef SFG_TIME_MULTIPLIER
