@@ -216,6 +216,8 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(KP_7); break;
     case SFG_KEY_STRAFE_RIGHT: return k(D) || k(KP_9); break;
     case SFG_KEY_MAP: return k(TAB); break;
+    case SFG_KEY_CYCLE_WEAPON: return k(F) ||
+                               (sdlMouseButtonState & SDL_BUTTON_MMASK); break;
     case SFG_KEY_TOGGLE_FREELOOK: return sdlMouseButtonState & SDL_BUTTON_RMASK;
                                   break;
     case SFG_KEY_NEXT_WEAPON:

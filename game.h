@@ -51,8 +51,9 @@
 #define SFG_KEY_NEXT_WEAPON 12
 #define SFG_KEY_PREVIOUS_WEAPON 13
 #define SFG_KEY_MENU 14
+#define SFG_KEY_CYCLE_WEAPON 15
 
-#define SFG_KEY_COUNT 15 ///< Number of keys.
+#define SFG_KEY_COUNT 16 ///< Number of keys.
 
 /* ============================= PORTING =================================== */
 
@@ -422,6 +423,7 @@ struct
                                    which cards should be blinking in the HUD,
                                    the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
+  int8_t  previousWeaponDirection;   ///< Direction (+/0/-) of previous weapon.
 } SFG_player;
 
 /**
@@ -1360,6 +1362,8 @@ void SFG_initPlayer()
   SFG_player.lastItemTakenFrame = SFG_game.frame;
 
   SFG_player.health = SFG_PLAYER_START_HEALTH;
+
+  SFG_player.previousWeaponDirection = 0;
 
   SFG_player.cards = 
 #if SFG_UNLOCK_DOOR
@@ -3054,6 +3058,9 @@ void SFG_gameStepPlaying()
     SFG_playerRotateWeapon(1);
   else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON) && canSwitchWeapon)
     SFG_playerRotateWeapon(0);
+  else if (SFG_keyJustPressed(SFG_KEY_CYCLE_WEAPON) &&
+    SFG_player.previousWeaponDirection)
+    SFG_playerRotateWeapon(SFG_player.previousWeaponDirection > 0);
 
   uint8_t shearingOn = SFG_game.settings & 0x04;
 
@@ -3635,8 +3642,18 @@ void SFG_gameStepPlaying()
   }
 
   if (SFG_player.weapon != currentWeapon) // if weapon switched, start cooldown
+  {
+
+    if (SFG_player.weapon == (currentWeapon + 1) % SFG_WEAPONS_TOTAL)
+      SFG_player.previousWeaponDirection = -1;
+    else if (currentWeapon == (SFG_player.weapon + 1) % SFG_WEAPONS_TOTAL)
+      SFG_player.previousWeaponDirection = 1;
+    else
+      SFG_player.previousWeaponDirection = 0;
+
     SFG_player.weaponCooldownFrames =
       SFG_GET_WEAPON_FIRE_COOLDOWN_FRAMES(SFG_player.weapon) / 2;
+  }
 
 #if SFG_IMMORTAL == 0
   if (SFG_player.health == 0)
