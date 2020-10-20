@@ -198,74 +198,26 @@ int8_t SFG_keyPressed(uint8_t key)
   if (webKeyboardState[key]) 
     return 1;
 
+  #define k(x) sdlKeyboardState[SDL_SCANCODE_ ## x]
+
   switch (key)
   {
-    case SFG_KEY_UP:
-      return sdlKeyboardState[SDL_SCANCODE_UP] ||
-             sdlKeyboardState[SDL_SCANCODE_W] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_8];
-      break;
-
-    case SFG_KEY_RIGHT:
-      return sdlKeyboardState[SDL_SCANCODE_RIGHT] ||
-             sdlKeyboardState[SDL_SCANCODE_E] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_6];
-      break;
-
-    case SFG_KEY_DOWN:
-      return sdlKeyboardState[SDL_SCANCODE_DOWN] ||
-             sdlKeyboardState[SDL_SCANCODE_S] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_5] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_2]; 
-      break;
-
-    case SFG_KEY_LEFT:
-      return sdlKeyboardState[SDL_SCANCODE_LEFT] ||
-             sdlKeyboardState[SDL_SCANCODE_Q] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_4];
-      break;
-
-    case SFG_KEY_A:
-      return sdlKeyboardState[SDL_SCANCODE_G] ||
-             sdlKeyboardState[SDL_SCANCODE_RETURN] ||
-             sdlKeyboardState[SDL_SCANCODE_LSHIFT];
-      break;
-
-    case SFG_KEY_B:
-      return sdlKeyboardState[SDL_SCANCODE_H] || 
-             (sdlMouseButtonState & SDL_BUTTON_LMASK) ||
-             sdlKeyboardState[SDL_SCANCODE_LCTRL] ||
-             sdlKeyboardState[SDL_SCANCODE_RCTRL];
-      break;
-
-    case SFG_KEY_C:
-      return sdlKeyboardState[SDL_SCANCODE_J];
-      break;
-
-    case SFG_KEY_JUMP:
-      return sdlKeyboardState[SDL_SCANCODE_SPACE];
-      break;
-
-    case SFG_KEY_STRAFE_LEFT:
-      return sdlKeyboardState[SDL_SCANCODE_A] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_7];
-      break;
-
-    case SFG_KEY_STRAFE_RIGHT:
-      return sdlKeyboardState[SDL_SCANCODE_D] ||
-             sdlKeyboardState[SDL_SCANCODE_KP_9];
-      break;
-
-    case SFG_KEY_MAP:
-      return sdlKeyboardState[SDL_SCANCODE_TAB];
-      break;
-
-    case SFG_KEY_TOGGLE_FREELOOK:
-      return sdlMouseButtonState & SDL_BUTTON_RMASK;
-      break;
-
+    case SFG_KEY_UP: return k(UP) || k(W) || k(KP_8); break;
+    case SFG_KEY_RIGHT: return k(RIGHT) || k(E) || k(KP_6); break;
+    case SFG_KEY_DOWN: return k(DOWN) || k(S) || k(KP_5) || k(KP_2); break;
+    case SFG_KEY_LEFT: return k(LEFT) || k(Q) || k(KP_4); break;
+    case SFG_KEY_A: return k(G) || k(RETURN) || k(LSHIFT); break;
+    case SFG_KEY_B: return k(H) || k(LCTRL) || k(RCTRL) ||
+                    sdlMouseButtonState & SDL_BUTTON_LMASK; break;
+    case SFG_KEY_C: return k(J); break;
+    case SFG_KEY_JUMP: return k(SPACE); break;
+    case SFG_KEY_STRAFE_LEFT: return k(A) || k(KP_7); break;
+    case SFG_KEY_STRAFE_RIGHT: return k(D) || k(KP_9); break;
+    case SFG_KEY_MAP: return k(TAB); break;
+    case SFG_KEY_TOGGLE_FREELOOK: return sdlMouseButtonState & SDL_BUTTON_RMASK;
+                                  break;
     case SFG_KEY_NEXT_WEAPON:
-      if (sdlKeyboardState[SDL_SCANCODE_P] || sdlKeyboardState[SDL_SCANCODE_X])
+      if (k(P) || k(X))
         return 1;
 
       if (sdlMouseWheelState > 0)
@@ -278,8 +230,7 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
-      if (sdlKeyboardState[SDL_SCANCODE_O] || sdlKeyboardState[SDL_SCANCODE_Y]
-          || sdlKeyboardState[SDL_SCANCODE_Z])
+      if (k(O) || k(Y) || k(Z))
         return 1;
 
       if (sdlMouseWheelState < 0)
@@ -291,9 +242,7 @@ int8_t SFG_keyPressed(uint8_t key)
       return 0;
       break;
 
-    case SFG_KEY_MENU:
-      return sdlKeyboardState[SDL_SCANCODE_ESCAPE];
-      break;
+    case SFG_KEY_MENU: return k(ESCAPE); break;
 
     default: return 0; break;
   }
