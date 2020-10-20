@@ -43,12 +43,6 @@
   #define SFG_FPS 60
 #endif
 
-#define SFG_FPS ((SFG_FPS * SFG_TIME_MULTIPLIER) / 1024)
-
-#if SFG_FPS == 0
-  #define SFG_FPS 1
-#endif
-
 /**
   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
   RCL_Unit per mouse pixel travelled.
