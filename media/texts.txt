@@ -111,18 +111,18 @@ controls:
 - arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement
 - mouse: rotation, [LMB] shoot, [RMB] toggle free look, wheel weapon change
 - [SPACE]: jump
-- [G] [RETURN] [SHIFT]: game A button (confirm, strafe)
-- [H] [CTRL]: game B button (cancel, shoot)
-- [O] [P] [X] [Y] [Z]: change weapons
+- [J] [RETURN] [SHIFT]: game A button (confirm, shoot)
+- [K] [CTRL]: game B button (cancel, strafe, look)
+- [L] [P] [X] [Y] [Z]: change weapons
 - [TAB]: map
 - [ESCAPE]: menu
 
 general controls:
 
 - arrows: movement
-- A: confirm
-  A + arrows: strafe, look up/down
-- B: cancel, shoot
+- A: confirm, shoot
+- B: cancel
+  B + arrows: strafe, look up/down
 - C:
   C + UP: jump
   C + DOWN: menu

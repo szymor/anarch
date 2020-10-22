@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <SFML/Audio/Types.h>
+
 #define SFG_SCREEN_RESOLUTION_X 640
 #define SFG_SCREEN_RESOLUTION_Y 480
 
@@ -29,6 +31,7 @@
 #define WINDOW_SIZE (SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y)
 
 #include "game.h"
+#include "sounds.h"
 
 uint32_t windowPixels[WINDOW_SIZE];
 
@@ -39,55 +42,26 @@ sfRenderWindow* window;
 
 int8_t SFG_keyPressed(uint8_t key)
 {
-  #define k(x) sfKeyboard_isKeyPressed(x)
+  #define k(x) sfKeyboard_isKeyPressed(sfKey ## x)
 
   switch (key)
   {
-    case SFG_KEY_UP:
-      return k(sfKeyW) || k(sfKeyUp) || k(sfKeyNum8);
+    case SFG_KEY_UP: return k(W) || k(Up) || k(Num8); break;
+    case SFG_KEY_RIGHT: return k(E) || k(Right) || k(Num6);
       break;
-
-    case SFG_KEY_RIGHT:
-      return k(sfKeyE) || k(sfKeyRight) || k(sfKeyNum6);
-      break;
-
     case SFG_KEY_DOWN:
-      return k(sfKeyS) || k(sfKeyDown) || k(sfKeyNum5) || k (sfKeyNum2);
-      break;
-
-    case SFG_KEY_LEFT:
-      return k(sfKeyQ) || k(sfKeyLeft) || k(sfKeyNum4);
-      break;
-
+      return k(S) || k(Down) || k(Num5) || k (Num2); break;
+    case SFG_KEY_LEFT: return k(Q) || k(Left) || k(Num4); break;
     case SFG_KEY_A:
-      return k(sfKeyG) || k(sfKeyReturn) || k(sfKeyLShift);
-      break;
-
-    case SFG_KEY_B:
-      return k(sfKeyH) || k(sfKeyLControl) || k(sfKeyRControl)
-             || sfMouse_isButtonPressed(sfMouseLeft);
-      break;
-
-    case SFG_KEY_C:
-      return k(sfKeyJ);
-      break;
-
-    case SFG_KEY_JUMP:
-      return k(sfKeySpace);
-      break;
-
-    case SFG_KEY_STRAFE_LEFT:
-      return k(sfKeyA) || k(sfKeyNum7);
-      break;
-
-    case SFG_KEY_STRAFE_RIGHT:
-      return k(sfKeyD) || k(sfKeyNum9);
-      break;
-
-    case SFG_KEY_MAP:
-      return k(sfKeyTab);
-      break;
-
+      return k(J) || k(Return) || k(LShift); break;
+    case SFG_KEY_B: return k(K) || k(LControl) || k(RControl)
+         || sfMouse_isButtonPressed(sfMouseLeft); break;
+    case SFG_KEY_C: return k(L); break;
+    case SFG_KEY_JUMP: return k(Space); break;
+    case SFG_KEY_STRAFE_LEFT: return k(A) || k(Num7); break;
+    case SFG_KEY_STRAFE_RIGHT: return k(D) || k(Num9); break;
+    case SFG_KEY_MAP: return k(Tab); break;
+    case SFG_KEY_CYCLE_WEAPON: return k(F);
     case SFG_KEY_TOGGLE_FREELOOK:
       return sfMouse_isButtonPressed(sfMouseRight);
       break;
@@ -122,20 +96,19 @@ int8_t SFG_keyPressed(uint8_t key)
 */
       break;
 
-    case SFG_KEY_MENU:
-      return sfKeyboard_isKeyPressed(sfKeyEscape);
-      break;
-
+    case SFG_KEY_MENU: return sfKeyboard_isKeyPressed(sfKeyEscape); break;
     default: return 0; break;
 
     #undef k
   }
+
+  return 0;
 }
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
-  sfVector2u s = sfWindow_getSize(window);
-  sfVector2i p = sfMouse_getPosition(window);
+  sfVector2u s = sfWindow_getSize((const sfWindow *) window);
+  sfVector2i p = sfMouse_getPosition((const sfWindow *) window);
 
   s.x /= 2;
   s.y /= 2;
@@ -146,7 +119,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
   p.x = s.x;
   p.y = s.y;
 
-  sfMouse_setPosition(p,window);
+  sfMouse_setPosition(p,(const sfWindow *) window);
 }
 
 uint32_t SFG_getTimeMs()
@@ -166,9 +139,6 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
   windowPixels[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB32[colorIndex];
 }
 
-void SFG_playSound(uint8_t soundIndex, uint8_t volume)
-{
-}
 
 void SFG_enableMusic(uint8_t enable)
 {
@@ -180,11 +150,51 @@ void SFG_processEvent(uint8_t event, uint8_t data)
 
 void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 {
+  FILE *f = fopen("anarch.sav","wb");
+
+  if (f == NULL)
+    return;
+
+  fwrite(data,1,SFG_SAVE_SIZE,f);
+
+  fclose(f);
 }
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
-  return 0;
+  FILE *f = fopen("anarch.sav","rb");
+
+  if (f != NULL)
+  {
+    fread(data,1,SFG_SAVE_SIZE,f);
+    fclose(f);
+  }
+
+  return 1;
+}
+
+void SFG_playSound(uint8_t soundIndex, uint8_t volume)
+{
+
+
+
+}
+
+
+sfInputStream soundStream;
+
+uint64_t soundPos = 0;
+
+sfInt64 soundRead(void* data, sfInt64 size, void* userData)
+{
+  soundPos += size;
+  
+  return size;
+}
+
+sfInt64 soundSize(void* userData)
+{
+  return 100;
 }
 
 int main()
@@ -193,6 +203,14 @@ int main()
   sfEvent event;
   clock = sfClock_create();
   sfClock_restart(clock);
+
+
+
+
+
+
+
+
 
   SFG_init();
 
@@ -212,8 +230,11 @@ int main()
   window = sfRenderWindow_create(mode, "Anarch", sfResize | sfClose, NULL);
   sfSprite_setTexture(windowSprite, windowTexture, sfTrue);
 
-  sfWindow_setMouseCursorVisible(window,sfFalse);
-  sfWindow_setVerticalSyncEnabled(window,sfFalse);
+  sfWindow_setMouseCursorVisible((sfWindow *) window,sfFalse);
+  sfWindow_setVerticalSyncEnabled((sfWindow *) window,sfFalse);
+
+  
+  uint32_t lastAudioUpdate = 0;
 
   while (sfRenderWindow_isOpen(window))
   {
@@ -224,16 +245,18 @@ int main()
     if (!SFG_mainLoopBody())
       break;
 
-    sfTexture_updateFromPixels(windowTexture,windowPixels,SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y,0,0);
+    sfTexture_updateFromPixels(windowTexture,(const sfUint8 *) windowPixels,SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y,0,0);
     sfRenderWindow_clear(window, sfBlack);
     sfRenderWindow_drawSprite(window, windowSprite, NULL);
     sfRenderWindow_display(window);
+
   }
 
   sfSprite_destroy(windowSprite);
   sfTexture_destroy(windowTexture);
   sfRenderWindow_destroy(window);
   sfClock_destroy(clock);
+
 
   return 0;
 }

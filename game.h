@@ -3064,9 +3064,9 @@ void SFG_gameStepPlaying()
 
   uint8_t shearingOn = SFG_game.settings & 0x04;
 
-  if (SFG_keyIsDown(SFG_KEY_A))
+  if (SFG_keyIsDown(SFG_KEY_B))
   {
-    if (shearingOn)                      // A + U/D: shearing (if on)
+    if (shearingOn)                      // B + U/D: shearing (if on)
     {
       if (SFG_keyIsDown(SFG_KEY_UP))
       {
@@ -3105,7 +3105,7 @@ void SFG_gameStepPlaying()
       canSwitchWeapon)
       SFG_playerRotateWeapon(1);
   }
-  else if (!SFG_keyIsDown(SFG_KEY_A))    // L/R: turning
+  else if (!SFG_keyIsDown(SFG_KEY_B))    // L/R: turning
   {
     if (SFG_keyIsDown(SFG_KEY_LEFT))
     {
@@ -3119,7 +3119,7 @@ void SFG_gameStepPlaying()
     } 
   }
 
-  if (!SFG_keyIsDown(SFG_KEY_A) || !shearingOn)     // U/D: movement
+  if (!SFG_keyIsDown(SFG_KEY_B) || !shearingOn)     // U/D: movement
   {
     if (SFG_keyIsDown(SFG_KEY_UP))
     {
@@ -3459,7 +3459,7 @@ void SFG_gameStepPlaying()
 
 #if SFG_PREVIEW_MODE == 0
   if (
-    SFG_keyIsDown(SFG_KEY_B) &&
+    SFG_keyIsDown(SFG_KEY_A) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
     (SFG_player.weaponCooldownFrames == 0))
   {
