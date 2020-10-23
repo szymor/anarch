@@ -24,6 +24,7 @@
 
 #define SFG_FPS 22
 #define SFG_CAN_EXIT 0
+#define SFG_PLAYER_TURN_SPEED 135
 //#define SFG_TEXTURE_DISTANCE 6000
 
 #ifndef JOYHAT
@@ -104,11 +105,17 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 uint8_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0;
 
-uint8_t musicOn = 1;
+uint8_t musicOn = 0;
 
-void SFG_enableMusic(uint8_t enable)
+void SFG_setMusic(uint8_t value)
 {
-  musicOn = enable;
+  switch (value)
+  {
+    case SFG_MUSIC_TURN_ON: musicOn = 1; break;
+    case SFG_MUSIC_TURN_OFF: musicOn = 0; break;
+    case SFG_MUSIC_NEXT: SFG_nextMusicTrack(); break;
+    defaule: break;
+  }
 }
 
 static inline uint8_t mixSamples(uint8_t sample1, uint8_t sample2)
@@ -217,12 +224,8 @@ int main()
   SFG_init();
 
   while (pokitto.isRunning())
-  {
     if (pokitto.update())
-    {
       SFG_mainLoopBody();
-    }
-  }
 
   return 0;
 }

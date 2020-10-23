@@ -4796,6 +4796,8 @@ uint8_t SFG_mainLoopBody()
   {
     uint8_t steps = 0;
 
+    uint8_t wasFirstFrame = SFG_game.frame == 0;
+
     while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
       uint8_t previousWeapon = SFG_player.weapon;
@@ -4813,7 +4815,7 @@ uint8_t SFG_mainLoopBody()
       steps++;
     }
 
-    if ((steps > 1) && (SFG_game.antiSpam == 0))
+    if ((steps > 1) && (SFG_game.antiSpam == 0) && (!wasFirstFrame))
     {
       SFG_LOG("failed to reach target FPS! consider setting a lower value")
       SFG_game.antiSpam = 30;

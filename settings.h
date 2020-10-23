@@ -82,7 +82,9 @@
 /**
   How quickly player turns left/right, in degrees per second.
 */
-#define SFG_PLAYER_TURN_SPEED 180
+#ifndef SFG_PLAYER_TURN_SPEED
+  #define SFG_PLAYER_TURN_SPEED 180
+#endif
 
 /**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this

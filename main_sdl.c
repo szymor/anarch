@@ -305,7 +305,8 @@ static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
   return sample1 + sample2;
 }
 
-uint8_t musicOn = 1;
+uint8_t musicOn = 0;
+// ^ this has to be init to 0 (not 1), else a few samples get played at start
 
 void audioFillCallback(void *userdata, uint8_t *s, int l)
 {
