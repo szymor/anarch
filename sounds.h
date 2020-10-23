@@ -28,7 +28,6 @@
 /**
   Gets a 8-bit sound sample.
 */
-
 #define SFG_GET_SFX_SAMPLE(soundIndex,sampleIndex) \
   ((SFG_PROGRAM_MEMORY_U8(SFG_sounds + soundIndex * SFG_SFX_SIZE \
   + sampleIndex / 2) << (4 * ((sampleIndex % 2) != 0))) & 0xf0)
@@ -151,6 +150,17 @@ uint8_t SFG_getNextMusicSample()
   SFG_MusicState.t += 1;
 
   return result;
+}
+
+/**
+  Switches the bytebeat to next music track.
+*/
+void SFG_nextMusicTrack()
+{
+  uint8_t current = SFG_MusicState.track;
+
+  while (SFG_MusicState.track == current)
+    SFG_getNextMusicSample();
 }
 
 SFG_PROGRAM_MEMORY uint8_t SFG_sounds[SFG_SFX_SIZE * 6] =

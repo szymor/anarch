@@ -112,7 +112,7 @@ int8_t SFG_keyPressed(uint8_t key)
   }
 }
 
-void SFG_enableMusic(uint8_t enable)
+void SFG_setMusic(uint8_t value)
 {
 }
 

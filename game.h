@@ -125,12 +125,17 @@ static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 */
 void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
+#define SFG_MUSIC_TURN_OFF 0
+#define SFG_MUSIC_TURN_ON 1
+#define SFG_MUSIC_NEXT 2
+
 /**
-  Informs the frontend whether music should get enabled/disabled. Playing music
-  is optional and the frontend can ignore this. If a frontend wants to implement
-  music, it can use the bytebeat provided in sounds.h or use its own.
+  Informs the frontend how music should play, e.g. turn on/off, change track,
+  ... See SFG_MUSIC_* constants. Playing music is optional and the frontend can
+  ignore this. If a frontend wants to implement music, it can use the bytebeat
+  provided in sounds.h or use its own.
 */
-void SFG_enableMusic(uint8_t enable);
+void SFG_setMusic(uint8_t value);
 
 #define SFG_EVENT_VIBRATE 0  ///< the controller should vibrate (or blink etc.)
 #define SFG_EVENT_PLAYER_HURT 1 
@@ -1626,6 +1631,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 
   SFG_initPlayer();
   SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
+  SFG_setMusic(SFG_MUSIC_NEXT);
   SFG_processEvent(SFG_EVENT_LEVEL_STARTS,levelNumber);
 }
 
@@ -1720,7 +1726,8 @@ void SFG_init()
     SFG_game.save[0] = (SFG_NUMBER_OF_LEVELS - 1) | 0xf0; // revealed all levels
   }
 
-  SFG_enableMusic(SFG_game.settings & 0x02);
+  SFG_setMusic((SFG_game.settings & 0x02) ?
+    SFG_MUSIC_TURN_ON : SFG_MUSIC_TURN_OFF);
 
 #if SFG_START_LEVEL == 0
   SFG_setGameState(SFG_GAME_STATE_MENU);
@@ -3771,7 +3778,8 @@ void SFG_gameStepMenu()
 
         if ((SFG_game.settings & 0x02) !=
             ((SFG_game.settings - 1) & 0x02))
-            SFG_enableMusic(SFG_game.settings & 0x02);
+            SFG_setMusic((SFG_game.settings & 0x02) ? 
+              SFG_MUSIC_TURN_ON : SFG_MUSIC_TURN_OFF);
 
         SFG_game.save[1] = SFG_game.settings;
         SFG_gameSave();

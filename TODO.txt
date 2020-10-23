@@ -1,6 +1,5 @@
 general:
 
-- Switch music tracks when level starts?
 - Refactor.
 - Polish the emscripten version (is basically unplayable on phone, horizontal
   mode doesnt show whole screen etc).
@@ -139,6 +138,7 @@ bugs:
 done:
 
 - add headbob
+- Switch music tracks when level starts?
 - SDL: handle the quit signal so that the program can be closed by closing the
   window.
 - On Win$hit builds display an anti-windshit text, by macro.

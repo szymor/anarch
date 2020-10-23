@@ -26,7 +26,7 @@
 #endif
 
 //  #define SFG_START_LEVEL 1
-  #define SFG_IMMORTAL 1
+//  #define SFG_IMMORTAL 1
   #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1
@@ -74,8 +74,8 @@
 
 #ifdef __EMSCRIPTEN__
   #define SFG_FPS 30
-  #define SFG_SCREEN_RESOLUTION_X 640
-  #define SFG_SCREEN_RESOLUTION_Y 480
+  #define SFG_SCREEN_RESOLUTION_X 512
+  #define SFG_SCREEN_RESOLUTION_Y 320
   #define SFG_CAN_EXIT 0
   #define SFG_RESOLUTION_SCALEDOWN 2
 
@@ -323,9 +323,15 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   }
 }
 
-void SFG_enableMusic(uint8_t enable)
+void SFG_setMusic(uint8_t value)
 {
-  musicOn = enable;
+  switch (value)
+  {
+    case SFG_MUSIC_TURN_ON: musicOn = 1; break;
+    case SFG_MUSIC_TURN_OFF: musicOn = 0; break;
+    case SFG_MUSIC_NEXT: SFG_nextMusicTrack(); break;
+    defaule: break;
+  }
 }
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)

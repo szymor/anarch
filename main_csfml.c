@@ -140,7 +140,7 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 }
 
 
-void SFG_enableMusic(uint8_t enable)
+void SFG_setMusic(uint8_t value)
 {
 }
 
