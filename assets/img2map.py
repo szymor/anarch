@@ -16,7 +16,7 @@ elementTypes = [
     "PLASMA",
     "TREE",
     "FINISH",
-    "TELEPORT",
+    "TELEPORTER",
     "TERMINAL",
     "COLUMN",
     "RUIN",
