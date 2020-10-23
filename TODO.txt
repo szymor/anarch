@@ -1,6 +1,9 @@
 general:
 
+- Switch music tracks when level starts?
 - Refactor.
+- Polish the emscripten version (is basically unplayable on phone, horizontal
+  mode doesnt show whole screen etc).
 - Polish controls (bindings, mouse sensitivity etc.).
 - Polish weapon switching, maybe add a key to switch to previous weapon?
 - Port to OpenDingux.
@@ -127,6 +130,11 @@ level ideas:
 - add time slowdown constant
 
 bugs:
+
+- Even if music is off, after turning on a few samples are played (also on
+  Pokitto).
+- On Pokitto/GB Meta sometimes after turn on the game starts midway loading the
+  first level.
 
 done:
 
