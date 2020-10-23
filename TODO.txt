@@ -1,6 +1,7 @@
 general:
 
 - Refactor.
+- Check grammar in source code.
 - Polish the emscripten version (is basically unplayable on phone, horizontal
   mode doesnt show whole screen etc).
 - Polish controls (bindings, mouse sensitivity etc.).
@@ -130,6 +131,7 @@ level ideas:
 
 bugs:
 
+- At the beginning "FPS cant be reached" is always displayed.
 - Even if music is off, after turning on a few samples are played (also on
   Pokitto).
 - On Pokitto/GB Meta sometimes after turn on the game starts midway loading the

@@ -1054,13 +1054,11 @@ void SFG_blitImage(
   if (y1 >= SFG_GAME_RESOLUTION_Y)
     y1 = SFG_GAME_RESOLUTION_Y - 1;
 
-  uint8_t u,v;
-
-  v = v0;
+  uint8_t v = v0;
 
   for (uint16_t y = y0; y < y1; y += scale)
   {
-    u = u0;
+    uint8_t u = u0;
 
     for (uint16_t x = x0; x < x1; x += scale)
     {
@@ -2158,7 +2156,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
        SFG_GET_MONSTER_AGGRESSIVITY(SFG_MONSTER_TYPE_TO_INDEX(type)))
      )
   { 
-    if (!notRanged && (SFG_random() % 4 != 0))
+    if (SFG_random() % 4 != 0)
     {
       // attack
  
@@ -2473,7 +2471,7 @@ void SFG_updateLevel()
   // update projectiles:
 
   uint8_t substractFrames =
-    (SFG_game.frame - SFG_currentLevel.frameStart) & 0x01 ? 1 : 0;
+    ((SFG_game.frame - SFG_currentLevel.frameStart) & 0x01) ? 1 : 0;
     /* ^ only substract frames to live every other frame because a maximum of
        256 frames would be too few */
 
@@ -2937,7 +2935,7 @@ void SFG_drawText(
   uint16_t currentX = x;
   uint16_t currentY = y;
 
-  while (text[pos] != 0 && pos < maxLength) // for each character
+  while (pos < maxLength && text[pos] != 0) // for each character
   {
     uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
 
@@ -3313,8 +3311,8 @@ void SFG_gameStepPlaying()
 
         uint8_t onlyKnife = 1;
 
-        for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
-          if (SFG_player.ammo[i] != 0)
+        for (uint8_t j = 0; j < SFG_AMMO_TOTAL; ++j)
+          if (SFG_player.ammo[j] != 0)
           {
             onlyKnife = 0;
             break;

@@ -208,9 +208,9 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_RIGHT: return k(RIGHT) || k(E) || k(KP_6); break;
     case SFG_KEY_DOWN: return k(DOWN) || k(S) || k(KP_5) || k(KP_2); break;
     case SFG_KEY_LEFT: return k(LEFT) || k(Q) || k(KP_4); break;
-    case SFG_KEY_A: return k(J) || k(RETURN) || k(LSHIFT); break;
-    case SFG_KEY_B: return k(K) || k(LCTRL) || k(RCTRL) ||
-                    sdlMouseButtonState & SDL_BUTTON_LMASK; break;
+    case SFG_KEY_A: return k(J) || k(RETURN) || k(LSHIFT) ||
+                    (sdlMouseButtonState & SDL_BUTTON_LMASK); break;
+    case SFG_KEY_B: return k(K) || k(LCTRL) || k(RCTRL); break;
     case SFG_KEY_C: return k(L); break;
     case SFG_KEY_JUMP: return k(SPACE); break;
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(KP_7); break;
@@ -330,7 +330,7 @@ void SFG_setMusic(uint8_t value)
     case SFG_MUSIC_TURN_ON: musicOn = 1; break;
     case SFG_MUSIC_TURN_OFF: musicOn = 0; break;
     case SFG_MUSIC_NEXT: SFG_nextMusicTrack(); break;
-    defaule: break;
+    default: break;
   }
 }
 

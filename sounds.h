@@ -82,7 +82,7 @@ uint8_t SFG_getNextMusicSample()
     case 0:
     {
       uint32_t a = ((S >> 7) | (S >> 9) | (~S << 1) | S);
-      result = ((S) & 65536 ? (a & (((S2) >> 16) & 0x09)) : ~a);
+      result = (((S) & 65536) ? (a & (((S2) >> 16) & 0x09)) : ~a);
 
       SFG_MusicState.t2 += S;
 
@@ -110,7 +110,7 @@ uint8_t SFG_getNextMusicSample()
     {
       result =
         (((((S >> ((S >> 2) % 32)) + (S >> ((S >> 7) % 32)))) & 0x3f) | (S >> 5)
-        | (S >> 11)) & (S & (32768 | 8192) ? 0xf0 : 0x30);
+        | (S >> 11)) & ((S & (32768 | 8192)) ? 0xf0 : 0x30);
 
       break;
     }

@@ -937,15 +937,15 @@ void RCL_castRayMultiHit(RCL_Ray ray, RCL_ArrayFunction arrayFunc,
 RCL_HitResult RCL_castRay(RCL_Ray ray, RCL_ArrayFunction arrayFunc)
 {
   RCL_HitResult result;
-  uint16_t RCL_len;
+  uint16_t len;
   RCL_RayConstraints c;
 
   c.maxSteps = 1000;
   c.maxHits = 1;
 
-  RCL_castRayMultiHit(ray,arrayFunc,0,&result,&RCL_len,c);
+  RCL_castRayMultiHit(ray,arrayFunc,0,&result,&len,c);
 
-  if (RCL_len == 0)
+  if (len == 0)
     result.distance = -1;
 
   return result;
@@ -1805,10 +1805,11 @@ void RCL_moveCameraWithCollision(RCL_Camera *camera, RCL_Vector2D planeOffset,
   RCL_ArrayFunction ceilingHeightFunc, int8_t computeHeight, int8_t force)
 {
   int8_t movesInPlane = planeOffset.x != 0 || planeOffset.y != 0;
-  int16_t xSquareNew, ySquareNew;
 
   if (movesInPlane || force)
   {
+    int16_t xSquareNew, ySquareNew;
+
     RCL_Vector2D corner; // BBox corner in the movement direction
     RCL_Vector2D cornerNew;
 

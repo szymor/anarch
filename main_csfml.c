@@ -53,9 +53,9 @@ int8_t SFG_keyPressed(uint8_t key)
       return k(S) || k(Down) || k(Num5) || k (Num2); break;
     case SFG_KEY_LEFT: return k(Q) || k(Left) || k(Num4); break;
     case SFG_KEY_A:
-      return k(J) || k(Return) || k(LShift); break;
-    case SFG_KEY_B: return k(K) || k(LControl) || k(RControl)
-         || sfMouse_isButtonPressed(sfMouseLeft); break;
+      return k(J) || k(Return) || k(LShift) ||
+      sfMouse_isButtonPressed(sfMouseLeft); break;
+    case SFG_KEY_B: return k(K) || k(LControl) || k(RControl); break;
     case SFG_KEY_C: return k(L); break;
     case SFG_KEY_JUMP: return k(Space); break;
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(Num7); break;
