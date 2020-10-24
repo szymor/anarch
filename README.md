@@ -82,13 +82,13 @@ compiled:
 
 system requirements:
 
-| type               | Anarch                           | Wolf 3D             | Doom              |
-| ------------------ | -------------------------------- | ------------------- | ----------------- |
-| CPU                | 40 MHz, 32 bit                   | Intel 286, 16 bit   | Intel 386, 32 bit |
-| RAM                | 32 KB                            | 528 KB              | 4 MB              |
-| storage            | 200 KB                           | 8 MB                | 12 MB             |
-| display            | 32 x 32, 8 colors, double buffer | ?                   | ?                 |
-| additional         | 7 buttons, frame buffer          | HDD, frame buffer   | HDD, frame buffer |
+| type               | Anarch                           | Wolf 3D                     | Doom                       |
+| ------------------ | -------------------------------- | --------------------------- | -------------------------- |
+| CPU                | ~40 MHz, 32 bit                  | Intel 286, ~10 MHz 16 bit   | Intel 386, ~40 MHz, 32 bit |
+| RAM                | 32 KB                            | 528 KB                      | 4 MB                       |
+| storage            | 200 KB                           | 8 MB                        | 12 MB                      |
+| display            | 32 x 32, 8 colors, double buffer | ?                           | ?                          |
+| additional         | 7 buttons, frame buffer          | HDD, frame buffer           | HDD, frame buffer          |
 
 features:
 
