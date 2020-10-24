@@ -20,7 +20,7 @@
 #define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
 #define SFG_FPS 17
-#define SFG_SCREEN_RESOLUTION_X 78
+#define SFG_SCREEN_RESOLUTION_X 80
 #define SFG_SCREEN_RESOLUTION_Y 64
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_RAYCASTING_MAX_STEPS 11
@@ -89,7 +89,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 }
 
-void SFG_enableMusic(uint8_t enable)
+void SFG_setMusic(uint8_t value)
 {
 }
 
