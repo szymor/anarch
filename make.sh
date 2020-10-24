@@ -14,7 +14,7 @@ fi
 
 clear; clear; 
 
-C_FLAGS='-x c -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o game'
+C_FLAGS='-x c -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
 
 COMPILER='g++'
 
@@ -39,7 +39,7 @@ if [ $1 == "sdl" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./game
+  ${COMMAND} && ./anarch
 elif [ $1 == "terminal" ]; then
   # PC terminal build, requires:
   # - g++
@@ -48,7 +48,7 @@ elif [ $1 == "terminal" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && sudo ./game
+  ${COMMAND} && sudo ./anarch
 elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
@@ -64,7 +64,7 @@ elif [ $1 == "emscripten" ]; then
   # emscripten (browser Javascript) build, requires:
   # - emscripten
 
-  ../emsdk/upstream/emscripten/emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o game.html -s EXPORTED_FUNCTIONS='["_main","_webButton"]' -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]'
+  ../emsdk/upstream/emscripten/emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o anarch.html -s EXPORTED_FUNCTIONS='["_main","_webButton"]' -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]'
 else
   echo "unknown parameter: $1"
 fi
