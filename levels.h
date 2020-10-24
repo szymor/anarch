@@ -155,16 +155,16 @@ static inline SFG_TileDefinition SFG_getMapTile
   uint8_t *properties
 )
 {
-  if (x < 0 || x >= SFG_MAP_SIZE || y < 0 || y >= SFG_MAP_SIZE)
+  if (x >= 0 && x < SFG_MAP_SIZE && y >= 0 && y < SFG_MAP_SIZE)
   {
-    *properties = SFG_TILE_PROPERTY_NORMAL;
-    return SFG_OUTSIDE_TILE;
+    uint8_t tile = level->mapArray[y * SFG_MAP_SIZE + x];
+
+    *properties = tile & 0xc0;
+    return level->tileDictionary[tile & 0x3f];
   }
 
-  uint8_t tile = level->mapArray[y * SFG_MAP_SIZE + x];
-
-  *properties = tile & 0xc0;
-  return level->tileDictionary[tile & 0x3f];
+  *properties = SFG_TILE_PROPERTY_NORMAL;
+  return SFG_OUTSIDE_TILE;
 }
 
 #define SFG_NUMBER_OF_LEVELS 10

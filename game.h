@@ -984,15 +984,17 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
       );
 
   #if SFG_BACKGROUND_BLUR != 0
-
-SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 8;
-//    SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 0x07;
+      SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 8;
   #endif
 #else
     color = 1;
 #endif
   }
 
+#if SFG_RAYCASTING_SUBSAMPLE == 1
+  // the other version will probably get optimized to this, but just in case
+  SFG_setGamePixel(pixel->position.x,pixel->position.y,color);
+#else
   RCL_Unit screenX = pixel->position.x * SFG_RAYCASTING_SUBSAMPLE;
 
   for (int_fast8_t i = 0; i < SFG_RAYCASTING_SUBSAMPLE; ++i)
@@ -1000,6 +1002,7 @@ SFG_backgroundBlurIndex = (SFG_backgroundBlurIndex + 1) % 8;
     SFG_setGamePixel(screenX,pixel->position.y,color);
     screenX++;
   }
+#endif
 }
 
 /**
@@ -1253,7 +1256,6 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
 
         doorHeight = doorHeight != (0xff & SFG_DOOR_VERTICAL_POSITION_MASK)    ? 
           doorHeight * SFG_DOOR_HEIGHT_STEP : RCL_UNITS_PER_SQUARE;
-
 
         break;
       }

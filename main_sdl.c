@@ -34,7 +34,7 @@
 // #define SFG_TIME_MULTIPLIER 512
 
 // uncomment for perfomance debug 
-//#define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
+#define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 
 #ifndef __EMSCRIPTEN__
   #ifndef GAME_LQ
