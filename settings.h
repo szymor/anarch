@@ -25,7 +25,6 @@
   (e.g. half FPS at half speed), so if you want to keep the FPS, divide it by
   the multiplier value.
 */
-
 #ifndef SFG_TIME_MULTIPLIER
   #define SFG_TIME_MULTIPLIER 1024
 #endif
@@ -369,6 +368,15 @@
   #define SFG_ARDUINO 0
 #endif
 
+/**
+  Whether levels background (in distance or transparent wall textures) should
+  be drawn. If turned off, the background will be constant color, which can 
+  noticably increase performance.
+*/
+#ifndef SFG_DRAW_LEVEL_BACKGROUND
+  #define SFG_DRAW_LEVEL_BACKGROUND 1
+#endif
+
 //------ developer/debug settings ------
 
 /**
@@ -419,15 +427,6 @@
 */
 #ifndef SFG_UNLOCK_DOOR
   #define SFG_UNLOCK_DOOR 0
-#endif
-
-/**
-  Whether levels background (in distance or transparent wall textures) should
-  be drawn. If turned off, the background will be constant color, which can 
-  noticably increase performance.
-*/
-#ifndef SFG_DRAW_LEVEL_BACKGROUND
-  #define SFG_DRAW_LEVEL_BACKGROUND 1
 #endif
 
 #endif // guard
