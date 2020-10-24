@@ -1,5 +1,8 @@
 general:
 
+- Profile, epsecially Pokitto, small periodical tearing can be noticed (some
+  periodical updates probably).
+- Compile Pokitto overclocked version.
 - Refactor.
 - Check grammar in source code.
 - Polish the emscripten version (is basically unplayable on phone, horizontal
