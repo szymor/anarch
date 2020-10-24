@@ -315,7 +315,7 @@ typedef struct
   int16_t direction[3]; /**< Added to position each game step. */
 } SFG_ProjectileRecord;
 
-#define SFG_GAME_STATE_MENU 0
+#define SFG_GAME_STATE_INIT 0 ///< first state, waiting for key releases
 #define SFG_GAME_STATE_PLAYING 1
 #define SFG_GAME_STATE_WIN 2
 #define SFG_GAME_STATE_LOSE 3
@@ -323,6 +323,7 @@ typedef struct
 #define SFG_GAME_STATE_OUTRO 5
 #define SFG_GAME_STATE_MAP 6
 #define SFG_GAME_STATE_LEVEL_START 7
+#define SFG_GAME_STATE_MENU 8  
 
 #define SFG_MENU_ITEM_CONTINUE 0
 #define SFG_MENU_ITEM_MAP 1
@@ -1465,6 +1466,7 @@ uint8_t SFG_itemCollides(uint8_t elementType)
 
 void SFG_setGameState(uint8_t state)
 {
+  SFG_LOG("changing game state");
   SFG_game.state = state;
   SFG_game.stateChangeTime = SFG_game.frameTime;
 }
@@ -1728,7 +1730,7 @@ void SFG_init()
     SFG_MUSIC_TURN_ON : SFG_MUSIC_TURN_OFF);
 
 #if SFG_START_LEVEL == 0
-  SFG_setGameState(SFG_GAME_STATE_MENU);
+  SFG_setGameState(SFG_GAME_STATE_INIT);
 #else
   SFG_setAndInitLevel(SFG_START_LEVEL - 1);
 #endif
@@ -4787,57 +4789,67 @@ uint8_t SFG_mainLoopBody()
   /* Standard deterministic game loop, independed of actual achieved FPS.
      Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME
      delta time. */
-  uint32_t timeNow = SFG_getTimeMs();
+
+  if (SFG_game.state != SFG_GAME_STATE_INIT)
+  {
+    uint32_t timeNow = SFG_getTimeMs();
 
 #if SFG_TIME_MULTIPLIER != 1024
-  timeNow = (timeNow * SFG_TIME_MULTIPLIER) / 1024;
+    timeNow = (timeNow * SFG_TIME_MULTIPLIER) / 1024;
 #endif
 
-  int32_t timeSinceLastFrame = timeNow - SFG_game.frameTime;
+    int32_t timeSinceLastFrame = timeNow - SFG_game.frameTime;
 
-  if (timeSinceLastFrame >= SFG_MS_PER_FRAME)
-  {
-    uint8_t steps = 0;
-
-    uint8_t wasFirstFrame = SFG_game.frame == 0;
-
-    while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
+    if (timeSinceLastFrame >= SFG_MS_PER_FRAME)
     {
-      uint8_t previousWeapon = SFG_player.weapon;
+      uint8_t steps = 0;
 
-      SFG_game.frameTime += SFG_MS_PER_FRAME;
+      uint8_t wasFirstFrame = SFG_game.frame == 0;
 
-      SFG_gameStep();
+      while (timeSinceLastFrame >= SFG_MS_PER_FRAME)
+      {
+        uint8_t previousWeapon = SFG_player.weapon;
 
-      if (SFG_player.weapon != previousWeapon)
-        SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
+        SFG_game.frameTime += SFG_MS_PER_FRAME;
 
-      timeSinceLastFrame -= SFG_MS_PER_FRAME;
+        SFG_gameStep();
 
-      SFG_game.frame++;
-      steps++;
+        if (SFG_player.weapon != previousWeapon)
+          SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
+
+        timeSinceLastFrame -= SFG_MS_PER_FRAME;
+
+        SFG_game.frame++;
+        steps++;
+      }
+
+      if ((steps > 1) && (SFG_game.antiSpam == 0) && (!wasFirstFrame))
+      {
+        SFG_LOG("failed to reach target FPS! consider setting a lower value")
+        SFG_game.antiSpam = 30;
+      }
+
+      if (SFG_game.antiSpam > 0)
+        SFG_game.antiSpam--;
+
+      // render only once
+      SFG_draw();
+
+      if (SFG_game.frame % 16 == 0)
+        SFG_CPU_LOAD(((SFG_getTimeMs() - timeNow) * 100) / SFG_MS_PER_FRAME);
     }
-
-    if ((steps > 1) && (SFG_game.antiSpam == 0) && (!wasFirstFrame))
+    else
     {
-      SFG_LOG("failed to reach target FPS! consider setting a lower value")
-      SFG_game.antiSpam = 30;
+      // wait, relieve CPU
+      SFG_sleepMs(RCL_max(1,
+        (3 * (SFG_game.frameTime + SFG_MS_PER_FRAME - timeNow)) / 4));
     }
-
-    if (SFG_game.antiSpam > 0)
-      SFG_game.antiSpam--;
-
-    // render only once
-    SFG_draw();
-
-    if (SFG_game.frame % 16 == 0)
-      SFG_CPU_LOAD(((SFG_getTimeMs() - timeNow) * 100) / SFG_MS_PER_FRAME);
   }
-  else
+  else if (!SFG_keyPressed(SFG_KEY_A) && !SFG_keyPressed(SFG_KEY_B))
   {
-    // wait, relieve CPU
-    SFG_sleepMs(RCL_max(1,
-      (3 * (SFG_game.frameTime + SFG_MS_PER_FRAME - timeNow)) / 4));
+    /* At the beginning we have to wait for the release of the keys in order not
+    to immediatelly confirm a menu item. */
+    SFG_setGameState(SFG_GAME_STATE_MENU);
   }
 
   return SFG_game.continues;
