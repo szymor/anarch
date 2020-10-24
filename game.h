@@ -3729,7 +3729,10 @@ void SFG_gameStepMenu()
           SFG_game.save[i] = 0;
 
         if (SFG_game.selectedLevel == 0)
+        {
+          SFG_currentLevel.levelNumber = 0; // to draw intro, not outro
           SFG_setGameState(SFG_GAME_STATE_INTRO);
+        }
         else
           SFG_setAndInitLevel(SFG_game.selectedLevel);
 

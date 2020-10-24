@@ -36,27 +36,40 @@
 // uncomment for perfomance debug 
 //#define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 
-#ifndef GAME_LQ
-  // higher quality
-  #define SFG_FPS 60
-  #define SFG_LOG(str) puts(str);
-  #define SFG_SCREEN_RESOLUTION_X 700
-  #define SFG_SCREEN_RESOLUTION_Y 512
-  #define SFG_DITHERED_SHADOW 1
-  #define SFG_DIMINISH_SPRITES 1
-  #define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
-  #define SFG_BACKGROUND_BLUR 1
+#ifndef __EMSCRIPTEN__
+  #ifndef GAME_LQ
+    // higher quality
+    #define SFG_FPS 60
+    #define SFG_LOG(str) puts(str);
+    #define SFG_SCREEN_RESOLUTION_X 700
+    #define SFG_SCREEN_RESOLUTION_Y 512
+    #define SFG_DITHERED_SHADOW 1
+    #define SFG_DIMINISH_SPRITES 1
+    #define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
+    #define SFG_BACKGROUND_BLUR 1
+  #else
+    // lower quality
+    #define SFG_FPS 30
+    #define SFG_SCREEN_RESOLUTION_X 640
+    #define SFG_SCREEN_RESOLUTION_Y 480
+    #define SFG_RAYCASTING_SUBSAMPLE 2
+    #define SFG_RESOLUTION_SCALEDOWN 2
+    #define SFG_DIMINISH_SPRITES 0
+    #define SFG_DITHERED_SHADOW 0
+    #define SFG_BACKGROUND_BLUR 0
+  #endif
 #else
-  // lower quality
+  // emscripten
   #define SFG_FPS 30
-  #define SFG_SCREEN_RESOLUTION_X 640
-  #define SFG_SCREEN_RESOLUTION_Y 480
-  #define SFG_RAYCASTING_SUBSAMPLE 2
+  #define SFG_SCREEN_RESOLUTION_X 512
+  #define SFG_SCREEN_RESOLUTION_Y 320
+  #define SFG_CAN_EXIT 0
   #define SFG_RESOLUTION_SCALEDOWN 2
-  #define SFG_DIMINISH_SPRITES 0
-  #define SFG_DITHERED_SHADOW 0
   #define SFG_BACKGROUND_BLUR 0
+
+  #include <emscripten.h>
 #endif
+
 
 //  #define SFG_SCREEN_RESOLUTION_X 88
 //  #define SFG_SCREEN_RESOLUTION_Y 110
@@ -72,15 +85,6 @@
 
 #define MUSIC_VOLUME 16
 
-#ifdef __EMSCRIPTEN__
-  #define SFG_FPS 30
-  #define SFG_SCREEN_RESOLUTION_X 512
-  #define SFG_SCREEN_RESOLUTION_Y 320
-  #define SFG_CAN_EXIT 0
-  #define SFG_RESOLUTION_SCALEDOWN 2
-
-  #include <emscripten.h>
-#endif
 
 #if !SFG_OS_IS_MALWARE
   #include <signal.h>
