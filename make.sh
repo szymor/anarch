@@ -49,6 +49,15 @@ elif [ $1 == "terminal" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && sudo ./anarch
+elif [ $1 == "test" ]; then
+  # test build, requires:
+  # - g++
+
+  COMMAND="${COMPILER} ${C_FLAGS} main_test.c"
+
+  echo ${COMMAND}
+
+  ${COMMAND} && ./anarch
 elif [ $1 == "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
