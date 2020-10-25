@@ -85,7 +85,6 @@
 
 #define MUSIC_VOLUME 16
 
-
 #if !SFG_OS_IS_MALWARE
   #include <signal.h>
 #endif
@@ -321,7 +320,7 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   {
     s16[i] = musicOn ?
       mixSamples(audioBuff[audioPos], MUSIC_VOLUME *
-      (SFG_getNextMusicSample()- SFG_musicTrackAverages[SFG_MusicState.track]))
+      (SFG_getNextMusicSample() - SFG_musicTrackAverages[SFG_MusicState.track]))
       : audioBuff[audioPos];
 
     audioBuff[audioPos] = 0;

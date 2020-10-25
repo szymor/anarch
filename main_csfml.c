@@ -28,6 +28,8 @@
 #define SFG_DIMINISH_SPRITES 1
 #define SFG_RESOLUTION_SCALEDOWN 1
 
+#define MUSIC_VOLUME 16
+
 #define WINDOW_SIZE (SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y)
 
 #include "game.h"
@@ -173,36 +175,63 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
   return 1;
 }
 
-void SFG_playSound(uint8_t soundIndex, uint8_t volume)
-{
-
-
-
-}
-
-
-
-uint64_t soundPos = 0;
-
 sfSoundStream *sound;
 
 #define AUDIO_BUFFER_SIZE (SFG_SFX_SAMPLE_COUNT * 2)
+#define AUDIO_BUFFER_OFFSET 400
 
 int16_t audioBuffer[AUDIO_BUFFER_SIZE];
+uint32_t audioUpdateFrame = 0; // game frame at which audio buffer fill happened
+
+static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
+{
+  return sample1 + sample2;
+}
+
+void SFG_playSound(uint8_t soundIndex, uint8_t volume)
+{
+  uint16_t volumeScale = 1 << (volume / 37);
+
+  uint32_t pos = AUDIO_BUFFER_OFFSET +
+    ((SFG_game.frame - audioUpdateFrame) * SFG_MS_PER_FRAME * 8);
+
+  for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
+  {
+    audioBuffer[pos] = mixSamples(audioBuffer[pos], 
+      (128 - SFG_GET_SFX_SAMPLE(soundIndex,i)) * volumeScale);
+
+    pos++;
+
+    if (pos >= AUDIO_BUFFER_SIZE)
+      break;
+  }
+}
 
 sfBool soundFill(sfSoundStreamChunk *data, void *userdata)
 {
+  for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE - AUDIO_BUFFER_OFFSET; ++i)
+    audioBuffer[i] = audioBuffer[i + AUDIO_BUFFER_OFFSET];
+  
+  for (uint32_t i = AUDIO_BUFFER_SIZE - AUDIO_BUFFER_OFFSET; i < AUDIO_BUFFER_SIZE; ++i)
+    audioBuffer[i] = 0;
 
-printf("sasa\n");
+  for (uint32_t i = 0; i < AUDIO_BUFFER_OFFSET; ++i) // mix in the music
+  {
+    audioBuffer[i] = mixSamples((SFG_getNextMusicSample() - 
+      SFG_musicTrackAverages[SFG_MusicState.track]) * MUSIC_VOLUME,
+      audioBuffer[i]);
+  }
+
   data->samples = audioBuffer;
-  data->sampleCount = AUDIO_BUFFER_SIZE;
+  data->sampleCount = AUDIO_BUFFER_OFFSET;
+
+  audioUpdateFrame = SFG_game.frame;
 
   return sfTrue;
 }
 
 void soundSeek(sfTime t, void *userData)
 {
-
 }
 
 int main()
@@ -260,6 +289,9 @@ sfSoundStream_play(sound);
     sfRenderWindow_display(window);
 
   }
+
+sfSoundStream_stop(sound);
+sfSoundStream_destroy(sound);
 
   sfSprite_destroy(windowSprite);
   sfTexture_destroy(windowTexture);
