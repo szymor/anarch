@@ -181,20 +181,28 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 }
 
 
-sfInputStream soundStream;
 
 uint64_t soundPos = 0;
 
-sfInt64 soundRead(void* data, sfInt64 size, void* userData)
+sfSoundStream *sound;
+
+#define AUDIO_BUFFER_SIZE (SFG_SFX_SAMPLE_COUNT * 2)
+
+int16_t audioBuffer[AUDIO_BUFFER_SIZE];
+
+sfBool soundFill(sfSoundStreamChunk *data, void *userdata)
 {
-  soundPos += size;
-  
-  return size;
+
+printf("sasa\n");
+  data->samples = audioBuffer;
+  data->sampleCount = AUDIO_BUFFER_SIZE;
+
+  return sfTrue;
 }
 
-sfInt64 soundSize(void* userData)
+void soundSeek(sfTime t, void *userData)
 {
-  return 100;
+
 }
 
 int main()
@@ -204,15 +212,17 @@ int main()
   clock = sfClock_create();
   sfClock_restart(clock);
 
-
-
-
-
-
-
-
-
   SFG_init();
+
+for (int i = 0; i < AUDIO_BUFFER_SIZE; ++i)
+  audioBuffer[i] = SFG_getNextMusicSample() * 64;
+
+sound = sfSoundStream_create( soundFill,soundSeek  ,1,8000,0);
+
+sfSoundStream_play(sound);
+
+
+
 
   for (int i = 0; i < 256; ++i) // precompute RGB palette
   {
@@ -234,7 +244,6 @@ int main()
   sfWindow_setVerticalSyncEnabled((sfWindow *) window,sfFalse);
 
   
-  uint32_t lastAudioUpdate = 0;
 
   while (sfRenderWindow_isOpen(window))
   {
