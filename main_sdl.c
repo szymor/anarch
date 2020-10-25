@@ -302,7 +302,8 @@ void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infin
 #endif
 
 uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
-uint16_t audioPos = 0;
+uint16_t audioPos = 0; // audio position for the next audio buffer fill
+uint32_t audioUpdateFrame = 0; // game frame at which audio buffer fill happened
 
 static inline int16_t mixSamples(int16_t sample1, int16_t sample2)
 {
@@ -326,6 +327,8 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
     audioBuff[audioPos] = 0;
     audioPos = (audioPos < SFG_SFX_SAMPLE_COUNT - 1) ? (audioPos + 1) : 0;
   }
+
+  audioUpdateFrame = SFG_game.frame;
 }
 
 void SFG_setMusic(uint8_t value)
@@ -341,7 +344,9 @@ void SFG_setMusic(uint8_t value)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
-  uint16_t pos = audioPos;
+  uint16_t pos = audioPos +
+    ((SFG_game.frame - audioUpdateFrame) * SFG_MS_PER_FRAME * 8);
+
   uint16_t volumeScale = 1 << (volume / 37);
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
@@ -403,6 +408,8 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  SFG_init();
+
   puts("SDL: initializing SDL");
 
   window =
@@ -462,8 +469,6 @@ int main(int argc, char *argv[])
   running = 1;
 
   SDL_ShowCursor(0);
-
-  SFG_init();
 
   SDL_PumpEvents();
 
