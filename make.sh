@@ -49,6 +49,15 @@ elif [ $1 == "terminal" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && sudo ./anarch
+elif [ $1 == "csfml" ]; then
+  # csfml build, requires:
+  # - csfml
+
+  COMMAND="${COMPILER} ${C_FLAGS} main_csfml.c -lcsfml-graphics -lcsfml-window -lcsfml-system -lcsfml-audio"
+
+  echo ${COMMAND}
+
+  ${COMMAND} && ./anarch
 elif [ $1 == "test" ]; then
   # test build, requires:
   # - g++
