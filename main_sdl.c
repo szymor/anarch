@@ -34,7 +34,7 @@
 // #define SFG_TIME_MULTIPLIER 512
 
 // uncomment for perfomance debug 
-#define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
+// #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 
 #ifndef __EMSCRIPTEN__
   #ifndef GAME_LQ
@@ -229,7 +229,7 @@ int8_t SFG_keyPressed(uint8_t key)
 
       if (sdlMouseWheelState > 0)
       {
-        sdlMouseWheelState--;
+        sdlMouseWheelState = 0;
         return 1;
       }
         
@@ -242,7 +242,7 @@ int8_t SFG_keyPressed(uint8_t key)
 
       if (sdlMouseWheelState < 0)
       {
-        sdlMouseWheelState++;
+        sdlMouseWheelState = 0;
         return 1;
       }
         
@@ -273,9 +273,9 @@ void mainLoopIteration()
     if (event.type == SDL_MOUSEWHEEL)
     {
       if (event.wheel.y > 0) // scroll up
-        sdlMouseWheelState++;
+        sdlMouseWheelState = 1;
       else if (event.wheel.y < 0) // scroll down
-        sdlMouseWheelState--;
+        sdlMouseWheelState = -1;
     }
     else if (event.type == SDL_QUIT)
       running = 0;
@@ -343,8 +343,9 @@ void SFG_setMusic(uint8_t value)
 
 void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 {
-  uint16_t pos = audioPos +
-    ((SFG_game.frame - audioUpdateFrame) * SFG_MS_PER_FRAME * 8);
+  uint16_t pos = (audioPos +
+    ((SFG_game.frame - audioUpdateFrame) * SFG_MS_PER_FRAME * 8)) %
+    SFG_SFX_SAMPLE_COUNT;
 
   uint16_t volumeScale = 1 << (volume / 37);
 

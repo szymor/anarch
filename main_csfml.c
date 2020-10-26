@@ -1,7 +1,7 @@
 /**
   @file main_csfml.c
 
-  This is an csfml (C binding for SFML) implementation of the game front end.
+  This is a csfml (C binding for SFML) implementation of the game front end.
   This is another alternative to the SDL for the PC. This front end is more
   minimal and simple than the SDL, so it's better as a learning resource.
 
@@ -41,6 +41,8 @@ uint32_t paletteRGB32[256]; // SFML can't do 565, so precompute RGB here
 
 sfClock *clock;
 sfRenderWindow* window;
+
+uint8_t musicOn = 0;
 
 int8_t SFG_keyPressed(uint8_t key)
 {
@@ -144,6 +146,13 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 
 void SFG_setMusic(uint8_t value)
 {
+  switch (value)
+  {
+    case SFG_MUSIC_TURN_ON: musicOn = 1; break;
+    case SFG_MUSIC_TURN_OFF: musicOn = 0; break;
+    case SFG_MUSIC_NEXT: SFG_nextMusicTrack(); break;
+    default: break;
+  }
 }
 
 void SFG_processEvent(uint8_t event, uint8_t data)
@@ -175,10 +184,19 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
   return 1;
 }
 
+/* Because of the csfml sound API we won't use circular audio buffer, but a
+   linear buffer that is at each audio update shifted to the left. */
+
 sfSoundStream *sound;
 
-#define AUDIO_BUFFER_SIZE (SFG_SFX_SAMPLE_COUNT * 2)
-#define AUDIO_BUFFER_OFFSET 400
+#define AUDIO_BUFFER_SIZE (SFG_SFX_SAMPLE_COUNT * 2) // total size of the buffer
+#define AUDIO_BUFFER_OFFSET 400 /* size of the beginning portion of the buffer
+                                   that's being played, while the other part
+                                   is being filled with audio */
+
+#if AUDIO_BUFFER_OFFSET * 2 > AUDIO_BUFFER_SIZE
+  #error "AUDIO_BUFFER_OFFSET must be at most half of AUDIO_BUFFER_SIZE"
+#endif
 
 int16_t audioBuffer[AUDIO_BUFFER_SIZE];
 uint32_t audioUpdateFrame = 0; // game frame at which audio buffer fill happened
@@ -197,13 +215,13 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume)
 
   for (int i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
   {
+    if (pos >= AUDIO_BUFFER_SIZE)
+      break;
+
     audioBuffer[pos] = mixSamples(audioBuffer[pos], 
       (128 - SFG_GET_SFX_SAMPLE(soundIndex,i)) * volumeScale);
 
     pos++;
-
-    if (pos >= AUDIO_BUFFER_SIZE)
-      break;
   }
 }
 
@@ -212,15 +230,17 @@ sfBool soundFill(sfSoundStreamChunk *data, void *userdata)
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE - AUDIO_BUFFER_OFFSET; ++i)
     audioBuffer[i] = audioBuffer[i + AUDIO_BUFFER_OFFSET];
   
-  for (uint32_t i = AUDIO_BUFFER_SIZE - AUDIO_BUFFER_OFFSET; i < AUDIO_BUFFER_SIZE; ++i)
+  for (uint32_t i = AUDIO_BUFFER_SIZE - AUDIO_BUFFER_OFFSET; 
+    i < AUDIO_BUFFER_SIZE; ++i)
     audioBuffer[i] = 0;
 
-  for (uint32_t i = 0; i < AUDIO_BUFFER_OFFSET; ++i) // mix in the music
-  {
-    audioBuffer[i] = mixSamples((SFG_getNextMusicSample() - 
-      SFG_musicTrackAverages[SFG_MusicState.track]) * MUSIC_VOLUME,
-      audioBuffer[i]);
-  }
+  if (musicOn)
+    for (uint32_t i = 0; i < AUDIO_BUFFER_OFFSET; ++i) // mix in the music
+    {
+      audioBuffer[i] = mixSamples((SFG_getNextMusicSample() - 
+        SFG_musicTrackAverages[SFG_MusicState.track]) * MUSIC_VOLUME,
+        audioBuffer[i]);
+    }
 
   data->samples = audioBuffer;
   data->sampleCount = AUDIO_BUFFER_OFFSET;
@@ -243,15 +263,10 @@ int main()
 
   SFG_init();
 
-for (int i = 0; i < AUDIO_BUFFER_SIZE; ++i)
-  audioBuffer[i] = SFG_getNextMusicSample() * 64;
+  for (int i = 0; i < AUDIO_BUFFER_SIZE; ++i)
+    audioBuffer[i] = 0;
 
-sound = sfSoundStream_create( soundFill,soundSeek  ,1,8000,0);
-
-sfSoundStream_play(sound);
-
-
-
+  sound = sfSoundStream_create(soundFill,soundSeek,1,8000,0);
 
   for (int i = 0; i < 256; ++i) // precompute RGB palette
   {
@@ -261,7 +276,9 @@ sfSoundStream_play(sound);
       ((col565 << 5) & 0xfc00) | ((col565 >> 8) & 0xf8);
   }
 
-  sfTexture* windowTexture = sfTexture_create(SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
+  sfTexture* windowTexture =
+    sfTexture_create(SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
+
   sfTexture_setSmooth(windowTexture,sfTrue);
 
   sfSprite* windowSprite = sfSprite_create();
@@ -272,7 +289,7 @@ sfSoundStream_play(sound);
   sfWindow_setMouseCursorVisible((sfWindow *) window,sfFalse);
   sfWindow_setVerticalSyncEnabled((sfWindow *) window,sfFalse);
 
-  
+  sfSoundStream_play(sound);
 
   while (sfRenderWindow_isOpen(window))
   {
@@ -283,21 +300,19 @@ sfSoundStream_play(sound);
     if (!SFG_mainLoopBody())
       break;
 
-    sfTexture_updateFromPixels(windowTexture,(const sfUint8 *) windowPixels,SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y,0,0);
+    sfTexture_updateFromPixels(windowTexture,(const sfUint8 *) windowPixels,
+      SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y,0,0);
     sfRenderWindow_clear(window, sfBlack);
-    sfRenderWindow_drawSprite(window, windowSprite, NULL);
+    sfRenderWindow_drawSprite(window,windowSprite,NULL);
     sfRenderWindow_display(window);
-
   }
 
-sfSoundStream_stop(sound);
-sfSoundStream_destroy(sound);
-
+  sfSoundStream_stop(sound);
+  sfSoundStream_destroy(sound);
   sfSprite_destroy(windowSprite);
   sfTexture_destroy(windowTexture);
   sfRenderWindow_destroy(window);
   sfClock_destroy(clock);
-
 
   return 0;
 }
