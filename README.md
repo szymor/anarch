@@ -25,7 +25,7 @@ everywhere, made for the benefit of all living beings*
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
 - **Suckless, KISS, minimal, simple**, short code (< 10000 LOC TODO).
 - **Extremely portable** (much more than Doom). So far officially ported to and tested on:
-  - GNU/Linux PC, SDL
+  - GNU/Linux PC, SDL and csfml
   - GNU/Linux PC, terminal
   - Browser
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
@@ -87,7 +87,7 @@ system requirements:
 | CPU                | ~40 MHz, 32 bit                  | Intel 286, ~10 MHz 16 bit   | Intel 386, ~40 MHz, 32 bit |
 | RAM                | 32 KB                            | 528 KB                      | 4 MB                       |
 | storage            | 200 KB                           | 8 MB                        | 12 MB                      |
-| display            | 32 x 32, 8 colors, double buffer | ?                           | ?                          |
+| display            | 60 x 32, 8 colors, double buffer | ?                           | ?                          |
 | additional         | 7 buttons, frame buffer          | HDD, frame buffer           | HDD, frame buffer          |
 
 features:
