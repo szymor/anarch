@@ -1,7 +1,7 @@
 /**
   @file main_test.c
 
-  This is a front end that serves as an automatic test of the game.
+  This is a front end that serves as a basic automatic test of the game.
 
   This fronted tries to play the game and see if it behaves how expected. If you
   change anything substantial in the game, this test may start to fail and you 
@@ -16,6 +16,7 @@
 */
 
 #include <stdio.h>
+#include <time.h>
 
 #define SFG_SCREEN_RESOLUTION_X 67
 #define SFG_SCREEN_RESOLUTION_Y 31
@@ -29,7 +30,7 @@
 uint8_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y];
 uint8_t keys[SFG_KEY_COUNT];
 
-uint32_t time = 0;
+uint32_t gameTime = 0;
 
 int8_t SFG_keyPressed(uint8_t key)
 {
@@ -42,12 +43,14 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 
 uint32_t SFG_getTimeMs()
 {
-  return time;
+  return gameTime;
 }
 
-void SFG_sleepMs(uint16_t timeMs)
+void SFG_sleepMs(uint16_t gameTimeMs)
 {
 }
+
+int aaa = 100;
 
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
@@ -72,6 +75,7 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
+  return 0;
 }
 
 void printTestHeading(const char *text)
@@ -106,6 +110,8 @@ int main(void)
   #define ASSERT(text,cond) { printf("checking \"%s\": ",text); if (cond)  puts("OK"); else { puts("ERROR"); return 1; }}
 
   SFG_init();
+
+  double msPerFrame = 0;
 
   ASSERT("frame == 0",SFG_game.frame == 0);
 
@@ -155,7 +161,7 @@ int main(void)
     for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
       keys[i] = 0;
 
-    #define STEP(ms) { printf("(fr %d, step %d ms) ",SFG_game.frame,ms); time += ms; SFG_mainLoopBody(); }
+    #define STEP(ms) { printf("(fr %d, step %d ms) ",SFG_game.frame,ms); gameTime += ms; SFG_mainLoopBody(); }
     #define PRESS(k) { printf("(press %d) ",k); keys[k] = 1; }
     #define RELEASE(k) { printf("(release %d) ",k); keys[k] = 0; }
     #define TEST_PIXEL(x,y,v) { printf("(testing pixel %d %d)",x,y); uint8_t val =  screen[y * SFG_SCREEN_RESOLUTION_X + y]; if (val != v) { printf("\nERROR: expcted %d, got %d\n",v,val); return 1; }}
@@ -246,10 +252,25 @@ int main(void)
     
     putchar('\n');
     ASSERT("health == 74",SFG_player.health == 74)
-
-// TODO: benchmark frame time
-    
+  
     RELEASE(SFG_KEY_A)
+
+    STEP(100)
+      PRESS(SFG_KEY_LEFT)
+
+      #define FRAMES 1000000
+
+      printf("\nbenchmarking frame time on %d frames.\n",FRAMES);
+       
+      clock_t t1, t2;
+       
+      t1 = clock();
+      STEP(FRAMES);
+      t2 = clock();
+      msPerFrame = (((double) (t2 - t1)) * 1000.0) / (CLOCKS_PER_SEC * FRAMES);
+      RELEASE(SFG_KEY_LEFT)
+    STEP(100)
+
     PRESS(SFG_KEY_C) // open menu
     PRESS(SFG_KEY_DOWN)
     STEP(200)
@@ -274,6 +295,8 @@ int main(void)
   }
  
   puts("======================================\n\nDone.\nEverything seems OK.");
+
+  printf("benchmarked ms per frame: %lf\n",msPerFrame);
 
   return 0;
 }
