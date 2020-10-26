@@ -43,6 +43,7 @@ sfClock *clock;
 sfRenderWindow* window;
 
 uint8_t musicOn = 0;
+int8_t mouseWheelState = 0;
 
 int8_t SFG_keyPressed(uint8_t key)
 {
@@ -71,33 +72,29 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_NEXT_WEAPON:
-/* TODO
-      if (sdlKeyboardState[SDL_SCANCODE_P] || sdlKeyboardState[SDL_SCANCODE_X])
+      if (k(P) || k(X))
         return 1;
 
-      if (sdlMouseWheelState > 0)
+      if (mouseWheelState > 0)
       {
-        sdlMouseWheelState--;
+        mouseWheelState--;
         return 1;
       }
-      */  
+     
       return 0;
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
-/* TODO
-      if (sdlKeyboardState[SDL_SCANCODE_O] || sdlKeyboardState[SDL_SCANCODE_Y]
-          || sdlKeyboardState[SDL_SCANCODE_Z])
+      if (k(O) || k(Y) || k(Z)) 
         return 1;
 
-      if (sdlMouseWheelState < 0)
+      if (mouseWheelState < 0)
       {
-        sdlMouseWheelState++;
+        mouseWheelState++;
         return 1;
       }
         
       return 0;
-*/
       break;
 
     case SFG_KEY_MENU: return sfKeyboard_isKeyPressed(sfKeyEscape); break;
@@ -296,6 +293,8 @@ int main()
     while (sfRenderWindow_pollEvent(window,&event))
       if (event.type == sfEvtClosed)
         sfRenderWindow_close(window);
+      else if (event.type == sfEvtMouseWheelMoved)
+        mouseWheelState = event.mouseWheel.delta;
 
     if (!SFG_mainLoopBody())
       break;
