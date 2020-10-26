@@ -112,7 +112,7 @@ int main(void)
   {
     printTestHeading("music and sounds");
 
-    static const expectedSamples[] = { 1, 0, 0, 0, 0, 0, 255, 251, 80, 240, 240, 10, 0, 6, 4, 0 };
+    static const uint8_t expectedSamples[] = { 1, 0, 0, 0, 0, 0, 255, 251, 80, 240, 240, 10, 0, 6, 4, 0 };
 
     uint16_t pos = 0;
 
@@ -156,18 +156,117 @@ int main(void)
       keys[i] = 0;
 
     #define STEP(ms) { printf("(fr %d, step %d ms) ",SFG_game.frame,ms); time += ms; SFG_mainLoopBody(); }
-
     #define PRESS(k) { printf("(press %d) ",k); keys[k] = 1; }
     #define RELEASE(k) { printf("(release %d) ",k); keys[k] = 0; }
+    #define TEST_PIXEL(x,y,v) { printf("(testing pixel %d %d)",x,y); uint8_t val =  screen[y * SFG_SCREEN_RESOLUTION_X + y]; if (val != v) { printf("\nERROR: expcted %d, got %d\n",v,val); return 1; }}
 
     STEP(10)
     STEP(100)
-    PRESS(SFG_KEY_DOWN);
+    PRESS(SFG_KEY_DOWN) // select "exit"
     STEP(1000)
-//    RELEASE(SFG_KEY_A);
-//    STEP(5000)
+    RELEASE(SFG_KEY_DOWN)
+    TEST_PIXEL(10,20,64)
 
-printScreen();
+    putchar('\n');
+    ASSERT("menu item == exit",SFG_getMenuItem(SFG_game.selectedMenuItem) == SFG_MENU_ITEM_EXIT)
+
+    PRESS(SFG_KEY_UP) // select "play"
+    STEP(700)
+    RELEASE(SFG_KEY_UP)
+    PRESS(SFG_KEY_A) // confirm "play"
+    STEP(100)
+    TEST_PIXEL(30,21,0)
+    RELEASE(SFG_KEY_A)
+    STEP(100)
+    PRESS(SFG_KEY_A) // skip intro
+    STEP(2000)
+
+    putchar('\n');
+    ASSERT("state == playing",SFG_game.state == SFG_GAME_STATE_PLAYING)
+
+    RELEASE(SFG_KEY_A)
+    PRESS(SFG_KEY_RIGHT) // turn
+    STEP(400)
+    RELEASE(SFG_KEY_RIGHT)
+    PRESS(SFG_KEY_UP) // take ammo
+    STEP(400)
+
+    putchar('\n');
+    ASSERT("weapon == shotgun",SFG_player.weapon == SFG_WEAPON_SHOTGUN)
+
+    RELEASE(SFG_KEY_UP)
+    PRESS(SFG_KEY_LEFT) // turn back
+    STEP(700)
+    RELEASE(SFG_KEY_LEFT)
+    PRESS(SFG_KEY_UP) // go to barrels
+    STEP(1000)
+    RELEASE(SFG_KEY_UP)
+    PRESS(SFG_KEY_RIGHT)
+    STEP(200)
+    RELEASE(SFG_KEY_RIGHT)
+    PRESS(SFG_KEY_A) // shoot barrels
+    STEP(700)
+    RELEASE(SFG_KEY_A)
+
+    putchar('\n');
+    ASSERT("health < 100",SFG_player.health < 100)
+
+    PRESS(SFG_KEY_UP)
+    STEP(720)
+    RELEASE(SFG_KEY_UP)
+    PRESS(SFG_KEY_LEFT)
+    STEP(300)
+    RELEASE(SFG_KEY_LEFT)
+    PRESS(SFG_KEY_UP)
+    STEP(700)
+    RELEASE(SFG_KEY_UP)
+    PRESS(SFG_KEY_RIGHT)
+    STEP(700)
+    RELEASE(SFG_KEY_RIGHT)
+    PRESS(SFG_KEY_UP)
+    STEP(850)
+    RELEASE(SFG_KEY_UP)
+    STEP(2500)
+    PRESS(SFG_KEY_A) // shoot monster
+    STEP(200)
+    RELEASE(SFG_KEY_A) // shoot monster
+    STEP(900)
+    PRESS(SFG_KEY_LEFT)
+    PRESS(SFG_KEY_NEXT_WEAPON) // switch to machine gun
+    STEP(100)
+    RELEASE(SFG_KEY_LEFT)
+    RELEASE(SFG_KEY_NEXT_WEAPON)
+
+    putchar('\n');
+    ASSERT("weapon == machine gun",SFG_player.weapon == SFG_WEAPON_MACHINE_GUN)
+
+    STEP(1000)
+    PRESS(SFG_KEY_A) // shoot
+    STEP(2000)
+    
+    putchar('\n');
+    ASSERT("health == 74",SFG_player.health == 74)
+
+// TODO: benchmark frame time
+    
+    RELEASE(SFG_KEY_A)
+    PRESS(SFG_KEY_C) // open menu
+    PRESS(SFG_KEY_DOWN)
+    STEP(200)
+    RELEASE(SFG_KEY_C)
+
+    putchar('\n');
+    ASSERT("state == menu",SFG_game.state == SFG_GAME_STATE_MENU)
+
+    STEP(1000)
+    PRESS(SFG_KEY_A) // exit game
+    STEP(100)
+
+    putchar('\n');
+    ASSERT("game exitted",SFG_mainLoopBody() == 0)
+
+    putchar('\n');
+    printScreen();
 
     #undef PRESS
     #undef RELEASE
