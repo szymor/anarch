@@ -154,7 +154,7 @@ What we perceive as good graphics is heavily dependant on what we've learned to 
 
 ### Why doesn't this have feature X? Even Doom had it.
 
-Though inspired by Doom, this is **NOT** Doom. Keep in mind that this isn't primarily a PC game, this is a small platform independent game that happens to also natively run on PC. Also this game's goals are different than those of commercial games, it is still to a big degree just an experimental game. It has been written by a single person who had to do the design, engine programming, game programming, tool programming, graphics, sound recording, media creation, all in spare time.
+Though inspired by Doom, this is **NOT** Doom. Keep in mind that this isn't primarily a PC game, this is a small platform independent game that happens to also natively run on PC. Also this game's goals are different than those of commercial games, it is still to a big degree just an experimental game. It has been written by a single person who had to do the design, engine programming, game programming, tool programming, graphics, sound recording, testing, media creation, all in spare time.
 Please don't hate me.
 
 ### Shouldn't games simply be fun? You're complicating everything with ideological bullshit when it's really just about entertainment.
