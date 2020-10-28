@@ -1369,7 +1369,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level7 =
     13,                     // doorTextureIndex
     4,                      // floorColor
     66,                     // ceilingColor
-    {34, 11, 240},          // player start: x, y, direction
+    {34, 11, 0  },          // player start: x, y, direction
     1,                      // backgroundImage
     {                       // elements
       {SFG_LEVEL_ELEMENT_FINISH, {60,1}},{SFG_LEVEL_ELEMENT_BULLETS, {54,1}},
@@ -1438,7 +1438,6 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level7 =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
   } // level
-
   ;
 
 SFG_PROGRAM_MEMORY SFG_Level SFG_level8 =
