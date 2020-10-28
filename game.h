@@ -1,8 +1,8 @@
 /**
   @file game.h
  
-  Main source file of the game that puts together all the pieces. main game
-  logic is implemented here.
+  Main source file of Anarch the game that puts together all the pieces. main
+  game logic is implemented here.
 
   Physics notes (you can break this when messing with constants):
 
@@ -23,13 +23,11 @@
 #ifndef _SFG_GAME_H
 #define _SFG_GAME_H
 
-#include <stdint.h>
+#include <stdint.h> // Needed for fixed width types, can easily be replaced.
 
 /*
   The following keys are mandatory to be implemented on any platform in order
-  for the game to be playable.
-
-  Enums are bloat :)
+  for the game to be playable. Enums are bloat.
 */
 #define SFG_KEY_UP 0
 #define SFG_KEY_RIGHT 1

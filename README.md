@@ -152,6 +152,11 @@ Why go back to the 90s and not further? Early 90s is roughly right before PCs an
 
 What we perceive as good graphics is heavily dependant on what we've learned to perceive as good graphics, and it's more about aesthetics than things like resolution or polygon count. Doom looked amazing when it came out and it still does today to people who didn't let the industry teach them that good graphics equals super HD with realistic shaders requiring the latest and most expensive GPU.
 
+### Why doesn't this have feature X? Even Doom had it.
+
+Though inspired by Doom, this is **NOT** Doom. Keep in mind that this isn't primarily a PC game, this is a small platform independent game that happens to also natively run on PC. Also this game's goals are different than those of commercial games, it is still to a big degree just an experimental game. It has been written by a single person who had to do the design, engine programming, game programming, tool programming, graphics, sound recording, media creation, all in spare time.
+Please don't hate me.
+
 ### Shouldn't games simply be fun? You're complicating everything with ideological bullshit when it's really just about entertainment.
 
 Games should definitely be fun to play, but they are still technology and engineering art. We have more than enough games that are trying to be just fun before everything else, but practically none putting a little more emphasis also on other aspects -- projects that don't spend all the effort on the shallow shell, but care equally about the insides and the wider context of the world they exist in. I think we need many more games like this one.
@@ -178,7 +183,7 @@ Python scripts are only simple helpers for converting resources, which aren't re
 
 ### Why aren't you writing in assembly then?
 
-Because assembly isn't portable and even a "portable assembly" (bytecode) would make it too difficult to write a game of this complexity. C is about the minimum required abstraction.
+Because assembly isn't portable and even a "portable assembly" (bytecode) would make it too difficult to write a game of this complexity, and still probably wouldn't be as portable as C. C is about the minimum required abstraction.
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 

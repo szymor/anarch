@@ -30,10 +30,7 @@
   #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1
-
 // #define SFG_TIME_MULTIPLIER 512
-
-// uncomment for perfomance debug 
 // #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 
 #ifndef __EMSCRIPTEN__
@@ -70,20 +67,13 @@
   #include <emscripten.h>
 #endif
 
-
-//  #define SFG_SCREEN_RESOLUTION_X 88
-//  #define SFG_SCREEN_RESOLUTION_Y 110
-
-//  #define SFG_SCREEN_RESOLUTION_X 80
-//  #define SFG_SCREEN_RESOLUTION_Y 64
-
 /*
-  SDL is easier to play thanks to nice controls, so make the player take full
+  SDL is easier to play thanks to nice controls so make the player take full
   damage to make it a bit harder.
 */
 #define SFG_PLAYER_DAMAGE_MULTIPLIER 1024
 
-#define MUSIC_VOLUME 16
+#define SDL_MUSIC_VOLUME 16
 
 #if !SFG_OS_IS_MALWARE
   #include <signal.h>
@@ -101,16 +91,18 @@ uint8_t webKeyboardState[SFG_KEY_COUNT];
 uint8_t sdlMouseButtonState = 0;
 int8_t sdlMouseWheelState = 0;
 
-uint16_t screen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565 format
+uint16_t sdlScreen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565
 
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
 SDL_Surface *screenSurface;
 
+// now implement the Anarch API functions (SFG_*)
+
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
-  screen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
+  sdlScreen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
 }
 
 uint32_t SFG_getTimeMs()
@@ -154,6 +146,7 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 
   return 1;
 #else
+  // no saving for web version
   return 0;
 #endif
 }
@@ -166,7 +159,7 @@ void SFG_sleepMs(uint16_t timeMs)
 }
 
 #ifdef __EMSCRIPTEN__
-void webButton(uint8_t key, uint8_t down)
+void webButton(uint8_t key, uint8_t down) // HTML button pressed
 {
   webKeyboardState[key] = down;
 }
@@ -200,7 +193,7 @@ void SFG_processEvent(uint8_t event, uint8_t data)
 
 int8_t SFG_keyPressed(uint8_t key)
 {
-  if (webKeyboardState[key]) 
+  if (webKeyboardState[key]) // this only takes effect in the web version 
     return 1;
 
   #define k(x) sdlKeyboardState[SDL_SCANCODE_ ## x]
@@ -211,9 +204,9 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_RIGHT: return k(RIGHT) || k(E) || k(KP_6); break;
     case SFG_KEY_DOWN: return k(DOWN) || k(S) || k(KP_5) || k(KP_2); break;
     case SFG_KEY_LEFT: return k(LEFT) || k(Q) || k(KP_4); break;
-    case SFG_KEY_A: return k(J) || k(RETURN) || k(LSHIFT) ||
+    case SFG_KEY_A: return k(J) || k(RETURN) || k(LCTRL) || k(RCTRL) ||
                     (sdlMouseButtonState & SDL_BUTTON_LMASK); break;
-    case SFG_KEY_B: return k(K) || k(LCTRL) || k(RCTRL); break;
+    case SFG_KEY_B: return k(K) || k(LSHIFT); break;
     case SFG_KEY_C: return k(L); break;
     case SFG_KEY_JUMP: return k(SPACE); break;
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(KP_7); break;
@@ -227,11 +220,10 @@ int8_t SFG_keyPressed(uint8_t key)
       if (k(P) || k(X))
         return 1;
 
-      if (sdlMouseWheelState > 0)
-      {
-        sdlMouseWheelState = 0;
-        return 1;
-      }
+#define checkMouse(cmp)\
+  if (sdlMouseWheelState cmp 0) { sdlMouseWheelState = 0; return 1; }
+
+      checkMouse(>)
         
       return 0;
       break;
@@ -240,11 +232,9 @@ int8_t SFG_keyPressed(uint8_t key)
       if (k(O) || k(Y) || k(Z))
         return 1;
 
-      if (sdlMouseWheelState < 0)
-      {
-        sdlMouseWheelState = 0;
-        return 1;
-      }
+      checkMouse(<)
+
+#undef checkMouse
         
       return 0;
       break;
@@ -262,7 +252,7 @@ void mainLoopIteration()
   SDL_Event event;
 
 #ifdef __EMSCRIPTEN__
-  // Hack, without it sound won't work because of shitty browser audio policies.
+  // hack, without it sound won't work because of shitty browser audio policies
 
   if (SFG_game.frame % 512 == 0)
     SDL_PauseAudio(0);
@@ -272,7 +262,7 @@ void mainLoopIteration()
   {
     if (event.type == SDL_MOUSEWHEEL)
     {
-      if (event.wheel.y > 0) // scroll up
+      if (event.wheel.y > 0)      // scroll up
         sdlMouseWheelState = 1;
       else if (event.wheel.y < 0) // scroll down
         sdlMouseWheelState = -1;
@@ -288,7 +278,8 @@ void mainLoopIteration()
   if (!SFG_mainLoopBody())
     running = 0;
 
-  SDL_UpdateTexture(texture,NULL,screen,SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
+  SDL_UpdateTexture(texture,NULL,sdlScreen,
+    SFG_SCREEN_RESOLUTION_X * sizeof(uint16_t));
 
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer,texture,NULL,NULL);
@@ -297,7 +288,8 @@ void mainLoopIteration()
 
 #ifdef __EMSCRIPTEN__
 typedef void (*em_callback_func)(void);
-void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
+void emscripten_set_main_loop(
+       em_callback_func func, int fps, int simulate_infinite_loop);
 #endif
 
 uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
@@ -319,7 +311,7 @@ void audioFillCallback(void *userdata, uint8_t *s, int l)
   for (int i = 0; i < l / 2; ++i)
   {
     s16[i] = musicOn ?
-      mixSamples(audioBuff[audioPos], MUSIC_VOLUME *
+      mixSamples(audioBuff[audioPos], SDL_MUSIC_VOLUME *
       (SFG_getNextMusicSample() - SFG_musicTrackAverages[SFG_MusicState.track]))
       : audioBuff[audioPos];
 
@@ -386,22 +378,24 @@ int main(int argc, char *argv[])
 
   if (argHelp)
   {
-    puts("Anarch, version " SFG_VERSION_STRING "\n");
+    puts("Anarch (SDL), version " SFG_VERSION_STRING "\n");
     puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
     puts("robot enemies in your way in order to get to the level finish. Some door are");
     puts("locked and require access cards. Good luck!\n");
-    puts("created by Miloslav \"drummyfish\" Ciz, released under CC0 1.0 (public domain)\n");
+    puts("created by Miloslav \"drummyfish\" Ciz, 2020, released under CC0 1.0 (public domain)\n");
     puts("CLI flags:\n");
     puts("-h   print this help and exit");
     puts("-w   force window");
     puts("-f   force fullscreen\n");
     puts("controls:\n");
     puts("- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement");
-    puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look, wheel weapon change");
+    puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
     puts("- [SPACE]: jump");
-    puts("- [G] [RETURN] [SHIFT]: game A button (confirm, strafe)");
-    puts("- [H] [CTRL]: game B button (cancel, shoot)");
-    puts("- [O] [P] [X] [Y] [Z]: change weapons");
+    puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
+    puts("- [K] [SHIFT]: game B button (cancel, strafe)");
+    puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
+    puts("- [F]: cycle next/previous weapon");
+    puts("- [O] [P] [X] [Y] [Z] [mouse wheel]: change weapons");
     puts("- [TAB]: map");
     puts("- [ESCAPE]: menu");
 
@@ -485,10 +479,10 @@ int main(int argc, char *argv[])
   puts("SDL: freeing SDL");
 
   SDL_PauseAudio(1);
+  SDL_CloseAudio();
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer); 
   SDL_DestroyWindow(window); 
-  SDL_CloseAudio();
 
   puts("SDL: ending");
 

@@ -1,11 +1,11 @@
 /**
   @file main_pokitto.cpp
 
-  This is Linux terminal implementation of the game front end. This needs root
-  priviledges (sudo) to work! This frontend is more of an experiment, don't
-  expect it to work perfectly and everywhere.
-
-  Needs to be run with sudo.
+  This is Linux terminal implementation of the game front end. If you replace
+  the input methods, it will most likely run in other terminals as well. This
+  needs root priviledges (sudo) to work (because we need to read keyboard and
+  mouse inputs)! This frontend is more of an experiment, don't expect it to work
+  perfectly and everywhere.
 
   by Miloslav Ciz (drummyfish), 2019
 
@@ -99,14 +99,15 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_RIGHT:  return input_getKey('d') || input_getKey(SMALLINPUT_ARROW_RIGHT); break;
     case SFG_KEY_DOWN:   return input_getKey('s') || input_getKey(SMALLINPUT_ARROW_DOWN); break;
     case SFG_KEY_LEFT:   return input_getKey('a') || input_getKey(SMALLINPUT_ARROW_LEFT); break;
-    case SFG_KEY_A:      return input_getKey('g') || input_getKey(SMALLINPUT_RETURN); break;
-    case SFG_KEY_B:      return input_getKey('h') || input_getKey(SMALLINPUT_MOUSE_L) || input_getKey(SMALLINPUT_CTRL); break;
-    case SFG_KEY_C:      return input_getKey('j'); break;
+    case SFG_KEY_A:      return input_getKey('i') || input_getKey(SMALLINPUT_RETURN) || input_getKey(SMALLINPUT_MOUSE_L); break;
+    case SFG_KEY_B:      return input_getKey('j') || input_getKey(SMALLINPUT_CTRL); break;
+    case SFG_KEY_C:      return input_getKey('k'); break;
     case SFG_KEY_MAP:    return input_getKey(SMALLINPUT_TAB); break;
     case SFG_KEY_JUMP:   return input_getKey(' '); break;
     case SFG_KEY_MENU:   return input_getKey(SMALLINPUT_ESCAPE); break;
     case SFG_KEY_NEXT_WEAPON: return input_getKey('2'); break;
     case SFG_KEY_PREVIOUS_WEAPON: return input_getKey('1'); break;
+    case SFG_KEY_CYCLE_WEAPON: return input_getKey('f'); break;
     case SFG_KEY_TOGGLE_FREELOOK: return input_getKey(SMALLINPUT_MOUSE_R); break;
     default:             return 0; break;
   }

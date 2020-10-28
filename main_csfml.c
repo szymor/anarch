@@ -2,8 +2,8 @@
   @file main_csfml.c
 
   This is a csfml (C binding for SFML) implementation of the game front end.
-  This is another alternative to the SDL for the PC. This front end is more
-  minimal and simple than the SDL, so it's better as a learning resource.
+  This is another alternative to the SDL for the PC. This front end is maybe a
+  little simpler than the SDL, so it's better as a learning resource.
 
   by Miloslav Ciz (drummyfish), 2020
 
@@ -27,6 +27,9 @@
 #define SFG_DITHERED_SHADOW 1
 #define SFG_DIMINISH_SPRITES 1
 #define SFG_RESOLUTION_SCALEDOWN 1
+#define SFG_BACKGROUND_BLUR 1
+
+#define SFG_LOG(s) printf("game: %s\n",s);
 
 #define MUSIC_VOLUME 16
 
@@ -58,9 +61,9 @@ int8_t SFG_keyPressed(uint8_t key)
       return k(S) || k(Down) || k(Num5) || k (Num2); break;
     case SFG_KEY_LEFT: return k(Q) || k(Left) || k(Num4); break;
     case SFG_KEY_A:
-      return k(J) || k(Return) || k(LShift) ||
+      return k(J) || k(Return) || k(LControl) || k(RControl) ||
       sfMouse_isButtonPressed(sfMouseLeft); break;
-    case SFG_KEY_B: return k(K) || k(LControl) || k(RControl); break;
+    case SFG_KEY_B: return k(K) || k(LShift); break;
     case SFG_KEY_C: return k(L); break;
     case SFG_KEY_JUMP: return k(Space); break;
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(Num7); break;
@@ -75,11 +78,10 @@ int8_t SFG_keyPressed(uint8_t key)
       if (k(P) || k(X))
         return 1;
 
-      if (mouseWheelState > 0)
-      {
-        mouseWheelState--;
-        return 1;
-      }
+#define checkMouse(cmp)\
+  if (mouseWheelState cmp 0) { mouseWheelState = 0; return 1; }
+
+      checkMouse(>)
      
       return 0;
       break;
@@ -88,11 +90,9 @@ int8_t SFG_keyPressed(uint8_t key)
       if (k(O) || k(Y) || k(Z)) 
         return 1;
 
-      if (mouseWheelState < 0)
-      {
-        mouseWheelState++;
-        return 1;
-      }
+      checkMouse(<)
+
+#undef checkMouse
         
       return 0;
       break;
@@ -251,14 +251,70 @@ void soundSeek(sfTime t, void *userData)
 {
 }
 
-int main()
+uint32_t screenshotNumber = 0;
+
+/**
+  Saves a screenshot using the simple uncompressed PPM file format.
+*/
+void screenshot()
 {
+  char fileName[64];
+
+  sprintf(fileName,"screenshot_%05d.ppm",screenshotNumber);
+
+  FILE *f = fopen(fileName,"w");
+
+  if (!f)
+  { 
+    puts("error: could not take screenshot");
+    return;
+  }
+
+  fprintf(f,"P6 %d %d 255\n",SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
+
+  for (uint32_t i = 0; i < WINDOW_SIZE; ++i)
+    fwrite(&windowPixels[i],1,3,f);
+
+  puts("screenshot taken");
+
+  screenshotNumber++;
+
+  fclose(f);
+}
+
+int main(int argc, char *argv[])
+{
+  if (argc > 1 && argv[1][0] == '-' && argv[1][1] == 'h' && argv[1][2] == 0)
+  {
+    puts("Anarch (CSFML), version " SFG_VERSION_STRING "\n");
+    puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
+    puts("robot enemies in your way in order to get to the level finish. Some door are");
+    puts("locked and require access cards. Good luck!\n");
+    puts("created by Miloslav \"drummyfish\" Ciz, 2020, released under CC0 1.0 (public domain)\n");
+    puts("controls:\n");
+    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement");
+    puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
+    puts("- [SPACE]: jump");
+    puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
+    puts("- [K] [SHIFT]: game B button (cancel, strafe)");
+    puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
+    puts("- [F]: cycle next/previous weapon");
+    puts("- [O] [P] [X] [Y] [Z] [mouse wheel]: change weapons");
+    puts("- [TAB]: map");
+    puts("- [F12]: screenshot");
+    puts("- [ESCAPE]: menu");
+
+    return 0;
+  }
+ 
+  SFG_init();
+
   sfVideoMode mode = {SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y, 32};
   sfEvent event;
   clock = sfClock_create();
   sfClock_restart(clock);
 
-  SFG_init();
+  puts("initializing");
 
   for (int i = 0; i < AUDIO_BUFFER_SIZE; ++i)
     audioBuffer[i] = 0;
@@ -288,6 +344,8 @@ int main()
 
   sfSoundStream_play(sound);
 
+  puts("starting");
+
   while (sfRenderWindow_isOpen(window))
   {
     while (sfRenderWindow_pollEvent(window,&event))
@@ -295,6 +353,8 @@ int main()
         sfRenderWindow_close(window);
       else if (event.type == sfEvtMouseWheelMoved)
         mouseWheelState = event.mouseWheel.delta;
+      else if (event.type == sfEvtKeyPressed && event.key.code == sfKeyF12)
+        screenshot();
 
     if (!SFG_mainLoopBody())
       break;
@@ -305,6 +365,8 @@ int main()
     sfRenderWindow_drawSprite(window,windowSprite,NULL);
     sfRenderWindow_display(window);
   }
+
+  puts("ending");
 
   sfSoundStream_stop(sound);
   sfSoundStream_destroy(sound);
