@@ -2,7 +2,15 @@
   @file main_gbmeta.ino
 
   This is Gamebuino Meta implementation of the game front end, using the
-  official library.
+  official library. Leaving out the library bloat could probably optimize this.
+
+  To compile using Arduin IDE you need to copy this file as well as all
+  necessary .h files into a project folder, then open the project and compile.
+  Do NOT put .c and .cpp files into the folder, stupid Arduino tries to compile
+  them even if they're not needed.
+
+  DON'T FORGET to set compiler flag to -O3 (default is -Os). With Arduino IDE
+  this is done in platform.txt file. 
 
   by Miloslav Ciz (drummyfish), 2019
 
@@ -14,9 +22,6 @@
 
 #include <Gamebuino-Meta.h>
 
-  #define SFG_IMMORTAL 1
-  #define SFG_INFINITE_AMMO 1
-
 #define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
 #define SFG_FPS 17
@@ -25,10 +30,10 @@
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_RAYCASTING_MAX_STEPS 11
 #define SFG_RAYCASTING_MAX_HITS 3
-#define SFG_RAYCASTING_SUBSAMPLE 3
+#define SFG_RAYCASTING_SUBSAMPLE 2
 #define SFG_DIMINISH_SPRITES 0
 #define SFG_DITHERED_SHADOW 0
-#define SFG_PLAYER_TURN_SPEED 150
+#define SFG_PLAYER_TURN_SPEED 135
 
 #include "game.h"
 
