@@ -8,6 +8,7 @@ These are some ideas about what you can do with this game:
 - Package it, reupload it, share it.
 - Port it to your favorite platform.
 - Port to VR :)
+- Port to GBA.
 - Add OpenGL (or other accelerated) rendering, with true 3D, true color,
   antialiasing, texture filtering etc.
 - Improve SW rendering on PC, e.g. use full z-buffer, particle effects etc.
