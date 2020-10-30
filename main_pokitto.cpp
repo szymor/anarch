@@ -14,18 +14,15 @@
 
 // #define JOYHAT  // compiles the version for Pokitto with joystick hat
 
-//  #define SFG_START_LEVEL 8
+#if 0
+// for debug:
+  #define SFG_LOG(s) puts(s);
+  #define SFG_CPU_LOAD(x) printf("CPU: %d\n",x);
+#endif
 
-     #include <stdio.h>
-     #define SFG_LOG(s) puts(s);
-
-//     #define SFG_UNLOCK_DOOR 1
-//     #define SFG_INFINITE_AMMO 1
-
-#define SFG_FPS 20
+#define SFG_FPS 22
 #define SFG_CAN_EXIT 0
 #define SFG_PLAYER_TURN_SPEED 135
-//#define SFG_TEXTURE_DISTANCE 6000
 
 #ifndef JOYHAT
   #define SFG_SCREEN_RESOLUTION_X 110

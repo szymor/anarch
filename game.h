@@ -33,9 +33,9 @@
 #define SFG_KEY_RIGHT 1
 #define SFG_KEY_DOWN 2
 #define SFG_KEY_LEFT 3
-#define SFG_KEY_A 4
-#define SFG_KEY_B 5
-#define SFG_KEY_C 6
+#define SFG_KEY_A 4     ///< fire, confirm
+#define SFG_KEY_B 5     ///< cancel, strafe, look up/down
+#define SFG_KEY_C 6     ///< menu, jump, switch weapons
 
 /*
   The following keys are optional for a platform to implement. They just make
@@ -56,7 +56,7 @@
 /* ============================= PORTING =================================== */
 
 /* When porting, do the following:
-   - Include this file (and possibly other optionaly files, like sounds.h) in
+   - Include this file (and possibly other optional files, like sounds.h) in
      your main_*.c frontend source.
    - Implement the following functions in your frontend source.
    - Call SFG_init() from your frontend initialization code.
@@ -73,7 +73,7 @@
 #ifndef SFG_GAME_STEP_COMMAND
   #define SFG_GAME_STEP_COMMAND {} /**< Will be called each simlation step (good
                                    for creating deterministic behavior such as
-                                   demos (main loop iteration calls potentially
+                                   demos (SFG_mainLoopBody() calls potentially
                                    multiple simulation steps). */
 #endif
 
@@ -87,14 +87,14 @@ int8_t SFG_keyPressed(uint8_t key);
 /**
   Optinal function for mouse/joystick/analog controls, gets mouse x and y offset
   in pixels from the game screen center (to achieve classic FPS mouse controls
-  the platform should center the mouse after the call). If the platform isn't
-  using a mouse, this function can simply return [0,0] offets at each call, or
+  the platform should center the mouse after this call). If the platform isn't
+  using a mouse, this function can simply return [0,0] offset at each call, or
   even do nothing at all (leave the variables as are).
 */
 void SFG_getMouseOffset(int16_t *x, int16_t *y);
 
 /**
-  Returns time in ms sice program start.
+  Returns time in milliseconds sice program start.
 */
 uint32_t SFG_getTimeMs();
 
@@ -108,14 +108,14 @@ void SFG_sleepMs(uint16_t timeMs);
 /**
   Set specified screen pixel. ColorIndex is the index of the game's palette.
   The function doesn't have to (and shouldn't, for the sake of performance)
-  check whether the coordinates are within screen.
+  check whether the coordinates are within screen bounds.
 */
 static inline void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex);
 
 /**
   Play given sound effect (SFX). This function may or may not use the sound
   samples provided in sounds.h, and it may or may not ignore the (logarithmic)
-  volume parameter (0 to 255). Depending on the platform the function can play
+  volume parameter (0 to 255). Depending on the platform, the function can play
   completely different samples or even e.g. just beeps. If the platform can't
   play sounds, this function implementation can simply be left empty. This
   function doesn't have to implement safety measures, the back end takes cares
@@ -129,13 +129,13 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume);
 
 /**
   Informs the frontend how music should play, e.g. turn on/off, change track,
-  ... See SFG_MUSIC_* constants. Playing music is optional and the frontend can
+  ... See SFG_MUSIC_* constants. Playing music is optional and the frontend may
   ignore this. If a frontend wants to implement music, it can use the bytebeat
   provided in sounds.h or use its own.
 */
 void SFG_setMusic(uint8_t value);
 
-#define SFG_EVENT_VIBRATE 0  ///< the controller should vibrate (or blink etc.)
+#define SFG_EVENT_VIBRATE 0 ///< the controller should vibrate (or blink etc.)
 #define SFG_EVENT_PLAYER_HURT 1 
 #define SFG_EVENT_PLAYER_DIES 2
 #define SFG_EVENT_LEVEL_STARTS 3
@@ -149,12 +149,11 @@ void SFG_setMusic(uint8_t value);
 /**
   This is an optional function that informs the frontend about special events
   which may trigger something special on the platform, such as a controller
-  vibration, logging etc. This implementation of this function can be left
-  empty.
+  vibration, logging etc. The implementation of this function may be left empty.
 */
 void SFG_processEvent(uint8_t event, uint8_t data);
 
-#define SFG_SAVE_SIZE 12
+#define SFG_SAVE_SIZE 12 ///< size of the save in bytes
 
 /**
   Optional function for permanently saving the game state. Platforms that don't
@@ -174,7 +173,7 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE]);
   present in permanent memory, this function should do nothing (leave the data
   array as is).
 
-  This function should return 1 if saving/loading is possible and 0 if not (this
+  This function should return 1 if saving/loading is possible or 0 if not (this
   will be used by the game to detect saving/loading capability).
 */
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
@@ -182,8 +181,8 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
 /* ========================================================================= */
 
 /**
-  Game main loop body, call this inside your platform's specific main loop.
-  Returns 1 if the game continues, 0 if the game was exited and program should
+  Main game loop body, call this inside your platform's specific main loop.
+  Returns 1 if the game continues or 0 if the game was exited and program should
   halt. This functions handles reaching the target FPS and sleeping for
   relieving CPU, so don't do this.
 */
@@ -3057,7 +3056,7 @@ void SFG_gameStepPlaying()
 
   if (SFG_keyJustPressed(SFG_KEY_TOGGLE_FREELOOK))
     SFG_game.settings = (SFG_game.settings & 0x04) ?
-      (SFG_game.settings & ~0x0c) : (SFG_game.settings | 0x0c );
+      (SFG_game.settings & ~0x0c) : (SFG_game.settings | 0x0c);
 
   int8_t canSwitchWeapon = SFG_player.weaponCooldownFrames == 0;
 
@@ -3094,7 +3093,7 @@ void SFG_gameStepPlaying()
     }
 
     if (!SFG_keyIsDown(SFG_KEY_C))
-    {                                    // A + L/R: strafing
+    {                                    // B + L/R: strafing
       if (SFG_keyIsDown(SFG_KEY_LEFT))
         strafe = -1;
       else if (SFG_keyIsDown(SFG_KEY_RIGHT))
@@ -3102,7 +3101,7 @@ void SFG_gameStepPlaying()
     }
   }
 
-  if (SFG_keyIsDown(SFG_KEY_C))          // C + AL/BR: weapon switching
+  if (SFG_keyIsDown(SFG_KEY_C))          // C + A/B/L/R: weapon switching
   {
     if ((SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A)) &&
       canSwitchWeapon)
@@ -3868,7 +3867,7 @@ void SFG_gameStep()
       // player die animation (lose)
 
       SFG_updateLevel(); // let monsters and other things continue moving
-      SFG_updatePlayerHeight(); // in case player is on elevator    
+      SFG_updatePlayerHeight(); // in case player is on elevator 
 
       int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
 
