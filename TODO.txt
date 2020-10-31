@@ -11,12 +11,8 @@ general:
 - Polish weapon switching, maybe add a key to switch to previous weapon?
 - Port to OpenDingux.
 - Rewrite python scripts to C (faster, less bloat, fewer dependencies).
-- automatic tests: a frontend that will play the game, check the state, rendered
-  frames etc.
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - compile on BSD and WinShit
-- make SFML frontend
-- Port to some fantasy console?
 - run on raspbery pi
 
 level ideas:
@@ -219,6 +215,9 @@ done:
 - Even if music is off, after turning on a few samples are played (also on
   Pokitto).
 - At the beginning "FPS cant be reached" is always displayed.
+- automatic tests: a frontend that will play the game, check the state, rendered
+  frames etc.
+- make SFML frontend
 
 scratched:
 - option for disabling wall transparency, for performance?
@@ -243,3 +242,4 @@ scratched:
 - some monsters could reflect plasma, i.e. not be hurt by it, but reflect it
   back towards the player
 - Port to ncurses?
+- Port to some fantasy console?
