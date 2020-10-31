@@ -86,6 +86,21 @@
 #endif
 
 /**
+  Horizontal FOV (field of vision) in RCL_Units (1024 means 360 degrees).
+*/
+
+#ifndef SFG_FOV_HORIZONTAL
+  #define SFG_FOV_HORIZONTAL 256
+#endif
+
+/**
+  Like SFG_FOV_HORIZONTAL but for vertical angle.
+*/
+#ifndef SFG_FOV_VERTICAL
+  #define SFG_FOV_VERTICAL 330
+#endif
+
+/**
   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
   distance will be replaced by an average constant color, which maybe can help
   performance and also serves as an antialiasim (2 level MIP map). Value 0 turns

@@ -1,7 +1,5 @@
 general:
 
-- Add FOV options. RCL doesn't project sprites with different FOV correctly -
-  FIX!
 - Profile, epsecially Pokitto, small periodical tearing can be noticed (some
   periodical updates probably).
 - Compile Pokitto overclocked version.
@@ -220,6 +218,8 @@ done:
 - automatic tests: a frontend that will play the game, check the state, rendered
   frames etc.
 - make SFML frontend
+- Add FOV options. RCL doesn't project sprites with different FOV correctly -
+  FIX!
 
 scratched:
 - option for disabling wall transparency, for performance?
