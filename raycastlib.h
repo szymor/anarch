@@ -1731,13 +1731,14 @@ RCL_Unit RCL_perspectiveScaleVertical(RCL_Unit originalSize, RCL_Unit distance)
 RCL_Unit RCL_perspectiveScaleVerticalInverse(RCL_Unit originalSize,
   RCL_Unit scaledSize)
 {
-  // TODO: probably doesn't work
+  if (_RCL_fovCorrectionFactors[1] == 0)
+    _RCL_fovCorrectionFactors[1] = _RCL_fovCorrectionFactor(RCL_VERTICAL_FOV);
 
   return scaledSize != 0 ?
-    (originalSize * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2) /
-                                           // ^ take the middle
-      ((RCL_VERTICAL_FOV_TAN * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
-    : RCL_INFINITY;
+
+  ((originalSize * RCL_UNITS_PER_SQUARE) /
+   RCL_nonZero((_RCL_fovCorrectionFactors[1] * scaledSize) 
+    / RCL_UNITS_PER_SQUARE)) : RCL_INFINITY;
 }
 
 RCL_Unit
