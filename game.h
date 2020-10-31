@@ -220,6 +220,9 @@ void SFG_init();
 #define RCL_CAMERA_COLL_HEIGHT_BELOW 800
 #define RCL_CAMERA_COLL_HEIGHT_ABOVE 200
 
+#define RCL_HORIZONTAL_FOV 256
+#define RCL_VERTICAL_FOV 333
+
 #include "raycastlib.h" 
 
 #include "constants.h"

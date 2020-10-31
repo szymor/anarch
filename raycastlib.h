@@ -111,7 +111,7 @@
 #endif
 
 #ifndef RCL_VERTICAL_FOV
-#define RCL_VERTICAL_FOV (RCL_UNITS_PER_SQUARE / 5)
+#define RCL_VERTICAL_FOV (RCL_UNITS_PER_SQUARE / 3)
 #endif
 
 #define RCL_VERTICAL_FOV_TAN (RCL_VERTICAL_FOV * 4) ///< tan approximation
@@ -120,7 +120,7 @@
 #define RCL_HORIZONTAL_FOV (RCL_UNITS_PER_SQUARE / 4)
 #endif
 
-#define RCL_HORIZONTAL_FOV_TAN (RCL_VERTICAL_FOV * 4)
+#define RCL_HORIZONTAL_FOV_TAN (RCL_HORIZONTAL_FOV * 4)
 
 #define RCL_HORIZONTAL_FOV_HALF (RCL_HORIZONTAL_FOV / 2)
 
@@ -517,6 +517,7 @@ RCL_Unit _RCL_cHorizontalDepthStart = 0;
 int16_t _RCL_cameraHeightScreen = 0;
 RCL_ArrayFunction _RCL_rollFunction = 0; // says door rolling
 RCL_Unit *_RCL_floorPixelDistances = 0;
+RCL_Unit _RCL_fovCorrectionFactors[2] = {0,0}; //correction for hor/vert fov
 
 RCL_Unit RCL_clamp(RCL_Unit value, RCL_Unit valueMin, RCL_Unit valueMax)
 {
@@ -620,7 +621,10 @@ RCL_Unit RCL_sin(RCL_Unit input)
 
 RCL_Unit RCL_tan(RCL_Unit input)
 {
-  return (RCL_sin(input) * RCL_UNITS_PER_SQUARE) / RCL_cos(input);
+  return (RCL_sin(input) * RCL_UNITS_PER_SQUARE) / RCL_nonZero(RCL_cos(input)
+);
+
+  return (RCL_sin(input) * RCL_UNITS_PER_SQUARE) / RCL_nonZero(RCL_cos(input));
 }
 
 RCL_Unit RCL_ctg(RCL_Unit input)
@@ -1652,6 +1656,7 @@ RCL_Unit RCL_vectorsAngleCos(RCL_Vector2D v1, RCL_Vector2D v2)
   return (v1.x * v2.x + v1.y * v2.y) / RCL_UNITS_PER_SQUARE;
 }
 
+
 RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
   RCL_Camera camera)
 {
@@ -1676,14 +1681,15 @@ RCL_PixelInfo RCL_mapToScreen(RCL_Vector2D worldPosition, RCL_Unit height,
 
   result.depth = toPoint.x;
 
-  result.position.x =
-    middleColumn + (-1 * toPoint.y * middleColumn) / RCL_nonZero(result.depth);
+  result.position.x = middleColumn -
+   (RCL_perspectiveScaleHorizontal(toPoint.y,result.depth) * middleColumn) /
+   RCL_UNITS_PER_SQUARE;
 
   result.position.y =
-    camera.resolution.y / 2 -
     (RCL_perspectiveScaleVertical(height - camera.height,result.depth)
-     * camera.resolution.y) / RCL_UNITS_PER_SQUARE
-    + camera.shear;
+     * camera.resolution.y) / RCL_UNITS_PER_SQUARE;
+  
+  result.position.y = camera.resolution.y / 2 - result.position.y + camera.shear;
 
   return result;
 }
@@ -1692,18 +1698,41 @@ RCL_Unit RCL_degreesToUnitsAngle(int16_t degrees)
 {
   return (degrees * RCL_UNITS_PER_SQUARE) / 360;
 }
+  
+/**
+  Ugly temporary hack to solve mapping to screen. This function computes
+  (approximately, usin a table) a divisor needed for FOV correction.
+*/
+RCL_Unit _RCL_fovCorrectionFactor(RCL_Unit fov)
+{
+  uint16_t table[9] = 
+    {1,208,408,692,1024,1540,2304,5376,30000};
+
+  fov = RCL_min(RCL_UNITS_PER_SQUARE / 2 - 1,fov);
+
+  uint8_t index = fov / 64;
+  uint32_t t = ((fov - index * 64) * RCL_UNITS_PER_SQUARE) / 64; 
+  uint32_t v1 = table[index];
+  uint32_t v2 = table[index + 1];
+ 
+  return v1 + ((v2 - v1) * t) / RCL_UNITS_PER_SQUARE;
+}
 
 RCL_Unit RCL_perspectiveScaleVertical(RCL_Unit originalSize, RCL_Unit distance)
 {
-  return distance != 0 ?
-   (originalSize * RCL_UNITS_PER_SQUARE) /
-      ((RCL_VERTICAL_FOV_TAN * 2 * distance) / RCL_UNITS_PER_SQUARE)
-   : 0;
+  if (_RCL_fovCorrectionFactors[1] == 0)
+    _RCL_fovCorrectionFactors[1] = _RCL_fovCorrectionFactor(RCL_VERTICAL_FOV);
+
+  return distance != 0 ? ((originalSize * RCL_UNITS_PER_SQUARE) /
+   RCL_nonZero((_RCL_fovCorrectionFactors[1] * distance) / RCL_UNITS_PER_SQUARE)
+   ) : 0;
 }
 
 RCL_Unit RCL_perspectiveScaleVerticalInverse(RCL_Unit originalSize,
   RCL_Unit scaledSize)
 {
+  // TODO: probably doesn't work
+
   return scaledSize != 0 ?
     (originalSize * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2) /
                                            // ^ take the middle
@@ -1714,15 +1743,20 @@ RCL_Unit RCL_perspectiveScaleVerticalInverse(RCL_Unit originalSize,
 RCL_Unit
   RCL_perspectiveScaleHorizontal(RCL_Unit originalSize, RCL_Unit distance)
 {
+  if (_RCL_fovCorrectionFactors[0] == 0)
+    _RCL_fovCorrectionFactors[0] = _RCL_fovCorrectionFactor(RCL_HORIZONTAL_FOV);
+
   return distance != 0 ?
-   (originalSize * RCL_UNITS_PER_SQUARE) /
-      ((RCL_HORIZONTAL_FOV_TAN * 2 * distance) / RCL_UNITS_PER_SQUARE)
-   : 0;
+   ((originalSize * RCL_UNITS_PER_SQUARE) /
+   RCL_nonZero((_RCL_fovCorrectionFactors[0] * distance) / RCL_UNITS_PER_SQUARE)
+   ) : 0;
 }
 
 RCL_Unit RCL_perspectiveScaleHorizontalInverse(RCL_Unit originalSize,
   RCL_Unit scaledSize)
 {
+  // TODO: probably doesn't work
+
   return scaledSize != 0 ?
     (originalSize * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2) /
       ((RCL_HORIZONTAL_FOV_TAN * 2 * scaledSize) / RCL_UNITS_PER_SQUARE)
