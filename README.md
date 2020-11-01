@@ -4,7 +4,10 @@
 
 # Anarch
 
+![](media/logo_big.png)
+
 [TODO website link]()
+TODO trailer link
 
 *extremely small, completely public domain, no-dependency, no-file,
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
