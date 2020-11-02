@@ -1099,8 +1099,11 @@ void SFG_drawScaledSprite(
   uint8_t minusValue,
   RCL_Unit distance)
 {
-  if ((size > SFG_MAX_SPRITE_SIZE) || (size == 0))
+  if (size == 0)
     return;
+
+  if (size > SFG_MAX_SPRITE_SIZE)
+    size = SFG_MAX_SPRITE_SIZE;
 
   uint16_t halfSize = size / 2;
 
