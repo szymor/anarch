@@ -208,7 +208,7 @@
 */
 #define SFG_BASE_SPRITE_SIZE RCL_UNITS_PER_SQUARE
 
-// ----------------------------
+// -----------------------------------------------------------------------------
 // derived constants
 
 #define SFG_GAME_RESOLUTION_X \
@@ -414,7 +414,7 @@
 #define SFG_HUD_BAR_HEIGHT \
   (SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM + SFG_HUD_MARGIN * 2 + 1)
 
-// ----------------------------
+// -----------------------------------------------------------------------------
 // monsters
 
 #define SFG_MONSTER_ATTACK_MELEE 0
@@ -465,7 +465,7 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
   /* explod. */ SFG_MONSTER_ATTRIBUTE(SFG_MONSTER_ATTACK_EXPLODE,255,36,1)
 };
 
-// ----------------------------
+// -----------------------------------------------------------------------------
 // weapons and projectiles
 
 #define SFG_WEAPON_KNIFE 0

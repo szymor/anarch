@@ -85,11 +85,11 @@
 int8_t SFG_keyPressed(uint8_t key);
 
 /**
-  Optinal function for mouse/joystick/analog controls, gets mouse x and y offset
-  in pixels from the game screen center (to achieve classic FPS mouse controls
-  the platform should center the mouse after this call). If the platform isn't
-  using a mouse, this function can simply return [0,0] offset at each call, or
-  even do nothing at all (leave the variables as are).
+  Optional function for mouse/joystick/analog controls, gets mouse x and y
+  offset in pixels from the game screen center (to achieve classic FPS mouse
+  controls the platform should center the mouse after this call). If the
+  platform isn't using a mouse, this function can simply return [0,0] offset at
+  each call, or even do nothing at all (leave the variables as are).
 */
 void SFG_getMouseOffset(int16_t *x, int16_t *y);
 
@@ -420,7 +420,7 @@ struct
   uint16_t headBobFrame;
   uint8_t  weapon;                 ///< currently selected weapon
   uint8_t  health;
-  uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldow
+  uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldown
   uint32_t lastHurtFrame;
   uint32_t lastItemTakenFrame;
   uint8_t  ammo[SFG_AMMO_TOTAL];
@@ -433,7 +433,7 @@ struct
 } SFG_player;
 
 /**
-  Stores the current level and helper precomputed vaues for better performance.
+  Stores the current level and helper precomputed values for better performance.
 */
 struct
 {
@@ -550,7 +550,7 @@ static const uint8_t SFG_ditheringPatterns[] =
 */
 
 /**
-  Returns a pseudorandom byte. This is a very simple congrent generator, its
+  Returns a pseudorandom byte. This is a very simple congruent generator, its
   parameters have been chosen so that each number (0-255) is included in the
   output exactly once!
 */
@@ -2471,7 +2471,7 @@ uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
 
 /**
   Updates a frame of the currently loaded level, i.e. enemies, projectiles,
-  aimations etc., with the exception of player.
+  animations etc., with the exception of player.
 */
 void SFG_updateLevel()
 {

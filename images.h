@@ -39,7 +39,7 @@ static inline uint8_t SFG_getTexel(const uint8_t *texture, uint8_t x, uint8_t y)
   x &= 0x1f;
   y &= 0x1f;
 
-  return SFG_PROGRAM_MEMORY_U8 (texture +
+  return SFG_PROGRAM_MEMORY_U8(texture +
     ((SFG_PROGRAM_MEMORY_U8(texture + 16 + (x * SFG_TEXTURE_SIZE + y) / 2) >> 
      (4 * (y % 2 == 0))) & 0x0f));
 }
@@ -1338,7 +1338,7 @@ uint8_t SFG_charToFontIndex(char c)
   }
 }
 
-#define SFG_FONT_CHARACTER_SIZE 4
+#define SFG_FONT_CHARACTER_SIZE 4 ///< width (= height) of font char. in pixels
 
 /**
   4x4 font, each character stored as 16 bits.

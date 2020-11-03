@@ -17,8 +17,7 @@
 #define SFG_MAP_SIZE 64
 #define SFG_TILE_DICTIONARY_SIZE 64
 
-typedef uint16_t SFG_TileDefinition;
-/**<
+/**
   Defines a single game map tile. The format is following:
 
     MSB aaabbbbb cccddddd LSB
@@ -29,6 +28,7 @@ typedef uint16_t SFG_TileDefinition;
    ccc:   floor texture index, 111 means completely transparent texture
    ddddd: floor height
 */
+typedef uint16_t SFG_TileDefinition;
 
 #define SFG_TILE_CEILING_MAX_HEIGHT 31
 #define SFG_TILE_TEXTURE_TRANSPARENT 7
@@ -104,11 +104,11 @@ typedef struct
 #define SFG_LEVEL_ELEMENT_CARD2 0x0f
 #define SFG_LEVEL_ELEMENT_LOCK0 0x10 /**< Special level element that must be
                                      placed on a tile with door. This door is
-                                     then unlocked by taking the corresponding
+                                     then locked until taking the corresponding
                                      access card. */
 #define SFG_LEVEL_ELEMENT_LOCK1 0x11
 #define SFG_LEVEL_ELEMENT_LOCK2 0x12
-#define SFG_LEVEL_ELEMENT_BLOCKER 0x13 ///< Invisible wall.
+#define SFG_LEVEL_ELEMENT_BLOCKER 0x13 ///< invisible wall
 
 #define SFG_LEVEL_ELEMENT_MONSTER_SPIDER 0x20
 #define SFG_LEVEL_ELEMENT_MONSTER_DESTROYER 0x21
@@ -143,7 +143,7 @@ typedef struct
   uint8_t ceilingColor;
   uint8_t playerStart[3];   /**< Player starting location: square X, square Y,
                                  direction (fourths of RCL_Unit). */
-  uint8_t backgroundImage;  /** Index of level background image. */
+  uint8_t backgroundImage;  ///< Index of level background image.
   SFG_LevelElement elements[SFG_MAX_LEVEL_ELEMENTS];
 } SFG_Level;
 
@@ -173,6 +173,9 @@ static inline SFG_TileDefinition SFG_getMapTile
   NOTE: Initially the levels were stored sequentially in one big array, but that
   caused some issues with Arduino's PROGMEM, so now we store each level in a
   separate variable and eventually create an array of pointers to these.
+
+  Levels can be designed using bitmap editor and converted to the struct format
+  with provided tools.
 */
 
 SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
@@ -1796,7 +1799,6 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level9 =
       {SFG_LEVEL_ELEMENT_NONE, {0,0}},{SFG_LEVEL_ELEMENT_NONE, {0,0}}
     }, // elements
   } // level
-
   ;
 
 static const SFG_Level * SFG_levels[SFG_NUMBER_OF_LEVELS] =

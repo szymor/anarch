@@ -38,7 +38,7 @@
   integers and rounding errors can occur soon, so don't set this to extreme
   values (try to keep between 20 to 100). FPS also determines the game
   simulation step length, so different FPS values may result in very slight
-  differences in game behavior (not noticeable but affecting demos etc.).
+  differences in game behavior (not very noticeable but affecting demos etc.).
 */
 #ifndef SFG_FPS
   #define SFG_FPS 60
@@ -46,7 +46,7 @@
 
 /**
   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
-  RCL_Unit per mouse pixel travelled.
+  RCL_Unit turn angle per mouse pixel travelled.
 */
 #ifndef SFG_MOUSE_SENSITIVITY_HORIZONTAL
   #define SFG_MOUSE_SENSITIVITY_HORIZONTAL 32
@@ -62,17 +62,15 @@
 
 /**
   Width of the screen in pixels. Set this to ACTUAL resolution. If you want the
-  game to run at smaller resolution (with bigger pixels), do his using
-  SFG_RESOLUTION_SCALEDOWN;  
+  game to run at smaller resolution (with bigger pixels), do this using
+  SFG_RESOLUTION_SCALEDOWN. 
 */
 #ifndef SFG_SCREEN_RESOLUTION_X
   #define SFG_SCREEN_RESOLUTION_X 800
 #endif
 
 /**
-  Height of the screen in pixels. Set this to ACTUAL resolution. If you want the
-  game to run at smaller resolution (with bigger pixels), do his using
-  SFG_RESOLUTION_SCALEDOWN;  
+  Like SFG_SCREEN_RESOLUTION_X, but for y resolution.
 */
 #ifndef SFG_SCREEN_RESOLUTION_Y
   #define SFG_SCREEN_RESOLUTION_Y 600
@@ -88,7 +86,6 @@
 /**
   Horizontal FOV (field of vision) in RCL_Units (1024 means 360 degrees).
 */
-
 #ifndef SFG_FOV_HORIZONTAL
   #define SFG_FOV_HORIZONTAL 256
 #endif
@@ -129,7 +126,7 @@
 #endif
 
 /**
-  Hint as to whether run in fullscreen, if the platform allows it.
+  Hint as to whether to run in fullscreen, if the platform allows it.
 */
 #ifndef SFG_FULLSCREEN
   #define SFG_FULLSCREEN 0
@@ -289,8 +286,9 @@
 #endif
 
 /**
-  Says the intensity of background image blur. 0 means no blur, improves
-  performance and lowers memory usage.
+  Says the intensity of background image blur. 0 means no blur, which improves
+  performance and lowers memory usage. Blur doesn't look very good in small
+  resolutions.
 */
 #ifndef SFG_BACKGROUND_BLUR
   #define SFG_BACKGROUND_BLUR 0
