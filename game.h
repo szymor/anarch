@@ -414,9 +414,9 @@ struct
   int8_t squarePosition[2];
   RCL_Vector2D direction;
   RCL_Unit verticalSpeed;
-  RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
-                                  for determining whether player is in the
-                                  air. */
+  RCL_Unit previousVerticalSpeed;  /**< Vertical speed in previous frame, needed
+                                   for determining whether player is in the
+                                   air. */
   uint16_t headBobFrame;
   uint8_t  weapon;                 ///< currently selected weapon
   uint8_t  health;
@@ -429,7 +429,7 @@ struct
                                    which cards should be blinking in the HUD,
                                    the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
-  int8_t  previousWeaponDirection;   ///< Direction (+/0/-) of previous weapon.
+  int8_t  previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
 } SFG_player;
 
 /**
@@ -1051,9 +1051,7 @@ void SFG_blitImage(
 
   posY += scale * SFG_TEXTURE_SIZE;
 
-  y1 = posY >= 0 ?
-       (posY <= limitY ? posY : limitY)
-       : 0;
+  y1 = posY >= 0 ? (posY <= limitY ? posY : limitY) : 0;
 
   if (y1 >= SFG_GAME_RESOLUTION_Y)
     y1 = SFG_GAME_RESOLUTION_Y - 1;
@@ -1348,14 +1346,12 @@ void SFG_initPlayer()
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
   
-  SFG_player.camera.height = 
-    SFG_floorHeightAt( 
+  SFG_player.camera.height = SFG_floorHeightAt( 
       SFG_currentLevel.levelPointer->playerStart[0],
-      SFG_currentLevel.levelPointer->playerStart[1]) + 
+      SFG_currentLevel.levelPointer->playerStart[1]) +
       RCL_CAMERA_COLL_HEIGHT_BELOW;
 
-  SFG_player.camera.direction = 
-    SFG_currentLevel.levelPointer->playerStart[2] *
+  SFG_player.camera.direction = SFG_currentLevel.levelPointer->playerStart[2] *
     (RCL_UNITS_PER_SQUARE / 256);
 
   SFG_recomputePLayerDirection(); 
@@ -3436,12 +3432,12 @@ void SFG_gameStepPlaying()
               SFG_processEvent(SFG_EVENT_PLAYER_TELEPORTS,0);
 
               break;
-            }
-          }
-        }
-      }
-    } 
-  } // item collision check
+            } // if teleporterNumber == 0
+          } // for level items
+        } // if eliminate
+      } // if item collides
+    } // if element != 0 
+  } // for, item collision check
 
   if (!collidesWithTeleporter)
     SFG_player.justTeleported = 0;
@@ -4238,7 +4234,7 @@ void SFG_drawWeapon(int16_t bobOffset)
     if (fireType == SFG_WEAPON_FIRE_TYPE_MELEE)
     {
       bobOffset = shotAnimationFrame < animationLength / 2 ? 0 :
-        2 * SFG_WEAPONBOB_OFFSET_PIXELS     ;
+        2 * SFG_WEAPONBOB_OFFSET_PIXELS;
     }
     else
     {
@@ -4287,7 +4283,7 @@ static inline uint16_t
 
 void SFG_drawMenu()
 {
-  #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE ) )
+  #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE))
 
   #if BACKGROUND_SCALE == 0
     #undef BACKGROUND_SCALE
