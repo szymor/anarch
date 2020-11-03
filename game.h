@@ -4,7 +4,7 @@
   Main source file of Anarch the game that puts together all the pieces. main
   game logic is implemented here.
 
-  Physics notes (you can break this when messing with constants):
+  physics notes (you can break this when messing around with game constants):
 
   - Lowest ceiling under which player can fit is 4 height steps.
   - Widest hole over which player can run without jumping is 1 square.
