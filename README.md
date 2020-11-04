@@ -170,13 +170,17 @@ Because this "modern" technology is an extremely bad choice for building long-la
 
 This game is suppost to be accessible, i.e. require only as many resources as necessarily needed, in order to run and compile even on "weak" and minimal computers, and to run long in the future, which is ensured by dropping dependencies and only relying on a C compiler, which will probably always be the highest priority piece of SW. After the technological collapse a C compiler will be the first SW we'll have to write, and with it this game will basically immediately be compilable.
 
+### I can make this in "Unity" in a week.
+
+Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, efficient technology, users' freedom, it won't offer the same independence, portability, performance, beauty, it will probably die along with your "Unity", it will be encoumbered by licenses of your asset store, it won't carry the important messages.
+
 ### How long did this take you to make?
 
 Depends from where you count. From my [first experiments with raycasting on Pokitto](https://talk.pokitto.com/t/pokitto-is-on-the-way-what-games-should-i-make/1266/64?u=drummyfish) it's some two years of relaxed evening programming, with taking quite long breaks.
 
-### I can make this in "Unity" in a week.
+### What tools did you use to make this game?
 
-Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, efficient technology, users' freedom, it won't offer the same independence, portability, performance, beauty, it will probably die along with your "Unity", it will be encoumbered by licenses of your asset store, it won't carry the important messages.
+Only free software, preferably suckless tools: Vim text editor on Devuan GNU/Linux, mostly on a librebooted Lenovo X200 laptop. GIMP was used to make images and maps, python for small scripts and data conversions. Audacity and Blender and other programs were also used for making the trailer etc.
 
 ### But you're using python scripts, Javascript for the web port, the PC port depends on SDL etc. Don't you contradict yourself?
 
