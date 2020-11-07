@@ -425,7 +425,7 @@ struct
   uint32_t lastItemTakenFrame;
   uint8_t  ammo[SFG_AMMO_TOTAL];
   uint8_t  cards;                  /**< Lowest 3 bits say which access cards
-                                   have been taken., the next 3 bits say
+                                   have been taken, the next 3 bits say
                                    which cards should be blinking in the HUD,
                                    the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
@@ -442,7 +442,7 @@ struct
   const uint8_t* textures[7];    ///< textures the level is using
   uint32_t timeStart;
   uint32_t frameStart;
-  uint32_t completionTime10sOfS; ///< completion time in 10th of second
+  uint32_t completionTime10sOfS; ///< completion time in 10ths of second
   uint8_t floorColor;
   uint8_t ceilingColor;
 
@@ -1738,7 +1738,7 @@ void SFG_init()
 }
 
 /**
-  Adds new projectile to the current level, return 1 if added, 0 if not (max
+  Adds new projectile to the current level, returns 1 if added, 0 if not (max
   count reached).
 */
 uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
