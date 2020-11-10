@@ -390,15 +390,15 @@ struct
                            The save contains game settings, game progress and a
                            saved position. The format is as follows:
 
-                         0  4b  highest level that has been reached
-                         0  4b  level number of the saved position (15: no save)
-                         1  8b  game settings (SFG_game.settings)
-                         2  8b  health at saved position
-                         3  8b  bullet ammo at saved position
-                         4  8b  rocket ammo at saved position
-                         5  8b  plasma ammo at saved position
-                         6  32b little endian total play time, in 10ths of sec
-                         10 16b little endian total enemies killed from start */
+         0  4b  (less signif.) highest level that has been reached
+         0  4b  (more signif.) level number of the saved position (15: no save)
+         1  8b  game settings (SFG_game.settings)
+         2  8b  health at saved position
+         3  8b  bullet ammo at saved position
+         4  8b  rocket ammo at saved position
+         5  8b  plasma ammo at saved position
+         6  32b little endian total play time, in 10ths of sec
+         10 16b little endian total enemies killed from start */
   uint8_t continues;  ///< Whether the game continues or was exited.
 } SFG_game;
 
@@ -686,9 +686,6 @@ void SFG_levelEnds()
     SFG_game.save[10] += SFG_currentLevel.monstersDead % 256;
     SFG_game.save[11] += SFG_currentLevel.monstersDead / 256;
   }
-
-  SFG_game.save[0] = 
-    (SFG_game.save[0] & 0x0f) | ((SFG_currentLevel.levelNumber + 1) << 4);
 
   SFG_game.save[2] = SFG_player.health;
   SFG_game.save[3] = SFG_player.ammo[0];
@@ -1711,7 +1708,7 @@ void SFG_init()
   for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
     SFG_game.save[i] = 0;
     
-  SFG_game.save[0] = 0;
+  SFG_game.save[0] = 0xf0;
   SFG_game.save[1] = SFG_game.settings;
 
   SFG_gameLoad(); // attempt to load settings
@@ -3924,6 +3921,9 @@ void SFG_gameStep()
           if (SFG_keyIsDown(SFG_KEY_RIGHT) && SFG_game.saved != SFG_CANT_SAVE)
           {
             // save the current position
+            SFG_game.save[0] = 
+              (SFG_game.save[0] & 0x0f) | (SFG_currentLevel.levelNumber << 4);
+
             SFG_gameSave();
             SFG_game.saved = 1;
           }
