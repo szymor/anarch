@@ -61,6 +61,7 @@
   #define SFG_SCREEN_RESOLUTION_Y 320
   #define SFG_CAN_EXIT 0
   #define SFG_RESOLUTION_SCALEDOWN 2
+  #define SFG_DITHERED_SHADOW 1
   #define SFG_BACKGROUND_BLUR 0
 
   #include <emscripten.h>

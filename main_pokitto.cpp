@@ -20,7 +20,17 @@
   #define SFG_CPU_LOAD(x) printf("CPU: %d\n",x);
 #endif
 
-#define SFG_FPS 22
+#if _OSCT == 2
+  // overclock
+  #define SFG_FPS 35
+  #define SFG_DIMINISH_SPRITES 1
+  #define SFG_RAYCASTING_MAX_HITS 6
+#else
+  #define SFG_FPS 22
+  #define SFG_DIMINISH_SPRITES 0
+  #define SFG_RAYCASTING_MAX_HITS 5
+#endif
+
 #define SFG_CAN_EXIT 0
 #define SFG_PLAYER_TURN_SPEED 135
 
@@ -34,10 +44,8 @@
 
 #define SFG_RESOLUTION_SCALEDOWN 1
 #define SFG_DITHERED_SHADOW 0
-#define SFG_DIMINISH_SPRITES 0
 #define SFG_FOG_DIMINISH_STEP 2048
 #define SFG_RAYCASTING_MAX_STEPS 20  
-#define SFG_RAYCASTING_MAX_HITS 5
 #define SFG_RAYCASTING_SUBSAMPLE 2
 
 #include "game.h"
@@ -73,7 +81,12 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 
 uint32_t SFG_getTimeMs()
 {
-  return pokitto.getTime();
+  return
+#if _OSCT == 2
+  // overclock
+  (3 * pokitto.getTime()) / 2;
+#endif
+  pokitto.getTime();
 }
 
 void SFG_sleepMs(uint16_t timeMs)
@@ -221,8 +234,15 @@ int main()
   SFG_init();
 
   while (pokitto.isRunning())
+  {
     if (pokitto.update())
       SFG_mainLoopBody();
+
+#if 0
+    pokitto.display.setCursor(0,0);
+    pokitto.display.print(pokitto.fps_counter);
+#endif
+  }
 
   return 0;
 }

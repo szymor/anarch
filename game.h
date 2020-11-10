@@ -3926,7 +3926,7 @@ void SFG_gameStep()
           SFG_player.ammo[1] = SFG_game.save[4];
           SFG_player.ammo[2] = SFG_game.save[5];
 
-          if (SFG_keyIsDown(SFG_KEY_RIGHT) && SFG_game.saved != SFG_CANT_SAVE)
+          if (SFG_keyIsDown(SFG_KEY_RIGHT))
           {
             // save the current position
             SFG_game.save[0] = 
