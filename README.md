@@ -34,7 +34,7 @@ everywhere, made for the benefit of all living beings*
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
   - Gamebino Meta (80 x 64, 48 MHz, 32 KB RAM, 256 KB flash)
   - TODO
-- Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses no **dynamic heap allocation** (no malloc).
+- Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler.
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
