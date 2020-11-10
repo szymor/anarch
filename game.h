@@ -4,7 +4,7 @@
   Main source file of Anarch the game that puts together all the pieces. main
   game logic is implemented here.
 
-  Physics notes (you can break this when messing with constants):
+  physics notes (you can break this when messing around with game constants):
 
   - Lowest ceiling under which player can fit is 4 height steps.
   - Widest hole over which player can run without jumping is 1 square.
@@ -85,11 +85,11 @@
 int8_t SFG_keyPressed(uint8_t key);
 
 /**
-  Optinal function for mouse/joystick/analog controls, gets mouse x and y offset
-  in pixels from the game screen center (to achieve classic FPS mouse controls
-  the platform should center the mouse after this call). If the platform isn't
-  using a mouse, this function can simply return [0,0] offset at each call, or
-  even do nothing at all (leave the variables as are).
+  Optional function for mouse/joystick/analog controls, gets mouse x and y
+  offset in pixels from the game screen center (to achieve classic FPS mouse
+  controls the platform should center the mouse after this call). If the
+  platform isn't using a mouse, this function can simply return [0,0] offset at
+  each call, or even do nothing at all (leave the variables as are).
 */
 void SFG_getMouseOffset(int16_t *x, int16_t *y);
 
@@ -390,15 +390,15 @@ struct
                            The save contains game settings, game progress and a
                            saved position. The format is as follows:
 
-                         0  4b  highest level that has been reached
-                         0  4b  level number of the saved position (15: no save)
-                         1  8b  game settings (SFG_game.settings)
-                         2  8b  health at saved position
-                         3  8b  bullet ammo at saved position
-                         4  8b  rocket ammo at saved position
-                         5  8b  plasma ammo at saved position
-                         6  32b little endian total play time, in 10ths of sec
-                         10 16b little endian total enemies killed from start */
+         0  4b  (less signif.) highest level that has been reached
+         0  4b  (more signif.) level number of the saved position (15: no save)
+         1  8b  game settings (SFG_game.settings)
+         2  8b  health at saved position
+         3  8b  bullet ammo at saved position
+         4  8b  rocket ammo at saved position
+         5  8b  plasma ammo at saved position
+         6  32b little endian total play time, in 10ths of sec
+         10 16b little endian total enemies killed from start */
   uint8_t continues;  ///< Whether the game continues or was exited.
 } SFG_game;
 
@@ -414,26 +414,26 @@ struct
   int8_t squarePosition[2];
   RCL_Vector2D direction;
   RCL_Unit verticalSpeed;
-  RCL_Unit previousVerticalSpeed; /**< Vertical speed in previous frame, needed
-                                  for determining whether player is in the
-                                  air. */
+  RCL_Unit previousVerticalSpeed;  /**< Vertical speed in previous frame, needed
+                                   for determining whether player is in the
+                                   air. */
   uint16_t headBobFrame;
   uint8_t  weapon;                 ///< currently selected weapon
   uint8_t  health;
-  uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldow
+  uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldown
   uint32_t lastHurtFrame;
   uint32_t lastItemTakenFrame;
   uint8_t  ammo[SFG_AMMO_TOTAL];
   uint8_t  cards;                  /**< Lowest 3 bits say which access cards
-                                   have been taken., the next 3 bits say
+                                   have been taken, the next 3 bits say
                                    which cards should be blinking in the HUD,
                                    the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
-  int8_t  previousWeaponDirection;   ///< Direction (+/0/-) of previous weapon.
+  int8_t  previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
 } SFG_player;
 
 /**
-  Stores the current level and helper precomputed vaues for better performance.
+  Stores the current level and helper precomputed values for better performance.
 */
 struct
 {
@@ -442,7 +442,7 @@ struct
   const uint8_t* textures[7];    ///< textures the level is using
   uint32_t timeStart;
   uint32_t frameStart;
-  uint32_t completionTime10sOfS; ///< completion time in 10th of second
+  uint32_t completionTime10sOfS; ///< completion time in 10ths of second
   uint8_t floorColor;
   uint8_t ceilingColor;
 
@@ -550,7 +550,7 @@ static const uint8_t SFG_ditheringPatterns[] =
 */
 
 /**
-  Returns a pseudorandom byte. This is a very simple congrent generator, its
+  Returns a pseudorandom byte. This is a very simple congruent generator, its
   parameters have been chosen so that each number (0-255) is included in the
   output exactly once!
 */
@@ -694,9 +694,6 @@ void SFG_levelEnds()
     SFG_game.save[10] += SFG_currentLevel.monstersDead % 256;
     SFG_game.save[11] += SFG_currentLevel.monstersDead / 256;
   }
-
-  SFG_game.save[0] = 
-    (SFG_game.save[0] & 0x0f) | ((SFG_currentLevel.levelNumber + 1) << 4);
 
   SFG_game.save[2] = SFG_player.health;
   SFG_game.save[3] = SFG_player.ammo[0];
@@ -1059,9 +1056,7 @@ void SFG_blitImage(
 
   posY += scale * SFG_TEXTURE_SIZE;
 
-  y1 = posY >= 0 ?
-       (posY <= limitY ? posY : limitY)
-       : 0;
+  y1 = posY >= 0 ? (posY <= limitY ? posY : limitY) : 0;
 
   if (y1 >= SFG_GAME_RESOLUTION_Y)
     y1 = SFG_GAME_RESOLUTION_Y - 1;
@@ -1356,14 +1351,12 @@ void SFG_initPlayer()
   SFG_player.squarePosition[1] =
     SFG_player.camera.position.y / RCL_UNITS_PER_SQUARE;
   
-  SFG_player.camera.height = 
-    SFG_floorHeightAt( 
+  SFG_player.camera.height = SFG_floorHeightAt( 
       SFG_currentLevel.levelPointer->playerStart[0],
-      SFG_currentLevel.levelPointer->playerStart[1]) + 
+      SFG_currentLevel.levelPointer->playerStart[1]) +
       RCL_CAMERA_COLL_HEIGHT_BELOW;
 
-  SFG_player.camera.direction = 
-    SFG_currentLevel.levelPointer->playerStart[2] *
+  SFG_player.camera.direction = SFG_currentLevel.levelPointer->playerStart[2] *
     (RCL_UNITS_PER_SQUARE / 256);
 
   SFG_recomputePLayerDirection(); 
@@ -1723,7 +1716,7 @@ void SFG_init()
   for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
     SFG_game.save[i] = 0;
     
-  SFG_game.save[0] = 0;
+  SFG_game.save[0] = 0xf0;
   SFG_game.save[1] = SFG_game.settings;
 
   SFG_gameLoad(); // attempt to load settings
@@ -1750,7 +1743,7 @@ void SFG_init()
 }
 
 /**
-  Adds new projectile to the current level, return 1 if added, 0 if not (max
+  Adds new projectile to the current level, returns 1 if added, 0 if not (max
   count reached).
 */
 uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
@@ -2479,7 +2472,7 @@ uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
 
 /**
   Updates a frame of the currently loaded level, i.e. enemies, projectiles,
-  aimations etc., with the exception of player.
+  animations etc., with the exception of player.
 */
 void SFG_updateLevel()
 {
@@ -3444,12 +3437,12 @@ void SFG_gameStepPlaying()
               SFG_processEvent(SFG_EVENT_PLAYER_TELEPORTS,0);
 
               break;
-            }
-          }
-        }
-      }
-    } 
-  } // item collision check
+            } // if teleporterNumber == 0
+          } // for level items
+        } // if eliminate
+      } // if item collides
+    } // if element != 0 
+  } // for, item collision check
 
   if (!collidesWithTeleporter)
     SFG_player.justTeleported = 0;
@@ -3936,6 +3929,9 @@ void SFG_gameStep()
           if (SFG_keyIsDown(SFG_KEY_RIGHT) && SFG_game.saved != SFG_CANT_SAVE)
           {
             // save the current position
+            SFG_game.save[0] = 
+              (SFG_game.save[0] & 0x0f) | (SFG_currentLevel.levelNumber << 4);
+
             SFG_gameSave();
             SFG_game.saved = 1;
           }
@@ -4239,7 +4235,7 @@ void SFG_drawWeapon(int16_t bobOffset)
     if (fireType == SFG_WEAPON_FIRE_TYPE_MELEE)
     {
       bobOffset = shotAnimationFrame < animationLength / 2 ? 0 :
-        2 * SFG_WEAPONBOB_OFFSET_PIXELS     ;
+        2 * SFG_WEAPONBOB_OFFSET_PIXELS;
     }
     else
     {
@@ -4288,7 +4284,7 @@ static inline uint16_t
 
 void SFG_drawMenu()
 {
-  #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE ) )
+  #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE))
 
   #if BACKGROUND_SCALE == 0
     #undef BACKGROUND_SCALE

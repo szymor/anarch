@@ -38,9 +38,9 @@
 
         ul
         {
-          width: 90%;
-          margin: auto;
-          padding: 0;
+          width: 75%;
+          margin: 20px auto;
+          padding: 10px;
           background-color: rgb(28,24,22);
         }
 
@@ -51,6 +51,7 @@
           margin: 10px 0;
           padding: 0;
           text-align: center;
+          vertical-align: top;
         }
 
         .logo
@@ -90,13 +91,14 @@
         {
           font-size: 25px;
           text-align: center;
-          margin: 80px 0 25px;
+          margin: 70px 0 25px;
           color: white;
         }
 
-        .site-subtitle
+        .subtitle
         { 
           display: block;
+          margin: 20px;
           text-align: center;
           padding-bottom: 20px;
         }
@@ -104,12 +106,26 @@
         .wow
         {
           display: block;
+          width: 100%;
           font-weight: bold;
           font-size: 45px;
           text-align: center;
           color: white;
           margin: 70px auto 35px;
           text-shadow: 0px 0px 60px red;
+        }
+
+        .wow::before, .wow::after
+        {
+          content: "";
+          width: 30px;
+          height: 30px;
+          display: inline-block;
+          margin: 0 30px;
+          position: relative;
+          top: 4px;
+          background: url(https://upload.wikimedia.org/wikipedia/commons/e/e1/Anarcho_pacifism_animation_2_inverted.gif) no-repeat;
+          background-size: contain;
         }
 
         .description
@@ -134,16 +150,6 @@
           text-align: center;
         }
  
-        .love
-        {
-          margin: 40px 0 0;
-          display: block;
-          text-align: center;
-          color: #ee0033;
-          font-size: 25px;
-          font-weight: bold;
-        }
-
         img
         {
           display: block;
@@ -166,6 +172,11 @@
         {
           width: 70%; 
         }
+
+        .ap
+        {
+          width: 30px;
+        }
     </style>
   </head>
 
@@ -174,17 +185,28 @@
 
     <span class="subtitle"><i>suckless, anticapitalist, public domain game for everyone</i></span>
 
-    <span class="wow">THIS IS SPECIAL</span>
-
     <iframe width="560" height="315" sandbox="allow-same-origin allow-scripts" src="https://peertube.mastodon.host/videos/embed/6c901037-b68b-45ac-8714-18903f34354c" frameborder="0" allowfullscreen></iframe>
 
+    <span class="wow">THIS IS SPECIAL</span>
+
+    <ul>
+      <li>needs only <b>200 KB</b>, <b>32 KB RAM</b>, <b>40 MHz CPU</b>!</li>
+      <li><b>suckless</b>, pure C, <b>no dependencies</b>, no FPU, GPU or file I/O needed</li>
+      <li>10 levels, 6 weapons, 7 enemy types, 3 ammo types</li>
+      <li>varying floor/ceiling oldschool SW ray casting engine with mouse support</li>
+      <li><b>100% pubic domain</b> CC0 free software and culture</li>
+      <li>100% original work, no third party assets</li>
+      <li>well documented, hackable, <b>extremely portable</b></li>
+      <li>completely <b>gratis</b>, without ads, DRM or similar bullshit</li>
+    </ul>
+
     <p class="description">
-      This isn't a 90s style retro shooter, this <b>is</b> a 90s shooter. It's all yours.
+      This isn't a 90s style retro shooter, this <b>is</b> a 90s shooter.
     </p>
 
     <p class="description">
       This game runs everywhere and adheres to great <a href="https://suckless.org">simplicity</a>.
-      It is much more efficient and portable that Doom.
+      It is much more efficient and portable than Doom.
       It has completely <b>no dependencies</b> and doesn't even
       use floating point in case your computer doesn't have the HW unit. It can
       fit into <b>200 KB</b> (including assets!) and runs with just
@@ -230,16 +252,16 @@
       profit. This is made out of <b>love</b>, for you and for the greater good.
     </p>
  
-    <h2><a href="https://gitlab.com/drummyfish/anarch#faq">FAQ</a></h2>
-
     <h2>Download</h2>
 
     <ul>
-      <li><a href="">64b GNU/Linux</a></li>
+      <li><a href="">GNU/Linux SDL</a></li>
+      <li><a href="">GNU/Linux CSFML</a></li>
       <li><a href="">play in browser</a></li>
       <li><a href="">Pokitto</a></li>
       <li><a href="">GB Meta</a></li>
-      <li><a href="">M$ Win$hit</a></li>
+      <li><a href="">M$ Win$hit XP SDL</a></li>
+      <li><a href="">source code</a></li>
     </ul>
 
     <h2>Explore</h2>
@@ -251,20 +273,7 @@
       <li><a href="">OGA assets</a></li>
     </ul>
 
-    <h2>Better Society</h2>
-
-    <ul>
-      <li>support social anarchism</li>
-      <li>support pacifism</li>
-      <li>support free software</li>
-      <li>support free culture</li>
-      <li>reject capitalism</li>
-      <li>reject intellectual proeprty</li>
-    </ul>
-
-    <span class="love">love and peace &lt;3</span>
- 
-    <img alt="anarcho-pacifism animation" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Anarcho_pacifism_animation_2_inverted.gif">
+    <h2><a href="https://gitlab.com/drummyfish/anarch#faq">FAQ in readme</a></h2>
 
     <p class="footer">
       This page and the presented game, both made by drummyfish, are released under

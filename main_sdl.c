@@ -5,9 +5,8 @@
   compile a native executable or a transpiled JS browser version with
   emscripten.
 
-  This front end is pretty feature rich, allowing testing etc. A much more
-  minimal could be made. If you want a learning example of front end, look at
-  another, simpler one, e.g. the terminal.
+  This frontend is not strictly minimal, it could be reduced a lot. If you want
+  a learning example of frontend, look at another, simpler one, e.g. terminal.
 
   To compile with emscripten run:
 
@@ -16,7 +15,7 @@
   by Miloslav Ciz (drummyfish), 2019
 
   Released under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
-  plus a waiver of all other intellectual property. The goal of this work is
+  plus a waiver of all other intellectual property. The goal of this work is to
   be and remain completely in the public domain forever, available for any use
   whatsoever.
 */
@@ -26,10 +25,10 @@
 #endif
 
 //  #define SFG_START_LEVEL 1
-//  #define SFG_IMMORTAL 1
+  #define SFG_IMMORTAL 1
   #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
-  #define SFG_INFINITE_AMMO 1
+//  #define SFG_INFINITE_AMMO 1
 // #define SFG_TIME_MULTIPLIER 512
 // #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 

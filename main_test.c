@@ -1,7 +1,9 @@
 /**
   @file main_test.c
 
-  This is a front end that serves as a basic automatic test of the game.
+  This is a front end that serves as a basic automatic test of the game. At this
+  point it's very simple and basically just checks if anything really
+  substantial wasn't broken.
 
   This fronted tries to play the game and see if it behaves how expected. If you
   change anything substantial in the game, this test may start to fail and you 
