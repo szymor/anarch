@@ -1,5 +1,6 @@
 general:
 
+- When selecting continue from menu, the player shoots - fix!
 - Profile, epsecially Pokitto, small periodical tearing can be noticed (some
   periodical updates probably).
 - Compile Pokitto overclocked version.
