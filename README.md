@@ -36,7 +36,7 @@ everywhere, made for the benefit of all living beings*
   - TODO
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb** (including all content, textures etc.).
-- Uses **no build system**, can typically be compiled with a single run of compiler.
+- Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
 - **Doesn't use any floating point**, everything is integer math (good for platforms without FPU).
 - Written in **pure C99**, also a **subset of C++** (i.e. runs as C++ as well, good for systems that are hard C++ based).
