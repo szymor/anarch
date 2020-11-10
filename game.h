@@ -663,8 +663,16 @@ void SFG_levelEnds()
   SFG_currentLevel.completionTime10sOfS = (SFG_MS_PER_FRAME *
     (SFG_game.frame - SFG_currentLevel.frameStart)) / 100; 
 
+  if (SFG_currentLevel.levelNumber >= (SFG_game.save[0] & 0x0f))
+  {
+    SFG_game.save[0] = // save progress
+      (SFG_game.save[0] & 0xf0) | (SFG_currentLevel.levelNumber + 1);
+
+    SFG_gameSave();
+  }
+
   SFG_currentLevel.monstersDead = 0;
-  
+       
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
     if (SFG_currentLevel.monsterRecords[i].health == 0)
       SFG_currentLevel.monstersDead++;
@@ -3964,13 +3972,6 @@ void SFG_gameStep()
     {
       SFG_updateLevel();
       SFG_updatePlayerHeight(); // in case player is on elevator
-
-      if (SFG_currentLevel.levelNumber > (SFG_game.save[0] & 0x0f))
-      {
-        SFG_game.save[0] = // save progress
-          (SFG_game.save[0] & 0xf0) | SFG_currentLevel.levelNumber;
-        SFG_gameSave();
-      }
 
       int16_t x = 0, y = 0;
       
