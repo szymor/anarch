@@ -347,7 +347,7 @@ typedef struct
 struct
 {
   uint8_t state;                 ///< Current game state.
-  uint32_t stateChangeTime;      ///< Time in ms at which the state was changed.
+  uint32_t stateTime;            ///< Time in ms from last state change.
   uint8_t currentRandom;         ///< for RNG
   uint8_t spriteAnimationFrame;
   uint8_t soundsPlayedThisFrame; /**< Each bit says whether given sound was
@@ -1474,7 +1474,7 @@ void SFG_setGameState(uint8_t state)
 {
   SFG_LOG("changing game state");
   SFG_game.state = state;
-  SFG_game.stateChangeTime = SFG_game.frameTime;
+  SFG_game.stateTime = 0;
 }
 
 void SFG_setAndInitLevel(uint8_t levelNumber)
@@ -2986,8 +2986,7 @@ void SFG_drawText(
 
 void SFG_drawLevelStartOverlay()
 {
-  uint8_t stage = ((SFG_game.frameTime - SFG_game.stateChangeTime) * 4) /
-    SFG_LEVEL_START_DURATION;
+  uint8_t stage = (SFG_game.stateTime * 4) / SFG_LEVEL_START_DURATION;
 
   // fade in:
 
@@ -3474,7 +3473,9 @@ void SFG_gameStepPlaying()
   if (
     SFG_keyIsDown(SFG_KEY_A) &&
     !SFG_keyIsDown(SFG_KEY_C) &&
-    (SFG_player.weaponCooldownFrames == 0))
+    (SFG_player.weaponCooldownFrames == 0) &&
+    (SFG_game.stateTime > 400) // don't immediately shoot if returning from menu
+    )
   {
     /* Player attack/shoot/fire, this has to be done AFTER the player is moved,
        otherwise he could shoot himself while running forward. */
@@ -3876,7 +3877,7 @@ void SFG_gameStep()
       SFG_updateLevel(); // let monsters and other things continue moving
       SFG_updatePlayerHeight(); // in case player is on elevator 
 
-      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
+      int32_t t = SFG_game.stateTime;
 
       RCL_Unit h = SFG_floorHeightAt(SFG_player.squarePosition[0],
         SFG_player.squarePosition[1]); 
@@ -3907,7 +3908,7 @@ void SFG_gameStep()
      
       SFG_updateLevel();
 
-      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
+      int32_t t = SFG_game.stateTime;
 
       if (t > SFG_WIN_ANIMATION_DURATION)
       {
@@ -3954,8 +3955,8 @@ void SFG_gameStep()
       break;
 
     case SFG_GAME_STATE_OUTRO:
-      if (((SFG_game.frameTime - SFG_game.stateChangeTime) > 
-           SFG_STORYTEXT_DURATION) && (SFG_keyIsDown(SFG_KEY_A) ||
+      if ((SFG_game.stateTime > SFG_STORYTEXT_DURATION) &&
+           (SFG_keyIsDown(SFG_KEY_A) ||
            SFG_keyIsDown(SFG_KEY_B)))
       {
         SFG_setGameState(SFG_GAME_STATE_MENU);
@@ -3973,8 +3974,7 @@ void SFG_gameStep()
       
       SFG_getMouseOffset(&x,&y); // this keeps centering the mouse
 
-      if ((SFG_game.frameTime - SFG_game.stateChangeTime) >= 
-        SFG_LEVEL_START_DURATION)     
+      if (SFG_game.stateTime >= SFG_LEVEL_START_DURATION)
         SFG_setGameState(SFG_GAME_STATE_PLAYING);
 
       break;
@@ -3983,6 +3983,8 @@ void SFG_gameStep()
     default:
       break;
   }
+
+  SFG_game.stateTime += SFG_MS_PER_FRAME;
 }
 
 void SFG_fillRectangle(
@@ -4110,10 +4112,8 @@ void SFG_drawStoryText()
   while (text[textLen] != 0)
     textLen++;
 
-  uint16_t drawLen =
-    RCL_min(textLen,
-    ((SFG_game.frameTime - SFG_game.stateChangeTime) * textLen) /
-      SFG_STORYTEXT_DURATION + 1);
+  uint16_t drawLen = RCL_min(
+    textLen,(SFG_game.stateTime * textLen) / SFG_STORYTEXT_DURATION + 1);
 
 #define CHAR_SIZE (SFG_FONT_SIZE_SMALL * (SFG_FONT_CHARACTER_SIZE + 1))
 #define LINE_LENGTH (SFG_GAME_RESOLUTION_X / CHAR_SIZE)
@@ -4409,8 +4409,7 @@ void SFG_drawMenu()
 
 void SFG_drawWinOverlay()
 {
-  uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,
-    SFG_game.frameTime - SFG_game.stateChangeTime);
+  uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,SFG_game.stateTime);
 
   uint32_t t2 = RCL_min(t,SFG_WIN_ANIMATION_DURATION / 4);
 
@@ -4557,9 +4556,8 @@ void SFG_draw()
     {
       // player die animation
 
-      int32_t t = SFG_game.frameTime - SFG_game.stateChangeTime;
-      
-      weaponBobOffset = (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE * t) /
+      weaponBobOffset =
+        (SFG_WEAPON_IMAGE_SCALE * SFG_TEXTURE_SIZE * SFG_game.stateTime) /
         SFG_LOSE_ANIMATION_DURATION;
     }
       

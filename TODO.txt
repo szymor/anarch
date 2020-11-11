@@ -1,6 +1,5 @@
 general:
 
-- When selecting continue from menu, the player shoots - fix!
 - Profile, epsecially Pokitto, small periodical tearing can be noticed (some
   periodical updates probably).
 - Compile Pokitto overclocked version.
@@ -221,6 +220,7 @@ done:
 - make SFML frontend
 - Add FOV options. RCL doesn't project sprites with different FOV correctly -
   FIX!
+- When selecting continue from menu, the player shoots - fix!
 
 scratched:
 - option for disabling wall transparency, for performance?
