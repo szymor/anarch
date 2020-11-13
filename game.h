@@ -4333,7 +4333,7 @@ void SFG_drawMenu()
     if (item == SFG_MENU_ITEM_NONE)
       break;
 
-#if SFG_GAME_RESOLUTION_Y < 70
+#if (SFG_GAME_RESOLUTION_Y < 70) || SFG_FORCE_SINGLE_ITEM_MENU
     // with low resolution only display the selected item
 
     if (i != SFG_game.selectedMenuItem)

@@ -399,6 +399,13 @@
   #define SFG_SPRITE_MAX_SIZE SFG_SCREEN_RESOLUTION_Y
 #endif
 
+/**
+  If set, single item menu will be forced.
+*/
+#ifndef SFG_FORCE_SINGLE_ITEM_MENU
+  #define SFG_FORCE_SINGLE_ITEM_MENU 0
+#endif
+
 //------ developer/debug settings ------
 
 /**
