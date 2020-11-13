@@ -208,6 +208,11 @@
 */
 #define SFG_BASE_SPRITE_SIZE RCL_UNITS_PER_SQUARE
 
+/**
+  Default value of the settings byte.
+*/
+#define SFG_DEFAULT_SETTINGS 0x03
+
 // -----------------------------------------------------------------------------
 // derived constants
 

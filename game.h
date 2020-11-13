@@ -391,7 +391,7 @@ struct
                            saved position. The format is as follows:
 
          0  4b  (less signif.) highest level that has been reached
-         0  4b  (more signif.) level number of the saved position (15: no save)
+         0  4b  (more signif.) level number of the saved position (0: no save)
          1  8b  game settings (SFG_game.settings)
          2  8b  health at saved position
          3  8b  bullet ammo at saved position
@@ -1641,6 +1641,14 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
   SFG_processEvent(SFG_EVENT_LEVEL_STARTS,levelNumber);
 }
 
+void SFG_createDefaultSaveData(uint8_t *memory)
+{
+  for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    SFG_game.save[i] = 0;
+    
+  SFG_game.save[1] = SFG_DEFAULT_SETTINGS;
+}
+
 void SFG_init()
 {
   SFG_LOG("initializing game")
@@ -1708,16 +1716,10 @@ void SFG_init()
   SFG_currentLevel.levelPointer = 0;
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
-  SFG_game.settings = 0x03;
+  SFG_game.settings = SFG_DEFAULT_SETTINGS;
   SFG_game.saved = 0;
 
-  // create a default save data:
-
-  for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
-    SFG_game.save[i] = 0;
-    
-  SFG_game.save[0] = 0xf0;
-  SFG_game.save[1] = SFG_game.settings;
+  SFG_createDefaultSaveData(SFG_game.save);
 
   SFG_gameLoad(); // attempt to load settings
 
@@ -1729,7 +1731,7 @@ void SFG_init()
   else
   {
     SFG_LOG("saving/loading not possible");
-    SFG_game.save[0] = (SFG_NUMBER_OF_LEVELS - 1) | 0xf0; // revealed all levels
+    SFG_game.save[0] = SFG_NUMBER_OF_LEVELS - 1; // revealed all levels
   }
 
   SFG_setMusic((SFG_game.settings & 0x02) ?
@@ -3692,7 +3694,7 @@ uint8_t SFG_getMenuItem(uint8_t index)
   {
     if ( // skip non-legitimate items
       ((current <= SFG_MENU_ITEM_MAP) && (SFG_currentLevel.levelPointer == 0))
-      || ((current == SFG_MENU_ITEM_LOAD) && ((SFG_game.save[0] >> 4) == 0x0f)))
+      || ((current == SFG_MENU_ITEM_LOAD) && ((SFG_game.save[0] >> 4) == 0)))
     {
       current++;
       continue;

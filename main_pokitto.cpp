@@ -81,12 +81,7 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 
 uint32_t SFG_getTimeMs()
 {
-  return
-#if _OSCT == 2
-  // overclock
-  (3 * pokitto.getTime()) / 2;
-#endif
-  pokitto.getTime();
+  return pokitto.getTime();
 }
 
 void SFG_sleepMs(uint16_t timeMs)
@@ -220,6 +215,21 @@ int main()
 
   timerInit(8000);
 
+  uint8_t allZeros = 1;
+
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    if (save.data[i] != 0)
+    {
+      allZeros = 0;
+      break;
+    }
+
+  if (allZeros) // 1st time save
+  {
+    SFG_createDefaultSaveData(save.data);
+    save.saveCookie();
+  }
+
   for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;
 
@@ -237,6 +247,17 @@ int main()
   {
     if (pokitto.update())
       SFG_mainLoopBody();
+
+    if (SFG_game.state == SFG_GAME_STATE_MENU &&
+        SFG_game.keyStates[SFG_KEY_LEFT] == 255 &&
+        SFG_game.keyStates[SFG_KEY_RIGHT] == 255 &&
+        SFG_game.keyStates[SFG_KEY_B] == 255)
+    {
+      // holding L+R+B in menu will erase all saved data
+
+      save.deleteCookie();
+      pokitto.quit();
+    }
 
 #if 0
     pokitto.display.setCursor(0,0);
