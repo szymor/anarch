@@ -3928,6 +3928,8 @@ void SFG_gameStep()
           SFG_player.ammo[0] = SFG_game.save[3];
           SFG_player.ammo[1] = SFG_game.save[4];
           SFG_player.ammo[2] = SFG_game.save[5];
+        
+          SFG_playerRotateWeapon(1);
 
           if (SFG_keyIsDown(SFG_KEY_RIGHT))
           {
