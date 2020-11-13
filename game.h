@@ -1644,9 +1644,9 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 void SFG_createDefaultSaveData(uint8_t *memory)
 {
   for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
-    SFG_game.save[i] = 0;
+    memory[i] = 0;
     
-  SFG_game.save[1] = SFG_DEFAULT_SETTINGS;
+  memory[1] = SFG_DEFAULT_SETTINGS;
 }
 
 void SFG_init()

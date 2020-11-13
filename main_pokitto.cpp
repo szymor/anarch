@@ -224,7 +224,7 @@ int main()
       break;
     }
 
-  if (allZeros) // 1st time save
+  if (allZeros) // 1st time save?
   {
     SFG_createDefaultSaveData(save.data);
     save.saveCookie();

@@ -138,6 +138,25 @@ void setup()
   gb.setFrameRate(SFG_FPS);
   gb.save.config(saveDefault);
 
+  uint8_t data[SFG_SAVE_SIZE];
+
+  gb.save.get(0,data,SFG_SAVE_SIZE);
+
+  uint8_t allZeros = 1;
+
+  for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
+    if (data[i] != 0)
+    {
+      allZeros = 0;
+      break;
+    }
+
+  if (allZeros) // 1st time save?
+  {
+    SFG_createDefaultSaveData(data);
+    gb.save.set(0,data,SFG_SAVE_SIZE);
+  }
+
   for (int i = 0; i < 256; ++i)
   {
     uint16_t rgb565 = paletteRGB565[i];
@@ -148,8 +167,13 @@ void setup()
   blinkLED(RED);
 }
 
+uint8_t stop = 0;
+
 void loop()
 {
+  if (stop)
+    return;
+
   while(!gb.update())
   {
   }
@@ -163,6 +187,17 @@ void loop()
   }
 
   SFG_mainLoopBody();
+  
+  if (
+    gb.buttons.timeHeld(BUTTON_LEFT) >= 255 &&
+    gb.buttons.timeHeld(BUTTON_RIGHT) >= 255 &&
+    gb.buttons.timeHeld(BUTTON_B) >= 255)
+  {
+    // holding L+R+B in menu will erase all saved data
+
+    gb.save.del(0);
+    stop = 1;
+  }
 
 #if 0
   // debuggin performance
