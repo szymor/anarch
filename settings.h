@@ -390,6 +390,15 @@
   #define SFG_DRAW_LEVEL_BACKGROUND 1
 #endif
 
+/**
+  Says the size, in pixels, of a sprite when it is closest to the camera, which
+  is the maximum size that can be drawn. Sprites on "weird" aspect ratios can
+  look weirdly scaled, so this option can be used to fix that.
+*/
+#ifndef SFG_SPRITE_MAX_SIZE
+  #define SFG_SPRITE_MAX_SIZE SFG_SCREEN_RESOLUTION_Y
+#endif
+
 //------ developer/debug settings ------
 
 /**
