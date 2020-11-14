@@ -2868,8 +2868,7 @@ static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
   Checks a 3D point visibility from player's position (WITHOUT considering
   facing direction).
 */
-static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height,
-  uint8_t spriteSize)
+static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height)
 {
   return
     RCL_castRay3D(
@@ -2917,7 +2916,7 @@ RCL_Unit SFG_autoaimVertically()
           + 
           SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
         
-      if (SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
+      if (SFG_spriteIsVisible(worldPosition,worldHeight))
       {
         RCL_Unit distance = RCL_len(toMonster);
  
@@ -4616,7 +4615,7 @@ void SFG_draw()
           RCL_mapToScreen(worldPosition,worldHeight,SFG_player.camera);
 
         if (p.depth > 0 &&
-          SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
+          SFG_spriteIsVisible(worldPosition,worldHeight))
         {
           const uint8_t *s =
             SFG_getMonsterSprite(
@@ -4664,7 +4663,7 @@ void SFG_draw()
             RCL_mapToScreen(worldPosition,worldHeight,SFG_player.camera);
 
           if (p.depth > 0 &&
-            SFG_spriteIsVisible(worldPosition,worldHeight,spriteSize))
+            SFG_spriteIsVisible(worldPosition,worldHeight))
             SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
               p.position.y,
               RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
@@ -4710,7 +4709,7 @@ void SFG_draw()
       }
 
       if (p.depth > 0 && 
-        SFG_spriteIsVisible(worldPosition,proj->position[2],spriteSize))
+        SFG_spriteIsVisible(worldPosition,proj->position[2]))
         SFG_drawScaledSprite(s,
             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
             RCL_perspectiveScaleVertical(spriteSize,p.depth),
