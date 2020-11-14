@@ -76,6 +76,7 @@ info see the website at <WEBSITE> or the repository at <REPOURL>.
 The game has been ported to:
 
 - GNU/Linux, SDL
+- GNU/Linux, CSFML
 - GNU/Linux, terminal
 - web browser, emscripten
 - Pokitto (220x116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
@@ -90,8 +91,9 @@ As a game, Anarch offers:
 - 6 weapons using 3 types of ammo
 - 7 types of enemies
 - optional primitive save/load system
+- bosses
 - optional mouse support
-- hidden secrets
+- a few hidden secrets/easter eggs
 
 ======== short manual ========
 
@@ -134,9 +136,11 @@ general controls:
 
 I am releasing the version 1.0 of my uber game Anarch!
 
+<gif>
+
 It's a Doom-like first person shooter with 10 levels. It is completely public
 domain (CC0), so you can do whatever you wish with it: mod it, hack it, break
-it, share it, even sell it. You can just grab it and start playing, however the
+it, share it, even sell it. You can just grab it and start playing. The
 project has also become a manifesto of my philosophies, going beyond simple
 entertainment purpose, so if you wish to check it out further, visit
 
@@ -151,16 +155,25 @@ platform and you can also play it on your computer, in a browser
 (<PLAYINBROWSER>), or on other consoles. However, it all started here, with the
 Pokitto community, when a few years back Pokitto showed me the joy of
 programming simple HW, when I began to play around with raycasting, which later
-resutlted in raycastlib and eventually this game. Fot this I thank all of you.
+resutlted in raycastlib and eventually this game. Fot this I thank you, the
+amazing community.
 
-Controls are:
+downloads:
+  <overclocked>
+  <normal>
+  <joyhat>
+  <source>
+
+controls:
 
 - arrows: movement
 - A: shoot, confirm
 - B: hold for strafing, cancel
-- C + A, C + B: switch weapons
+- C + A/left, C + B/right: switch weapons
 - C + up: jump
 - C + down: menu
+
+<trailer>
 
 Enjoy!
 
@@ -175,22 +188,25 @@ anything with it. It is a small manifesto to some ideas I hold: if you wish to
 know more, visit the game's website at <WEBSITE> or the repo at <REPOURL>. You
 can also play the game in browser at <PLAYINBROWSER>.  
 
-I didn't spend too much time on the GB Meta port and I think it could be done
-better, maybe rendered in higher resolution, with music and game's sounds. If
-anyone skilled with Meta wants to pursue this task, just go ahead :)
+I am not so knowledgeable about lower level Gamebuino, so I think this port can
+be further imporved. If you could access the display directly, maybe you could
+get more performance and better rendering. Also I couldn't figure out a way to
+play the game's 8bit 8 kHz sounds, so I just play Gamebuino's sounds, maybe this
+could be fixed. If anyone skilled with Meta wants to pursue this task, just go
+ahead :)
 
-Controls are:
+controls:
 
 - arrows: movement 
 - A: shoot, confirm
 - B: hold for strafing, cancel
-- menu + A, menu + B: switch weapons
+- menu + A/left, menu + B/right: switch weapons
 - menu + up: jump
 - menu + down: go to menu
 
 ======== opengameart =========
 
-These are the assets from my public domain Doom-like game Anarch (<WEBSITE>).
+These are assets from my public domain Doom-like game Anarch (<WEBSITE>).
 I have made them all completely myself, from scratch, including taking my own
 photos, recording my own sounds etc. I release them all under CC0 1.O, public
 domain, for any use whatsoever.
@@ -202,21 +218,25 @@ recordings.
 
 ======== social nets =========
 
-# Finally releasing my suckless game Anarch!
+# Releasing my long in development suckless game Anarch!
 
-I have spent a few years on this game. It is very special, one of its kind, a
-manifesto to the ideas and philosophies I hold.
+Hello, I am releasing my game that's a manifesto to the ideas and philosophies
+I hold.
 
-The game is extremely small, completely public domain (CC0) free software, has
+It is extremely small, completely public domain (CC0) free software, has
 no-dependencies, is extremely portable, suckless, made completely from-scratch
 in the 90s-style of the original Doom. I made it for the benefit of all living
 beings and am now sharing it with you. Enjoy and spread it around!
+
+<TRAILER>
 
 website: <WEBSITE>
 
 repository: <REPOURL>
 
 play in browser: <PLAYINBROWSER>
+
+#game #libregame #suckless #freesoftware #freeculture #publicdomain #CC0 #indie
 
 ======= video trailer =======
 
@@ -228,74 +248,69 @@ It is completely free, both as in gratis and freedom. To get it, visit
 
 ====== wikimedia commons =====
 
-This is a screenshot from a public domain game Anarch which I made. All assets
-in the game and the whole software were created completely by me and are
-released under CC0, as is this screenshot.
-
-This is my gameplay recording of a public domain game Anarch which I made. All
-assets in the game and the whole software were created completely by me and are
-released under CC0, as is this recording.
-
-This is a public domain trailer of a public domain game Anarch which I made. All
-assets in the game and the whole software were created completely by me and are
-released under CC0, as is this trailer.
-
-This is a bytebeat soundtrack from a public domain game Anarch which I made. All
-assets in the game and the whole software were created completely by me and are
-released under CC0, as is this soundtrack.
+This is a screenshot from a public domain game Anarch which I have made. All
+assets in the game and the whole software were created completely by me from
+scratch and are released under CC0, as is this screenshot.
 
 The game uses software rendering using raycasting and a custom 256 color
 palette.
 
 ======= libregamewiki ========
 
-Anarch is a completely public domain, free software, 90s-style anarcho-pacifist
-Doom-like libre game. It was created by drummyfish, made with a special
-philosophy in mind.
+Anarch is a completely public domain, free software, suckless 90s-style
+anarcho-pacifist Doom-like libre game. It was created by drummyfish, completely
+from scratch. The game's aim is to experiment with a different game development
+philosophy.
 
-The game is made for entertainment, but also as a manifesto of certain
+ABOUT
+
+Anarch is made for entertainment but also as a manifesto of certain
 philosophies and ideas, including suckless programming, extreme portability,
 anti-copyright, selflessness and anarcho-pacifism.
-
-The game is special by its properties, which include:
-
-- Extremely small size, the game can fit into <MINSIZE>, including all assets.
-- Very low hardware demands, being able to run on <MINFREQ> embedded CPUs.
-- No library dependencies – The game is written in pure C without any I/O, which
-  is left for each platform's frontend to implement.
-- Implementation simplicity – no build system is needed, only a single file
-  needs to be compiled. The whole source code has <LOCTOTAL> lines of code.
-- All assets are part of the source code, so no filesystem is required for the
-  game.
-- Extreme portability thanks to the above. Official ports exist for PC, browser
-  and embedded consoles like Pokitto and Gamebuino Meta.
-- Made completely from scratch with only free software, including the engine and
-  assets.
-- Completely public domain status, being released under CC0.
 
 The game is a "pseudo 3D" first person shooter, like Doom, and consists of 10
 levels. The graphics uses a 256 color palette and is a little simpler than that
 of Doom, having e.g. no textures on floor and ceiling and using just 32x32 pixel
 images. The engine uses software rendering and 2D raycasting for rendering.
-There are multiple enemy types, weapons and items to pick up. Music is
+There are multiple enemy types, weapons and items to pick up. Music is 8bit and
 procedurally generated (utilizing so called bytebeat).
+
+FEATURES
+
+Some of the aspects of the game worth mentioning are:
+
+- Extremely small size, being able to fit into 200 KB, including all assets.
+- Very low hardware demands, being able to run on 40 MHz embedded CPUs.
+- No library dependencies – The game core is written in pure C without any I/O,
+  which is left for each platform's frontend to implement.
+- Implementation simplicity – no build system is needed, only a single file
+  needs to be compiled. The whole source code has <LOCTOTAL> lines of code.
+- All assets are part of the source code so no filesystem is required for the
+  game to run.
+- Extreme portability thanks to the above. Official ports exist for PC,
+  terminal, web browser and embedded consoles like Pokitto and Gamebuino Meta.
+- Made completely from scratch with only free software, including the engine,
+  assets and media.
+- Completely public domain status, made completely from scratch by a single
+  person and released under CC0 (with an additional waiver of patents).
 
 ===== freegamedev forum ======
 
 Hello,
 
-I am releasing version 1.0 of my suckless game Anarch that I've been working
-on on evenings for a few years now.
+I am releasing version 1.0 of my suckless game Anarch which I've been working
+on on evenings for maybe two years.
 
 It's probably a little different from what you expect from a typical modern
-game, it looks like from early 90s and will seem backwards and dumb at first,
-but it's just trying to do things differently. It's not just a game but also a
-manifesto of some ideas I hold.
+game as it is a little experimental and purposfully trying to do things
+differently. It looks like from early 90s and will seem shitty and backwards,
+but it's just aiming for different goals than wide popularity or making profit.
+It's not just a game but also a manifesto of some ideas I hold.
 
 It is extremely small, completely public domain, no-dependency, no-file,
-portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
-everywhere, made for the benefit of all living beings. For more see the page
-at libregamewiki: <LIBREGAMEWIKILINK>.
+very portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that
+runs everywhere (needs just 32 KB RAM and 40 MHz CPU), made for the benefit of
+all living beings. For more see the page at libregamewiki: <LIBREGAMEWIKILINK>.
 
 Game-wise Anarch offers:
 
@@ -305,8 +320,9 @@ Game-wise Anarch offers:
 - 6 weapons using 3 types of ammo
 - 7 types of enemies
 - optional primitive save/load system
+- bosses
 - optional mouse support
-- hidden secrets
+- a few hidden secrets/easter eggs
 
 website: <WEBSITE>
 
@@ -314,3 +330,13 @@ repo: <REPOURL>
 
 play in browser: <PLAYINBROWSER>
 
+Enjoy!
+
+==== twitter ====
+
+Releasing my long in development #game #Anarch! <link>. Also stop using
+#Twitter, it's a #proprietary (#fascist) platform.
+
+==== website ====
+
+Anarch:      Very special suckless FPS Doom-like game in pure C.
