@@ -165,6 +165,30 @@
 #endif
 
 /**
+  Same as SFG_RAYCASTING_MAX_STEPS but for visibility rays that are used to
+  check whether sprites are visible etc.
+*/
+#ifndef SFG_RAYCASTING_VISIBILITY_MAX_STEPS
+  #if SFG_RAYCASTING_MAX_STEPS < 15
+    #define SFG_RAYCASTING_VISIBILITY_MAX_STEPS 15
+  #else
+    #define SFG_RAYCASTING_VISIBILITY_MAX_STEPS SFG_RAYCASTING_MAX_STEPS
+  #endif
+#endif
+
+/**
+  Same as SFG_RAYCASTING_MAX_HITS but for visibility rays that are used to check
+  whether sprites are visible etc.
+*/
+#ifndef SFG_RAYCASTING_VISIBILITY_MAX_HITS
+  #if SFG_RAYCASTING_MAX_HITS < 6
+    #define SFG_RAYCASTING_VISIBILITY_MAX_HITS 6
+  #else
+    #define SFG_RAYCASTING_VISIBILITY_MAX_HITS SFG_RAYCASTING_MAX_HITS
+  #endif
+#endif
+
+/**
   How many times rendering should be subsampled horizontally. Bigger number
   can significantly improve performance (by casting fewer rays), but can look
   a little worse. This number should be a divisor of SFG_SCREEN_RESOLUTION_X!
@@ -396,7 +420,8 @@
   look weirdly scaled, so this option can be used to fix that.
 */
 #ifndef SFG_SPRITE_MAX_SIZE
-  #define SFG_SPRITE_MAX_SIZE SFG_SCREEN_RESOLUTION_Y
+  #define SFG_SPRITE_MAX_SIZE \
+    (SFG_SCREEN_RESOLUTION_Y / SFG_RESOLUTION_SCALEDOWN)
 #endif
 
 /**
@@ -420,6 +445,13 @@
 */
 #ifndef SFG_IMMORTAL
   #define SFG_IMMORTAL 0
+#endif
+
+/**
+  Reveals all levels to be played.
+*/
+#ifndef SFG_ALL_LEVELS
+  #define SFG_ALL_LEVELS 0
 #endif
 
 /**

@@ -353,7 +353,8 @@ struct
   uint8_t soundsPlayedThisFrame; /**< Each bit says whether given sound was
                                     played this frame, prevents playing too many
                                     sounds at once. */
-  RCL_RayConstraints rayConstraints;
+  RCL_RayConstraints rayConstraints; ///< Ray constraints for rendering.
+  RCL_RayConstraints visibilityRayConstraints; ///< Constraints for visibility.
   uint8_t keyStates[SFG_KEY_COUNT]; /**< Pressed states of keys, each value
                                     stores the number of frames for which the
                                     key has been held. */
@@ -1662,6 +1663,12 @@ void SFG_init()
   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
   SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
 
+  RCL_initRayConstraints(&SFG_game.visibilityRayConstraints);
+  SFG_game.visibilityRayConstraints.maxHits = 
+    SFG_RAYCASTING_VISIBILITY_MAX_HITS;
+  SFG_game.visibilityRayConstraints.maxSteps =
+    SFG_RAYCASTING_VISIBILITY_MAX_STEPS;
+
   SFG_game.antiSpam = 0;
 
   SFG_LOG("computing average texture colors")
@@ -1733,6 +1740,10 @@ void SFG_init()
     SFG_LOG("saving/loading not possible");
     SFG_game.save[0] = SFG_NUMBER_OF_LEVELS - 1; // revealed all levels
   }
+
+#if SFG_ALL_LEVELS
+  SFG_game.save[0] = SFG_NUMBER_OF_LEVELS - 1;
+#endif
 
   SFG_setMusic((SFG_game.settings & 0x02) ?
     SFG_MUSIC_TURN_ON : SFG_MUSIC_TURN_OFF);
@@ -2868,7 +2879,7 @@ static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height,
       height,
       SFG_floorHeightAt,
       SFG_ceilingHeightAt,
-      SFG_game.rayConstraints
+      SFG_game.visibilityRayConstraints
     ) == RCL_UNITS_PER_SQUARE;
 }
 
