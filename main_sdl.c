@@ -47,7 +47,7 @@
     #define SFG_BACKGROUND_BLUR 1
   #else
     // lower quality
-    #define SFG_FPS 30
+    #define SFG_FPS 35
     #define SFG_SCREEN_RESOLUTION_X 640
     #define SFG_SCREEN_RESOLUTION_Y 480
     #define SFG_RAYCASTING_SUBSAMPLE 2
@@ -55,19 +55,19 @@
     #define SFG_DIMINISH_SPRITES 0
     #define SFG_DITHERED_SHADOW 0
     #define SFG_BACKGROUND_BLUR 0
-    #define SFG_RAYCASTING_MAX_STEPS 20
+    #define SFG_RAYCASTING_MAX_STEPS 18
     #define SFG_RAYCASTING_MAX_HITS 8
   #endif
 #else
   // emscripten
-  #define SFG_FPS 30
+  #define SFG_FPS 35
   #define SFG_SCREEN_RESOLUTION_X 512
   #define SFG_SCREEN_RESOLUTION_Y 320
   #define SFG_CAN_EXIT 0
   #define SFG_RESOLUTION_SCALEDOWN 2
   #define SFG_DITHERED_SHADOW 1
   #define SFG_BACKGROUND_BLUR 0
-  #define SFG_RAYCASTING_MAX_STEPS 20
+  #define SFG_RAYCASTING_MAX_STEPS 18
   #define SFG_RAYCASTING_MAX_HITS 8
 
   #include <emscripten.h>

@@ -2146,6 +2146,24 @@ void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
        + RCL_UNITS_PER_SQUARE / 2;
 }
 
+/**
+  Checks a 3D point visibility from player's position (WITHOUT considering
+  facing direction).
+*/
+static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height)
+{
+  return
+    RCL_castRay3D(
+      SFG_player.camera.position,
+      SFG_player.camera.height,
+      pos,
+      height,
+      SFG_floorHeightAt,
+      SFG_ceilingHeightAt,
+      SFG_game.visibilityRayConstraints
+    ) == RCL_UNITS_PER_SQUARE;
+}
+
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 {
   uint8_t state = SFG_MR_STATE(*monster);
@@ -2177,7 +2195,15 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
        SFG_GET_MONSTER_AGGRESSIVITY(SFG_MONSTER_TYPE_TO_INDEX(type)))
      )
   { 
-    if (SFG_random() % 4 != 0)
+    RCL_Vector2D pos;
+    pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+    pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
+
+    if (SFG_random() % 4 != 0 &&
+      SFG_spriteIsVisible(pos,currentHeight + // only if player is visible
+        SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(
+        SFG_GET_MONSTER_SPRITE_SIZE(
+        SFG_MONSTER_TYPE_TO_INDEX(type)))))
     {
       // attack
  
@@ -2185,11 +2211,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
       if (type != SFG_LEVEL_ELEMENT_MONSTER_WARRIOR)
       {
-        RCL_Vector2D pos;
         RCL_Vector2D dir;
-
-        pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
-        pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
 
         dir.x = SFG_player.camera.position.x - pos.x
           - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
@@ -2862,24 +2884,6 @@ void SFG_updateLevel()
 static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
 {
   return 1 << ((squareY / 16) * 4 + squareX / 16);
-}
-
-/**
-  Checks a 3D point visibility from player's position (WITHOUT considering
-  facing direction).
-*/
-static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height)
-{
-  return
-    RCL_castRay3D(
-      SFG_player.camera.position,
-      SFG_player.camera.height,
-      pos,
-      height,
-      SFG_floorHeightAt,
-      SFG_ceilingHeightAt,
-      SFG_game.visibilityRayConstraints
-    ) == RCL_UNITS_PER_SQUARE;
 }
 
 /**
