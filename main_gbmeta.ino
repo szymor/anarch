@@ -24,7 +24,10 @@
 
 #define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
-#define SFG_FPS 17
+#define SFG_FPS 22
+#define SFG_TIME_MULTIPLIER 800    /* Without this the game seems too fast. This
+                                      also achieves an effective FPS of about
+                                      17. */
 #define SFG_SCREEN_RESOLUTION_X 80
 #define SFG_SCREEN_RESOLUTION_Y 64
 #define SFG_RESOLUTION_SCALEDOWN 1
