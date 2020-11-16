@@ -432,7 +432,7 @@ struct
                                    which cards should be blinking in the HUD,
                                    the last 2 bits are a blink reset counter. */
   uint8_t  justTeleported;
-  int8_t  previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
+  int8_t   previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
 } SFG_player;
 
 /**
@@ -3738,11 +3738,6 @@ void SFG_handleCheats()
 
   uint8_t expectedKey;
 
-//012345678910
-//abracadabra
-//
-//a5 b2 r2 c1 d1
-  
   switch (SFG_game.cheatState & 0x0f)
   {
     case 0: case 3: case 5: case 7: case 10:
@@ -3785,6 +3780,7 @@ void SFG_handleCheats()
       SFG_player.ammo[SFG_AMMO_ROCKETS] = SFG_AMMO_MAX_ROCKETS;
       SFG_player.ammo[SFG_AMMO_PLASMA] = SFG_AMMO_MAX_PLASMA;
       SFG_player.weapon = SFG_WEAPON_SOLUTION;
+      SFG_player.cards |= 0x07;
       SFG_game.cheatState = 0x80;
     }
   }
