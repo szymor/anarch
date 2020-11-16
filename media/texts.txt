@@ -134,7 +134,7 @@ general controls:
 
 ========== pokitto ===========
 
-I am releasing the version 1.0 of my uber game Anarch!
+I am finally releasing the version 1.0 of my game Anarch!
 
 <gif>
 
@@ -143,6 +143,9 @@ domain (CC0), so you can do whatever you wish with it: mod it, hack it, break
 it, share it, even sell it. You can just grab it and start playing. The
 project has also become a manifesto of my philosophies, going beyond simple
 entertainment purpose, so if you wish to check it out further, visit
+
+Reminder: 1.0 doesn't mean bug-free or even finished, it is simply a release
+milestone that has all goal features and is pretty much usable.
 
 <WEBSITE>
 
