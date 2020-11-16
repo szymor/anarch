@@ -180,6 +180,8 @@ controls:
 
 Enjoy!
 
+P.S: Yes, there are cheatcodes, but you have to figure them out yourself :)
+
 ========== gb meta ===========
 
 This is a GB Meta port of my suckless, platform-independent Doom-like game
