@@ -384,6 +384,8 @@ struct
   uint8_t blink;      ///< Says whether blinkg is currently on or off.
   uint8_t saved;      /**< Helper variable to know if game was saved. Can be
                            0 (not saved), 1 (just saved) or 255 (can't save).*/
+  uint8_t cheatState; /**< Highest bit say whether cheat is enabled, other bits
+                           represent the state of typing the cheat code. */
   uint8_t save[SFG_SAVE_SIZE];  /**< Stores the game save state that's kept in
                            the persistent memory.
 
@@ -1304,8 +1306,9 @@ void SFG_getPlayerWeaponInfo(
   *canShoot = 1;
 #else
   *canShoot = 
-    (*ammoType == SFG_AMMO_NONE || 
-     SFG_player.ammo[*ammoType] >= *projectileCount);
+    ((*ammoType == SFG_AMMO_NONE) || 
+     (SFG_player.ammo[*ammoType] >= *projectileCount) ||
+     (SFG_game.cheatState & 0x80));
 #endif
 }
 
@@ -1657,6 +1660,7 @@ void SFG_init()
   SFG_game.frame = 0;
   SFG_game.frameTime = 0;
   SFG_game.currentRandom = 0;
+  SFG_game.cheatState = 0;
   SFG_game.continues = 1;
 
   RCL_initRayConstraints(&SFG_game.rayConstraints);
@@ -1919,6 +1923,9 @@ void SFG_playerChangeHealth(int8_t healthAdd)
 
   if (healthAdd < 0)
   {
+    if (SFG_game.cheatState & 0x80) // invincible?
+      return;
+
     healthAdd =
       RCL_min(-1,
       (((RCL_Unit) healthAdd) * SFG_PLAYER_DAMAGE_MULTIPLIER) /
@@ -3725,6 +3732,64 @@ uint8_t SFG_getMenuItem(uint8_t index)
   return SFG_MENU_ITEM_NONE;
 }
 
+void SFG_handleCheats()
+{
+  // this is a state machine handling cheat typing
+
+  uint8_t expectedKey;
+
+//012345678910
+//abracadabra
+//
+//a5 b2 r2 c1 d1
+  
+  switch (SFG_game.cheatState & 0x0f)
+  {
+    case 0: case 3: case 5: case 7: case 10:
+      expectedKey = SFG_KEY_A; break;
+    case 1: case 8:
+      expectedKey = SFG_KEY_B; break;
+    case 2: case 9:
+      expectedKey = SFG_KEY_RIGHT; break;
+    case 4:
+      expectedKey = SFG_KEY_C; break;
+    case 6: default:
+      expectedKey = SFG_KEY_DOWN; break;
+  }
+
+  for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i) // no other keys must be pressed
+    if ((i != expectedKey) && SFG_keyJustPressed(i))
+    {
+      SFG_game.cheatState &= 0xf0; // back to start state
+      return;
+    }
+ 
+  if (!SFG_keyJustPressed(expectedKey))
+    return;
+
+  SFG_game.cheatState++; // go to next state
+
+  if ((SFG_game.cheatState & 0x0f) > 10) // final state resolved?
+  {
+    if (SFG_game.cheatState & 0x80)
+    {
+      SFG_LOG("cheat disabled");
+      SFG_game.cheatState = 0;
+    }
+    else
+    {
+      SFG_LOG("cheat activated");
+      SFG_playGameSound(4,255);
+      SFG_playerChangeHealth(SFG_PLAYER_MAX_HEALTH);
+      SFG_player.ammo[SFG_AMMO_BULLETS] = SFG_AMMO_MAX_BULLETS;
+      SFG_player.ammo[SFG_AMMO_ROCKETS] = SFG_AMMO_MAX_ROCKETS;
+      SFG_player.ammo[SFG_AMMO_PLASMA] = SFG_AMMO_MAX_PLASMA;
+      SFG_player.weapon = SFG_WEAPON_SOLUTION;
+      SFG_game.cheatState = 0x80;
+    }
+  }
+}
+
 void SFG_gameStepMenu()
 {
   uint8_t menuItems = 0;
@@ -3879,6 +3944,7 @@ void SFG_gameStep()
   switch (SFG_game.state)
   {
     case SFG_GAME_STATE_PLAYING:
+      SFG_handleCheats();
       SFG_gameStepPlaying();
       break;
 
@@ -4740,6 +4806,13 @@ void SFG_draw()
     // bar
 
     uint8_t color = 61;
+    uint8_t color2 = 48;
+
+    if (SFG_game.cheatState & 0x80)
+    {
+      color = 170;
+      color2 = 0;
+    }
 
     for (uint16_t j = SFG_GAME_RESOLUTION_Y - SFG_HUD_BAR_HEIGHT;
       j < SFG_GAME_RESOLUTION_Y; ++j)
@@ -4747,7 +4820,7 @@ void SFG_draw()
       for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
         SFG_setGamePixel(i,j,color);
 
-      color = 48;
+      color = color2;
     }
 
     #define TEXT_Y (SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - \

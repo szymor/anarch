@@ -29,10 +29,10 @@
   #define SFG_ALL_LEVELS 1
 //  #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
-//  #define SFG_INFINITE_AMMO 1
+  #define SFG_INFINITE_AMMO 1
 // #define SFG_TIME_MULTIPLIER 512
 // #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
-#define GAME_LQ
+// #define GAME_LQ
 
 #ifndef __EMSCRIPTEN__
   #ifndef GAME_LQ
@@ -52,6 +52,7 @@
     #define SFG_SCREEN_RESOLUTION_Y 480
     #define SFG_RAYCASTING_SUBSAMPLE 2
     #define SFG_RESOLUTION_SCALEDOWN 2
+    #define SFG_LOG(str) puts(str);
     #define SFG_DIMINISH_SPRITES 0
     #define SFG_DITHERED_SHADOW 0
     #define SFG_BACKGROUND_BLUR 0
