@@ -3048,11 +3048,25 @@ void SFG_updatePlayerHeight()
       RCL_CAMERA_COLL_HEIGHT_BELOW;
 }
 
+void SFG_winLevel()
+{
+  SFG_levelEnds();
+  SFG_setGameState(SFG_GAME_STATE_WIN);
+  SFG_playGameSound(2,255); 
+  SFG_processEvent(SFG_EVENT_VIBRATE,0);
+  SFG_processEvent(SFG_EVENT_LEVEL_WON,SFG_currentLevel.levelNumber + 1);
+}
+
 /**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
 void SFG_gameStepPlaying()
 {
+#if SFG_QUICK_WIN
+  if (SFG_game.stateTime > 500)
+    SFG_winLevel();
+#endif
+
   if (
     (SFG_keyIsDown(SFG_KEY_C) && SFG_keyIsDown(SFG_KEY_DOWN)) ||
     SFG_keyIsDown(SFG_KEY_MENU))
@@ -3394,12 +3408,7 @@ void SFG_gameStepPlaying()
             break;
 
           case SFG_LEVEL_ELEMENT_FINISH:
-            SFG_levelEnds();
-            SFG_setGameState(SFG_GAME_STATE_WIN);
-            SFG_playGameSound(2,255); 
-            SFG_processEvent(SFG_EVENT_VIBRATE,0);
-            SFG_processEvent(
-              SFG_EVENT_LEVEL_WON,SFG_currentLevel.levelNumber + 1);
+            SFG_winLevel();
             eliminate = 0;
             break;
 

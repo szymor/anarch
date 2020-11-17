@@ -448,6 +448,13 @@
 #endif
 
 /**
+  Developer setting, with 1 every level is won immediately after start.
+*/
+#ifndef SFG_QUICK_WIN
+  #define SFG_QUICK_WIN 0
+#endif
+
+/**
   Reveals all levels to be played.
 */
 #ifndef SFG_ALL_LEVELS

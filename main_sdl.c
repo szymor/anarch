@@ -25,6 +25,7 @@
 #endif
 
 //  #define SFG_START_LEVEL 1
+//  #define SFG_QUICK_WIN 1
   #define SFG_IMMORTAL 1
 //  #define SFG_ALL_LEVELS 1
 //  #define SFG_UNLOCK_DOOR 1
