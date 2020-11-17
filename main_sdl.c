@@ -26,7 +26,7 @@
 
 //  #define SFG_START_LEVEL 1
   #define SFG_IMMORTAL 1
-  #define SFG_ALL_LEVELS 1
+//  #define SFG_ALL_LEVELS 1
 //  #define SFG_UNLOCK_DOOR 1
 //  #define SFG_REVEAL_MAP 1
   #define SFG_INFINITE_AMMO 1

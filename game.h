@@ -666,7 +666,8 @@ void SFG_levelEnds()
   SFG_currentLevel.completionTime10sOfS = (SFG_MS_PER_FRAME *
     (SFG_game.frame - SFG_currentLevel.frameStart)) / 100; 
 
-  if (SFG_currentLevel.levelNumber >= (SFG_game.save[0] & 0x0f))
+  if (SFG_currentLevel.levelNumber >= (SFG_game.save[0] & 0x0f) &&
+   ((SFG_currentLevel.levelNumber + 1) < SFG_NUMBER_OF_LEVELS))
   {
     SFG_game.save[0] = // save progress
       (SFG_game.save[0] & 0xf0) | (SFG_currentLevel.levelNumber + 1);
@@ -1723,8 +1724,8 @@ void SFG_init()
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     SFG_game.keyStates[i] = 0;
 
-  SFG_game.backgroundScroll = 0;
   SFG_currentLevel.levelPointer = 0;
+  SFG_game.backgroundScroll = 0;
   SFG_game.selectedMenuItem = 0;
   SFG_game.selectedLevel = 0;
   SFG_game.settings = SFG_DEFAULT_SETTINGS;
@@ -3993,7 +3994,10 @@ void SFG_gameStep()
         if (SFG_currentLevel.levelNumber == (SFG_NUMBER_OF_LEVELS - 1))
         {
           if (SFG_keyIsDown(SFG_KEY_A))
+          {
             SFG_setGameState(SFG_GAME_STATE_OUTRO);
+            SFG_setMusic(SFG_MUSIC_TURN_OFF);
+          }
         }
         else if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
             SFG_keyIsDown(SFG_KEY_LEFT))
@@ -4039,8 +4043,11 @@ void SFG_gameStep()
            (SFG_keyIsDown(SFG_KEY_A) ||
            SFG_keyIsDown(SFG_KEY_B)))
       {
+        SFG_currentLevel.levelPointer = 0;
+        SFG_currentLevel.levelNumber = 0;
         SFG_setGameState(SFG_GAME_STATE_MENU);
         SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
+        SFG_setMusic(SFG_MUSIC_TURN_ON);
       }
 
       break;
