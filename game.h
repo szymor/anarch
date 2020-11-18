@@ -2902,8 +2902,11 @@ RCL_Unit SFG_autoaimVertically()
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
     SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
-      
-    if (SFG_MR_STATE(m) == SFG_MONSTER_STATE_INACTIVE)
+    
+    uint8_t state = SFG_MR_STATE(m);
+ 
+    if (state == SFG_MONSTER_STATE_INACTIVE ||
+        state == SFG_MONSTER_STATE_DEAD)
       continue;
 
     RCL_Vector2D worldPosition, toMonster;
