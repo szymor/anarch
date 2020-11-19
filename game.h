@@ -243,11 +243,11 @@ typedef struct
 #define SFG_SPRITE_SIZE(size0to3) \
   (((size0to3 + 3) * SFG_BASE_SPRITE_SIZE) / 4)
 
-#define SFG_SPRITE_SIZE_PIXELS(size0to3) \
-  ((SFG_SPRITE_SIZE(size0to3) * SFG_SPRITE_MAX_SIZE) / RCL_UNITS_PER_SQUARE)
-
 #define SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(size0to3) \
   (SFG_SPRITE_SIZE(size0to3) / 2)
+
+#define SFG_SPRITE_SIZE_PIXELS(size0to3) \
+  ((SFG_SPRITE_SIZE(size0to3) * SFG_SPRITE_MAX_SIZE) / RCL_UNITS_PER_SQUARE)
 
 /**
   Holds information about one instance of a level item (a type of level element,

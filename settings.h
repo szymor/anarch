@@ -417,7 +417,8 @@
 /**
   Says the size, in pixels, of a sprite when it is closest to the camera, which
   is the maximum size that can be drawn. Sprites on "weird" aspect ratios can
-  look weirdly scaled, so this option can be used to fix that.
+  look weirdly scaled, so this option can be used to fix that (typically set
+  horizontal screen resolution instead of vertical).
 */
 #ifndef SFG_SPRITE_MAX_SIZE
   #define SFG_SPRITE_MAX_SIZE \
