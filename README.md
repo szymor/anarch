@@ -117,7 +117,11 @@ As any disturbance of the status quo, my project too gets a lot of hate, being c
 
 ### Why?
 
-Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (licenses, ads, DRM, ...)  being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
+Because I find it ridiculously depressing that in a world where we have millions of computer games there isn't a single serious one made purely for the benefit of everyone on the planet, without self-interest (licenses, ads, DRM, ...) being embedded somewhere underneath. It may be one of the saddest things about this so called "advanced" society.
+
+Yes, there exist other libre games, but they suffer from at least one of many possible flaws: dependency on the current state of capitalist dystopia (using capitalist libraries, languages, build systems, relying on powerful HW, being bloated etc.), burdening self-interest (requirements such as credit, copyleft, keeping de-facto ownership by knowhow etc.), triviality ("pong"), lax attitude to usage rights (using assets from unclear sources, not stating rights clearly enough, not archiving evidence etc.) and so on.
+
+I would rather like to ask, in turn, why <b>no one</b> is doing what this project is trying to do. Creating something completely for everyone, even people in far future, is extremely valuable, considering only relatively minor effort is required for something that will be there <b>forever and for everyone</b>. I hope at least one person on the planet will join me.
 
 ### Is this a joke?
 
