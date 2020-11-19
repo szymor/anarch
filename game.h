@@ -2197,7 +2197,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   RCL_Unit currentHeight =
     SFG_floorCollisionHeightAt(monsterSquare[0],monsterSquare[1]);
 
-  if ( // sometimes randomly attack
+  if ( // ranged monsters: sometimes randomly attack
        !notRanged &&
        (SFG_random() < 
        SFG_GET_MONSTER_AGGRESSIVITY(SFG_MONSTER_TYPE_TO_INDEX(type)))
@@ -2213,75 +2213,72 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         SFG_GET_MONSTER_SPRITE_SIZE(
         SFG_MONSTER_TYPE_TO_INDEX(type)))))
     {
-      // attack
+      // ranged attack
  
       state = SFG_MONSTER_STATE_ATTACKING;
 
-      if (type != SFG_LEVEL_ELEMENT_MONSTER_WARRIOR)
+      RCL_Vector2D dir;
+
+      dir.x = SFG_player.camera.position.x - pos.x
+        - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+        SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+
+      dir.y = SFG_player.camera.position.y - pos.y
+        - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+        SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+
+      dir = RCL_normalize(dir);
+
+      uint8_t projectile;  
+
+      switch (SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber))
       {
-        RCL_Vector2D dir;
+        case SFG_MONSTER_ATTACK_FIREBALL:
+          projectile = SFG_PROJECTILE_FIREBALL; 
+          break;
 
-        dir.x = SFG_player.camera.position.x - pos.x
-          - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
-          SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+        case SFG_MONSTER_ATTACK_BULLET:
+          projectile = SFG_PROJECTILE_BULLET; 
+          break;
 
-        dir.y = SFG_player.camera.position.y - pos.y
-          - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
-          SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+        case SFG_MONSTER_ATTACK_PLASMA:
+          projectile = SFG_PROJECTILE_PLASMA;
+          break;
 
-        dir = RCL_normalize(dir);
+        case SFG_MONSTER_ATTACK_FIREBALL_BULLET:
+          projectile = (SFG_random() < 128) ?
+            SFG_PROJECTILE_FIREBALL : 
+            SFG_PROJECTILE_BULLET;
+          break;
 
-        uint8_t projectile;  
+        case SFG_MONSTER_ATTACK_FIREBALL_PLASMA:
+          projectile = (SFG_random() < 128) ?
+            SFG_PROJECTILE_FIREBALL : 
+            SFG_PROJECTILE_PLASMA;
+          break;
 
-        switch (SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber))
-        {
-          case SFG_MONSTER_ATTACK_FIREBALL:
-            projectile = SFG_PROJECTILE_FIREBALL; 
-            break;
-
-          case SFG_MONSTER_ATTACK_BULLET:
-            projectile = SFG_PROJECTILE_BULLET; 
-            break;
-
-          case SFG_MONSTER_ATTACK_PLASMA:
-            projectile = SFG_PROJECTILE_PLASMA;
-            break;
-
-          case SFG_MONSTER_ATTACK_FIREBALL_BULLET:
-            projectile = (SFG_random() < 128) ?
-              SFG_PROJECTILE_FIREBALL : 
-              SFG_PROJECTILE_BULLET;
-            break;
-
-          case SFG_MONSTER_ATTACK_FIREBALL_PLASMA:
-            projectile = (SFG_random() < 128) ?
-              SFG_PROJECTILE_FIREBALL : 
-              SFG_PROJECTILE_PLASMA;
-            break;
-
-          default:
-            projectile = SFG_PROJECTILE_NONE; 
-            break;
-        }
-
-        if (projectile == SFG_PROJECTILE_BULLET)
-          SFG_playGameSound(0,
-            SFG_distantSoundVolume( 
-              SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
-              SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
-              currentHeight)
-            );
-
-        SFG_launchProjectile(
-          projectile,
-          pos,
-          currentHeight + RCL_UNITS_PER_SQUARE / 2,
-          dir,
-          0,
-          SFG_PROJECTILE_SPAWN_OFFSET
-        );
+        default:
+          projectile = SFG_PROJECTILE_NONE; 
+          break;
       }
-    }
+
+      if (projectile == SFG_PROJECTILE_BULLET)
+        SFG_playGameSound(0,
+          SFG_distantSoundVolume( 
+            SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+            SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+            currentHeight)
+          );
+
+      SFG_launchProjectile(
+        projectile,
+        pos,
+        currentHeight + RCL_UNITS_PER_SQUARE / 2,
+        dir,
+        0,
+        SFG_PROJECTILE_SPAWN_OFFSET
+      );
+    } // if visible
     else
       state = SFG_MONSTER_STATE_IDLE;
   }
@@ -2289,7 +2286,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
   {
     if (notRanged)
     {
-      // non-ranged monsters walk towards player
+      // non-ranged monsters: walk towards player
 
       RCL_Unit pX, pY, pZ;
       SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
