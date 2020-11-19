@@ -2270,10 +2270,13 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
             currentHeight)
           );
 
+      uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
+        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(*monster)));
+
       SFG_launchProjectile(
         projectile,
         pos,
-        currentHeight + RCL_UNITS_PER_SQUARE / 2,
+        currentHeight + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
         dir,
         0,
         SFG_PROJECTILE_SPAWN_OFFSET
