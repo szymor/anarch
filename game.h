@@ -2849,6 +2849,14 @@ void SFG_updateLevel()
 
       if (state == SFG_MONSTER_STATE_DYING)
       {
+        monster->stateType =
+          (monster->stateType & 0xf0) | SFG_MONSTER_STATE_DEAD;
+      }
+      else if (monster->health == 0)
+      {
+        monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
+          SFG_MONSTER_STATE_DYING;
+
         if (SFG_MR_TYPE(*monster) == SFG_LEVEL_ELEMENT_MONSTER_ENDER)
         {
           SFG_currentLevel.bossCount--;
@@ -2861,14 +2869,6 @@ void SFG_updateLevel()
             SFG_player.cards |= 0x04;
           }
         }
-
-        monster->stateType =
-          (monster->stateType & 0xf0) | SFG_MONSTER_STATE_DEAD;
-      }
-      else if (monster->health == 0)
-      {
-        monster->stateType = (monster->stateType & SFG_MONSTER_MASK_TYPE) |
-          SFG_MONSTER_STATE_DYING;
 
         SFG_processEvent(SFG_EVENT_MONSTER_DIES,SFG_MR_TYPE(*monster));
 
