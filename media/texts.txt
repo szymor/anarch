@@ -134,18 +134,15 @@ general controls:
 
 ========== pokitto ===========
 
-I am finally releasing the version 1.0 of my game Anarch!
+I am releasing the version 1.0 of my game Anarch.
 
 <gif>
 
 It's a Doom-like first person shooter with 10 levels. It is completely public
 domain (CC0), so you can do whatever you wish with it: mod it, hack it, break
 it, share it, even sell it. You can just grab it and start playing. The
-project has also become a manifesto of my philosophies, going beyond simple
-entertainment purpose, so if you wish to check it out further, visit
-
-Reminder: 1.0 doesn't mean bug-free or even finished, it is simply a release
-milestone that has all goal features and is pretty much usable.
+project has also become a manifesto of some of my philosophies, going beyond
+simple entertainment purpose, so if you wish to check it out further, visit
 
 <WEBSITE>
 
@@ -153,13 +150,16 @@ and
 
 <REPOURL>
 
+Reminder: 1.0 doesn't mean bug-free or even finished, it is simply a release
+milestone that has all goal features and is pretty much usable.
+
 The game is not exclusive to Pokitto, I've made it to be independent of any
-platform and you can also play it on your computer, in a browser
+platform so you can also play it on your computer, in a browser
 (<PLAYINBROWSER>), or on other consoles. However, it all started here, with the
 Pokitto community, when a few years back Pokitto showed me the joy of
 programming simple HW, when I began to play around with raycasting, which later
-resutlted in raycastlib and eventually this game. Fot this I thank you, the
-amazing community.
+resutlted in raycastlib and eventually this game, and when people started
+telling me to make a complete game. Fot this I thank you, the Pokitto community.
 
 downloads:
   <overclocked>
@@ -176,11 +176,19 @@ controls:
 - C + up: jump
 - C + down: menu
 
+There is a basic save/load functionality, but it is pretty simple. You are
+only able to save game at the beginning of a level, allowing you to load there
+with the same health, ammo and stats (time and kills).
+
+It uses bytebeat for music, for simplicity and to save space. This can get
+annoying after a while, but of course you can turn off music in the menu :)
+
 <trailer>
 
 Enjoy!
 
-P.S: Yes, there are cheatcodes, but you have to figure them out yourself :)
+P.S: Yes, there are cheatcodes, or rather only one, but you have to figure it
+out yourself :) Besides that there are secret areas on each map.
 
 ========== gb meta ===========
 
