@@ -2227,8 +2227,6 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
         SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
 
-      dir = RCL_normalize(dir);
-
       uint8_t projectile;  
 
       switch (SFG_GET_MONSTER_ATTACK_TYPE(monsterNumber))
@@ -2270,15 +2268,22 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
             currentHeight)
           );
 
-      uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
-        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(*monster)));
+      RCL_Unit middleHeight = currentHeight +
+        SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(SFG_GET_MONSTER_SPRITE_SIZE(
+        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(*monster))));
+
+      RCL_Unit verticalSpeed = (SFG_GET_PROJECTILE_SPEED_UPS(projectile) * 
+        SFG_directionTangent(dir.x,dir.y,SFG_player.camera.height -
+        middleHeight)) / RCL_UNITS_PER_SQUARE;
+      
+      dir = RCL_normalize(dir);
 
       SFG_launchProjectile(
         projectile,
         pos,
-        currentHeight + SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize),
+        middleHeight,
         dir,
-        0,
+        verticalSpeed,
         SFG_PROJECTILE_SPAWN_OFFSET
       );
     } // if visible
@@ -2894,6 +2899,16 @@ static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
   return 1 << ((squareY / 16) * 4 + squareX / 16);
 }
 
+RCL_Unit SFG_directionTangent(RCL_Unit dirX, RCL_Unit dirY, RCL_Unit dirZ)
+{
+  RCL_Vector2D v;
+
+  v.x = dirX;
+  v.y = dirY;
+
+  return (dirZ * RCL_UNITS_PER_SQUARE) / RCL_len(v);
+}
+
 /**
   Returns a tangent in RCL_Unit of vertical autoaim, given current game state.
 */
@@ -2932,12 +2947,8 @@ RCL_Unit SFG_autoaimVertically()
           SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
         
       if (SFG_spriteIsVisible(worldPosition,worldHeight))
-      {
-        RCL_Unit distance = RCL_len(toMonster);
- 
-        return ((worldHeight - SFG_player.camera.height) * RCL_UNITS_PER_SQUARE)
-          / distance;
-      }
+        return SFG_directionTangent(toMonster.x,toMonster.y,
+               worldHeight - (SFG_player.camera.height));
     }
   }
 
