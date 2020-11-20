@@ -292,14 +292,14 @@ int main(int argc, char *argv[])
     puts("locked and require access cards. Good luck!\n");
     puts("created by Miloslav \"drummyfish\" Ciz, 2020, released under CC0 1.0 (public domain)\n");
     puts("controls:\n");
-    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement");
+    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [E]: movement");
     puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
     puts("- [SPACE]: jump");
     puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
     puts("- [K] [SHIFT]: game B button (cancel, strafe)");
     puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
     puts("- [F]: cycle next/previous weapon");
-    puts("- [O] [P] [X] [Y] [Z] [mouse wheel]: change weapons");
+    puts("- [O] [P] [X] [Y] [Z] [mouse wheel] [mouse middle]: change weapons");
     puts("- [TAB]: map");
     puts("- [F12]: screenshot");
     puts("- [ESCAPE]: menu");

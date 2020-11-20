@@ -2328,7 +2328,9 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
         SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(SFG_GET_MONSTER_SPRITE_SIZE(
         SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(*monster))));
 
-      RCL_Unit verticalSpeed = (SFG_GET_PROJECTILE_SPEED_UPS(projectile) * 
+      RCL_Unit verticalSpeed = (
+        ((projectile != SFG_PROJECTILE_NONE) ? 
+        SFG_GET_PROJECTILE_SPEED_UPS(projectile) : 0) * 
         SFG_directionTangent(dir.x,dir.y,SFG_player.camera.height -
         middleHeight)) / RCL_UNITS_PER_SQUARE;
       

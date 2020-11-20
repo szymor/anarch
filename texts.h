@@ -32,7 +32,7 @@ static const char *SFG_menuItemTexts[] =
 #define SFG_TEXT_KILLS "kills"
 #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
 #define SFG_TEXT_SAVED "saved"
-#define SFG_VERSION_STRING "0.9d"
+#define SFG_VERSION_STRING "1.0"
 /**<
   Version numbering is following: major.minor for stable releases,
   in-development unstable versions have the version of the latest stable +

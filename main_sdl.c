@@ -24,13 +24,13 @@
   #define SFG_OS_IS_MALWARE 1
 #endif
 
-//  #define SFG_START_LEVEL 1
-//  #define SFG_QUICK_WIN 1
-//  #define SFG_IMMORTAL 1
-//  #define SFG_ALL_LEVELS 1
-//  #define SFG_UNLOCK_DOOR 1
-//  #define SFG_REVEAL_MAP 1
-//  #define SFG_INFINITE_AMMO 1
+// #define SFG_START_LEVEL 1
+// #define SFG_QUICK_WIN 1
+// #define SFG_IMMORTAL 1
+// #define SFG_ALL_LEVELS 1
+// #define SFG_UNLOCK_DOOR 1
+// #define SFG_REVEAL_MAP 1
+// #define SFG_INFINITE_AMMO 1
 // #define SFG_TIME_MULTIPLIER 512
 // #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
 // #define GAME_LQ
@@ -396,14 +396,14 @@ int main(int argc, char *argv[])
     puts("-w   force window");
     puts("-f   force fullscreen\n");
     puts("controls:\n");
-    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [R]: movement");
+    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [E]: movement");
     puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
     puts("- [SPACE]: jump");
     puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
     puts("- [K] [SHIFT]: game B button (cancel, strafe)");
     puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
     puts("- [F]: cycle next/previous weapon");
-    puts("- [O] [P] [X] [Y] [Z] [mouse wheel]: change weapons");
+    puts("- [O] [P] [X] [Y] [Z] [mouse wheel] [mouse middle]: change weapons");
     puts("- [TAB]: map");
     puts("- [ESCAPE]: menu");
 

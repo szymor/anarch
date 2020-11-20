@@ -1,17 +1,15 @@
-# WIP, NOT RELEASED YET!
-
-**If you really want, feel free to test this, but this isn't finished, so I highly suggest you wait for the release.**
-
 # Anarch
 
 ![](media/logo_big.png)
 
-[TODO website link]()
-TODO trailer link
+[anarch.gitlab.io]()
+[anarch.gitlab.io/web/anarch.html]() (play in browser)
 
 *extremely small, completely public domain, no-dependency, no-file,
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
 everywhere, made for the benefit of all living beings*
+
+![](media/3screens.png)
 
 - [why this game is special](#why-this-game-is-special)
 - [stats and comparisons (for version 1.0)](#stats-and-comparisons-for-version-10)
@@ -54,12 +52,12 @@ source code stats (80 column wrapping, a lot of empty lines):
 
 | file                                  | LOC     | file size |
 | --------------------------------------| ------- | --------- |
-| game.h (main game logic)              | TODO    | TODO      |
-| raycastlib.h (ray casting library)    | TODO    | TODO      |
-| smallinput.h (for terminal frontend)  | TODO    | TODO      |
-| images.h, levels.h, sounds.h (assets) | TODO    | TODO      |
-| settings.h, constants.h               | TODO    | TODO      |
-| **total**                             | TODO    | TODO      |
+| game.h (main game logic)              | 4979    | 140 KB    |
+| raycastlib.h (ray casting library)    | 2058    | 64 KB     |
+| images.h, levels.h, sounds.h (assets) | 3868    | 340 KB    |
+| settings.h, constants.h               | 1088    | 36 KB     |
+| main_sdl.c (SDL frontend)             | 498     | 16 KB     |
+| **total (cloc of all sources)**       | 14402   | 672 KB    |
 | Doom source code                      | 38000   | 1.6 MB    |
 | Wolf 3D source code                   | 25000   | 916 KB    |
 
@@ -67,11 +65,11 @@ compiled:
 
 | binary               | size                                 | target FPS  | resolution | RAM usage  |
 | -------------------- | ------------------------------------ | ----------- | ---------- | ---------- |
-| GNU/Linux, SDL       | TODO (gcc), TODO (clang), TODO (tcc) | TODO        | TODO       | TODO       |
-| GNU/Linux, terminal  | TODO (gcc), TODO (clang), TODO (tcc) | TODO        | TODO       | TODO       |
-| Pokitto              | TODO                                 | TODO        | TODO       | TODO       |
-| Gamebuino Meta       | TODO                                 | TODO        | TODO       | TODO       |
-| browser              | TODO (JS script)                     | TODO        | TODO       | TODO       |
+| GNU/Linux, SDL       | 196 KB (gcc), 184 KB (clang), 184 KB (tcc) | 60        | 700 * 512       | ~40 MB       |
+| GNU/Linux, terminal  | 184 KB (gcc), 176 KB (clang), 176 KB (tcc) | 30        | 127 * 42       | ~5 MB       |
+| Pokitto              | 180 KB                                | 35 (overclock), 22        | 110 * 88       | < 32 KB       |
+| Gamebuino Meta       | 215 KB                                 | 18        | 80 * 64       | < 32 KB       |
+| browser              | 884 KB (whole output)                     | 35        | 512 * 320       | ~20 MB       |
 
 system requirements:
 
@@ -185,6 +183,21 @@ Depends from where you count. From my [first experiments with raycasting on Poki
 ### What tools did you use to make this game?
 
 Only free software, preferably suckless tools: Vim text editor on Devuan GNU/Linux, mostly on a librebooted Lenovo X200 laptop. GIMP was used to make images and maps, python for small scripts and data conversions. Audacity and Blender and other programs were also used for making the trailer etc.
+
+### How do I compile this?
+
+Compilation depends on platform, but for a Unix PC it goes something like this:
+
+```
+# install SDL2, e.g. on Debian-like systems:
+sudo apt-get install libsdl2-dev libsdl2-mixer-dev
+
+# get the source code:
+git clone https://gitlab.com/drummyfish/anarch.git
+
+cd anarch
+./make.sh sdl # compile, csfml can also be used instead of sdl
+```
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 

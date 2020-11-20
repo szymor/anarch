@@ -99,9 +99,9 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_RIGHT:  return input_getKey('d') || input_getKey(SMALLINPUT_ARROW_RIGHT); break;
     case SFG_KEY_DOWN:   return input_getKey('s') || input_getKey(SMALLINPUT_ARROW_DOWN); break;
     case SFG_KEY_LEFT:   return input_getKey('a') || input_getKey(SMALLINPUT_ARROW_LEFT); break;
-    case SFG_KEY_A:      return input_getKey('i') || input_getKey(SMALLINPUT_RETURN) || input_getKey(SMALLINPUT_MOUSE_L); break;
-    case SFG_KEY_B:      return input_getKey('j') || input_getKey(SMALLINPUT_CTRL); break;
-    case SFG_KEY_C:      return input_getKey('k'); break;
+    case SFG_KEY_A:      return input_getKey('j') || input_getKey(SMALLINPUT_RETURN) || input_getKey(SMALLINPUT_MOUSE_L); break;
+    case SFG_KEY_B:      return input_getKey('k') || input_getKey(SMALLINPUT_CTRL); break;
+    case SFG_KEY_C:      return input_getKey('l'); break;
     case SFG_KEY_MAP:    return input_getKey(SMALLINPUT_TAB); break;
     case SFG_KEY_JUMP:   return input_getKey(' '); break;
     case SFG_KEY_MENU:   return input_getKey(SMALLINPUT_ESCAPE); break;

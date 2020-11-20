@@ -222,8 +222,6 @@ int main()
 
   pokitto.begin(); 
 
-  timerInit(8000);
-
   uint8_t allZeros = 1;
 
   for (uint8_t i = 0; i < SFG_SAVE_SIZE; ++i)
@@ -238,6 +236,8 @@ int main()
     SFG_createDefaultSaveData(save.data);
     save.saveCookie();
   }
+
+  timerInit(8000);
 
   for (uint16_t i = 0; i < SFG_SFX_SAMPLE_COUNT; ++i)
     audioBuff[i] = 127;
