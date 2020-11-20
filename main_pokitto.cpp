@@ -118,7 +118,16 @@ void SFG_setMusic(uint8_t value)
   {
     case SFG_MUSIC_TURN_ON: musicOn = 1; break;
     case SFG_MUSIC_TURN_OFF: musicOn = 0; break;
-    case SFG_MUSIC_NEXT: SFG_nextMusicTrack(); break;
+    case SFG_MUSIC_NEXT:
+    {
+      /* Skipping a track takes some time, so turn off music for a while
+         (otherwise noise can be heard). */
+      uint8_t music = musicOn;
+      musicOn = 0;
+      SFG_nextMusicTrack();
+      musicOn = music;
+    }
+      break;
     defaule: break;
   }
 }
