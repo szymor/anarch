@@ -2000,6 +2000,80 @@ void SFG_removeItem(uint8_t index)
 }
 
 /**
+  Checks a 3D point visibility from player's position (WITHOUT considering
+  facing direction).
+*/
+static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height)
+{
+  return
+    RCL_castRay3D(
+      SFG_player.camera.position,
+      SFG_player.camera.height,
+      pos,
+      height,
+      SFG_floorHeightAt,
+      SFG_ceilingHeightAt,
+      SFG_game.visibilityRayConstraints
+    ) == RCL_UNITS_PER_SQUARE;
+}
+
+RCL_Unit SFG_directionTangent(RCL_Unit dirX, RCL_Unit dirY, RCL_Unit dirZ)
+{
+  RCL_Vector2D v;
+
+  v.x = dirX;
+  v.y = dirY;
+
+  return (dirZ * RCL_UNITS_PER_SQUARE) / RCL_len(v);
+}
+
+/**
+  Returns a tangent in RCL_Unit of vertical autoaim, given current game state.
+*/
+RCL_Unit SFG_autoaimVertically()
+{
+  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+  {
+    SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
+    
+    uint8_t state = SFG_MR_STATE(m);
+ 
+    if (state == SFG_MONSTER_STATE_INACTIVE ||
+        state == SFG_MONSTER_STATE_DEAD)
+      continue;
+
+    RCL_Vector2D worldPosition, toMonster;
+
+    worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
+    worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
+    
+    toMonster.x = worldPosition.x - SFG_player.camera.position.x;
+    toMonster.y = worldPosition.y - SFG_player.camera.position.y;
+
+    if (RCL_abs(
+         RCL_vectorsAngleCos(SFG_player.direction,toMonster) 
+         - RCL_UNITS_PER_SQUARE) < SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD)
+    {
+      uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
+        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
+        
+      RCL_Unit worldHeight = 
+        SFG_floorHeightAt(
+          SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
+          SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
+          + 
+          SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
+        
+      if (SFG_spriteIsVisible(worldPosition,worldHeight))
+        return SFG_directionTangent(toMonster.x,toMonster.y,
+               worldHeight - (SFG_player.camera.height));
+    }
+  }
+
+  return 0;
+}
+
+/**
   Helper function, returns a pointer to level element representing item with
   given index, but only if the item is active (otherwise 0 is returned).
 */
@@ -2152,24 +2226,6 @@ void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
          SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]))
        + RCL_UNITS_PER_SQUARE / 2;
-}
-
-/**
-  Checks a 3D point visibility from player's position (WITHOUT considering
-  facing direction).
-*/
-static inline uint8_t SFG_spriteIsVisible(RCL_Vector2D pos, RCL_Unit height)
-{
-  return
-    RCL_castRay3D(
-      SFG_player.camera.position,
-      SFG_player.camera.height,
-      pos,
-      height,
-      SFG_floorHeightAt,
-      SFG_ceilingHeightAt,
-      SFG_game.visibilityRayConstraints
-    ) == RCL_UNITS_PER_SQUARE;
 }
 
 void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
@@ -2897,62 +2953,6 @@ void SFG_updateLevel()
 static inline uint16_t SFG_getMapRevealBit(uint8_t squareX, uint8_t squareY)
 {
   return 1 << ((squareY / 16) * 4 + squareX / 16);
-}
-
-RCL_Unit SFG_directionTangent(RCL_Unit dirX, RCL_Unit dirY, RCL_Unit dirZ)
-{
-  RCL_Vector2D v;
-
-  v.x = dirX;
-  v.y = dirY;
-
-  return (dirZ * RCL_UNITS_PER_SQUARE) / RCL_len(v);
-}
-
-/**
-  Returns a tangent in RCL_Unit of vertical autoaim, given current game state.
-*/
-RCL_Unit SFG_autoaimVertically()
-{
-  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
-  {
-    SFG_MonsterRecord m = SFG_currentLevel.monsterRecords[i];
-    
-    uint8_t state = SFG_MR_STATE(m);
- 
-    if (state == SFG_MONSTER_STATE_INACTIVE ||
-        state == SFG_MONSTER_STATE_DEAD)
-      continue;
-
-    RCL_Vector2D worldPosition, toMonster;
-
-    worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
-    worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
-    
-    toMonster.x = worldPosition.x - SFG_player.camera.position.x;
-    toMonster.y = worldPosition.y - SFG_player.camera.position.y;
-
-    if (RCL_abs(
-         RCL_vectorsAngleCos(SFG_player.direction,toMonster) 
-         - RCL_UNITS_PER_SQUARE) < SFG_VERTICAL_AUTOAIM_ANGLE_THRESHOLD)
-    {
-      uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
-        SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
-        
-      RCL_Unit worldHeight = 
-        SFG_floorHeightAt(
-          SFG_MONSTER_COORD_TO_SQUARES(m.coords[0]),
-          SFG_MONSTER_COORD_TO_SQUARES(m.coords[1]))
-          + 
-          SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(spriteSize);
-        
-      if (SFG_spriteIsVisible(worldPosition,worldHeight))
-        return SFG_directionTangent(toMonster.x,toMonster.y,
-               worldHeight - (SFG_player.camera.height));
-    }
-  }
-
-  return 0;
 }
 
 /**
