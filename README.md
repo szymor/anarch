@@ -44,7 +44,7 @@ everywhere, made for the benefit of all living beings*
 - **Single compilation unit** (only one .c file to compile, very fast and simple). No build systems.
 - Uses a **custom-made 256 color palette** (but can run on platforms with fever colors, even just two).
 - **Well documented and commented code**, written with tinkering and remixing in mind.
-- Has the oldschool feel of games like **Doom**.
+- Has the oldschool feel of games like **Doom** or **Wolf3D**.
 
 ## Stats and comparisons (for version 1.0)
 
@@ -63,13 +63,13 @@ source code stats (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary               | size                                 | target FPS  | resolution | RAM usage  |
-| -------------------- | ------------------------------------ | ----------- | ---------- | ---------- |
-| GNU/Linux, SDL       | 196 KB (gcc), 184 KB (clang), 184 KB (tcc) | 60        | 700 * 512       | ~40 MB       |
-| GNU/Linux, terminal  | 184 KB (gcc), 176 KB (clang), 176 KB (tcc) | 30        | 127 * 42       | ~5 MB       |
-| Pokitto              | 180 KB                                | 35 (overclock), 22        | 110 * 88       | < 32 KB       |
-| Gamebuino Meta       | 215 KB                                 | 18        | 80 * 64       | < 32 KB       |
-| browser              | 884 KB (whole output)                     | 35        | 512 * 320       | ~20 MB       |
+| binary               | size                                       | target FPS         | resolution | RAM usage (total)  |
+| -------------------- | ------------------------------------------ | ------------------ | ---------- | ------------------ |
+| GNU/Linux, SDL       | 196 KB (gcc), 184 KB (clang), 184 KB (tcc) | 60                 | 700 * 512  | ~40 MB             |
+| GNU/Linux, terminal  | 184 KB (gcc), 176 KB (clang), 176 KB (tcc) | 30                 | 127 * 42   | ~5 MB              |
+| Pokitto              | 180 KB                                     | 35 (overclock), 22 | 110 * 88   | < 32 KB            |
+| Gamebuino Meta       | 215 KB                                     | 18                 | 80 * 64    | < 32 KB            |
+| browser              | 884 KB (whole output)                      | 35                 | 512 * 320  | ~20 MB             |
 
 system requirements:
 
