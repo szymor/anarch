@@ -6,7 +6,7 @@
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
 everywhere, made for the benefit of all living beings*
 
-[website](drummyfish.gitlab.io/anarch) - [play in browser](drummyfish.gitlab.io/anarch.html) - [itch.io](https://drummyfish.itch.io/anarch)
+[website](https://drummyfish.gitlab.io/anarch) - [play in browser](https://drummyfish.gitlab.io/anarch/bin/web/anarch.html) - [itch.io](https://drummyfish.itch.io/anarch)
 
 ![](media/3screens.png)
 
