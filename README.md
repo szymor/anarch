@@ -2,12 +2,15 @@
 
 ![](media/logo_big.png)
 
-[anarch.gitlab.io]()
-[anarch.gitlab.io/web/anarch.html]() (play in browser)
-
 *extremely small, completely public domain, no-dependency, no-file,
 portable suckless anarcho-pacifist from-scratch 90s-style Doom clone that runs
 everywhere, made for the benefit of all living beings*
+
+[drummyfish.gitlab.io/anarch]()
+
+[drummyfish.gitlab.io/anarch.html]() (play in browser)
+
+[https://drummyfish.itch.io/anarch]()
 
 ![](media/3screens.png)
 
