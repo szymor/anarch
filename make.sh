@@ -1,11 +1,11 @@
+#!/bin/bash
+
 # Optional helper build script for Anarch.
 # by drummyfish, released under CC0 1.0, public domain
 #
 # usage:
 #
 # ./make.sh platform [compiler]
-
-#!/bin/bash
 
 if [ $# -lt 1 ]; then
   echo "need a parameter (sdl, pokitto, gb, emscripten, ...)"
