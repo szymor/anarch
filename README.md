@@ -208,6 +208,10 @@ I don't enforce anything and don't even judge your actions, but I would still be
 
 Am I so stupid as to trust complete strangers to not abuse this? No, I know people will "abuse" my work and I am predict some Chinese company will soon be distributing this somehow with a false claim copyright (in which case please don't believe them, there exists evidence of me creating this and releasing this first, with all rights waived). The good that will come from this will be greater than the bad. Perhaps this alone will make you think.
 
+### Can I fork this and just strip all the political stuff?
+
+Yes. You can also replace it with your own political stuff, even if it's in conflict with mine, no problem.
+
 ### What values is this work trying to present?
 
 The game itself can't communicate many values directly – it is just a simple game with very little text – but it tries to **bring attention** to the values of its author. Some of these are:
