@@ -4025,7 +4025,9 @@ void SFG_gameStep()
           }
         }
         else if (SFG_keyIsDown(SFG_KEY_RIGHT) ||
-            SFG_keyIsDown(SFG_KEY_LEFT))
+            SFG_keyIsDown(SFG_KEY_LEFT) ||
+            SFG_keyIsDown(SFG_KEY_STRAFE_LEFT) ||
+            SFG_keyIsDown(SFG_KEY_STRAFE_RIGHT))
         {
           SFG_setAndInitLevel(SFG_currentLevel.levelNumber + 1);
           
@@ -4036,7 +4038,7 @@ void SFG_gameStep()
         
           SFG_playerRotateWeapon(1);
 
-          if (SFG_keyIsDown(SFG_KEY_RIGHT))
+          if (SFG_keyIsDown(SFG_KEY_RIGHT) || SFG_keyIsDown(SFG_KEY_STRAFE_RIGHT))
           {
             // save the current position
             SFG_game.save[0] = 
