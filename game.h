@@ -1235,7 +1235,7 @@ RCL_Unit SFG_movingWallHeight
   uint32_t time    
 )
 {
-  RCL_Unit height = high - low;
+  RCL_Unit height = RCL_nonZero(high - low);
   RCL_Unit halfHeight = height / 2;
 
   RCL_Unit sinArg =
