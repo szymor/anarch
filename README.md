@@ -10,7 +10,7 @@ everywhere, made for the benefit of all living beings*
 
 ![](media/3screens.png)
 
-This game got some attention on 4chan: [1](ihttps://archive.li/Yzcwt), [2](https://archive.li/xY4ia), [3](https://archive.li/tFWrL).
+This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https://archive.li/xY4ia), [3](https://archive.li/tFWrL).
 
 - [why this game is special](#why-this-game-is-special)
 - [stats and comparisons (for version 1.0)](#stats-and-comparisons-for-version-10)
