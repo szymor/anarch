@@ -32,7 +32,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - Browser
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
   - Gamebino Meta (80 x 64, 48 MHz, 32 KB RAM, 256 KB flash)
-  - TODO
+  - unofficial [bare metal Raspberry Pi port](https://github.com/msx80/anarch-baremetalpi) by msx80
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
