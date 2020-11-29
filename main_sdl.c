@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 {
   uint8_t argHelp = 0;
   uint8_t argForceWindow = 0;
-  uint8_t argForceFullscreen = 0;
+  uint8_t argForceFullscreen = 1;
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     webKeyboardState[i] = 0;
