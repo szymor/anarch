@@ -4539,7 +4539,7 @@ void SFG_drawWinOverlay()
         RCL_abs(y - (SFG_GAME_RESOLUTION_Y / 2)) <= (INNER_STRIP_HEIGHT / 2) ?
           0 : 172);
 
-  char textLine[] = "level done";
+  char textLine[] = SFG_TEXT_LEVEL_COMPLETE;
 
   uint16_t y = SFG_GAME_RESOLUTION_Y / 2 - 
     ((STRIP_HEIGHT + INNER_STRIP_HEIGHT) / 2) / 2;
