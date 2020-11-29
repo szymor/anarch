@@ -140,7 +140,6 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
   windowPixels[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB32[colorIndex];
 }
 
-
 void SFG_setMusic(uint8_t value)
 {
   switch (value)
@@ -284,27 +283,37 @@ void screenshot()
 
 int main(int argc, char *argv[])
 {
-  if (argc > 1 && argv[1][0] == '-' && argv[1][1] == 'h' && argv[1][2] == 0)
-  {
-    puts("Anarch (CSFML), version " SFG_VERSION_STRING "\n");
-    puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
-    puts("robot enemies in your way in order to get to the level finish. Some door are");
-    puts("locked and require access cards. Good luck!\n");
-    puts("created by Miloslav \"drummyfish\" Ciz, 2020, released under CC0 1.0 (public domain)\n");
-    puts("controls:\n");
-    puts("- arrows, numpad, [W] [S] [A] [D] [Q] [E]: movement");
-    puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
-    puts("- [SPACE]: jump");
-    puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
-    puts("- [K] [SHIFT]: game B button (cancel, strafe)");
-    puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
-    puts("- [F]: cycle next/previous weapon");
-    puts("- [O] [P] [X] [Y] [Z] [mouse wheel] [mouse middle]: change weapons");
-    puts("- [TAB]: map");
-    puts("- [F12]: screenshot");
-    puts("- [ESCAPE]: menu");
+  uint8_t fullScreen = 1;
 
-    return 0;
+  for (uint8_t i = 1; i < argc; ++i)
+  {
+    if (argv[i][0] == '-' && argv[i][1] == 'h' && argv[i][2] == 0)
+    {
+      puts("Anarch (CSFML), version " SFG_VERSION_STRING "\n");
+      puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
+      puts("robot enemies in your way in order to get to the level finish. Some door are");
+      puts("locked and require access cards. Good luck!\n");
+      puts("created by Miloslav \"drummyfish\" Ciz, 2020, released under CC0 1.0 (public domain)\n");
+      puts("controls:\n");
+      puts("- arrows, numpad, [W] [S] [A] [D] [Q] [E]: movement");
+      puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
+      puts("- [SPACE]: jump");
+      puts("- [J] [RETURN] [CTRL] [LMB]: game A button (shoot, confirm)");
+      puts("- [K] [SHIFT]: game B button (cancel, strafe)");
+      puts("- [L]: game C button (+ down = menu, + up = jump, ...)");
+      puts("- [F]: cycle next/previous weapon");
+      puts("- [O] [P] [X] [Y] [Z] [mouse wheel] [mouse middle]: change weapons");
+      puts("- [TAB]: map");
+      puts("- [F12]: screenshot");
+      puts("- [ESCAPE]: menu");
+      return 0;
+    }
+    else if (argv[i][0] == '-' && argv[i][1] == 'w' && argv[i][2] == 0)       
+      fullScreen = 0;
+    else if (argv[i][0] == '-' && argv[i][1] == 'f' && argv[i][2] == 0)       
+      fullScreen = 1;
+    else
+      puts("SDL: unknown argument"); 
   }
  
   SFG_init();
@@ -336,7 +345,9 @@ int main(int argc, char *argv[])
 
   sfSprite* windowSprite = sfSprite_create();
 
-  window = sfRenderWindow_create(mode, "Anarch", sfResize | sfClose, NULL);
+  window = sfRenderWindow_create(mode, "Anarch", 
+    fullScreen ? sfFullscreen : (sfResize | sfClose ), NULL);
+
   sfSprite_setTexture(windowSprite, windowTexture, sfTrue);
 
   sfWindow_setMouseCursorVisible((sfWindow *) window,sfFalse);
