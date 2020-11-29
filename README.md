@@ -267,6 +267,7 @@ The repository structure is following:
 assets/          asset sources (textures, sprites, maps, sounds, ...)
   *.py           scripts for converting assets to C structs/arrays
 media/           media presenting the game (screenshots, logo, ...)
+mods/            official mods
 constants.h      game constants that aren't considered settings
 game.h           main game logic
 images.h         images (textures, sprites) from assets folder converted to C

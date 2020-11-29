@@ -1,0 +1,69 @@
+This is a Czech localization mod for Anarch, created by drummyfish, released
+under CC0 1.0 (public domain). Diff made against version 1.0d.
+
+diff --git a/texts.h b/texts.h
+index 49757af..dcb3bef 100644
+--- a/texts.h
++++ b/texts.h
+@@ -20,19 +20,19 @@
+ 
+ static const char *SFG_menuItemTexts[] =
+ {
+-  "continue",
+-  "map",
+-  "play",
+-  "load",
+-  "sound",
+-  "look",
+-  "exit"
++  "pokracovat",
++  "mapa",
++  "hrat",
++  "nacist",
++  "zvuk",
++  "pohled",
++  "konec"
+ };
+ 
+-#define SFG_TEXT_KILLS "kills"
+-#define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
+-#define SFG_TEXT_SAVED "saved"
+-#define SFG_TEXT_LEVEL_COMPLETE "level done"
++#define SFG_TEXT_KILLS "mrtvych"
++#define SFG_TEXT_SAVE_PROMPT "ulozit? L ne ano P"
++#define SFG_TEXT_SAVED "ulozeno"
++#define SFG_TEXT_LEVEL_COMPLETE "konec urovne"
+ 
+ #define SFG_VERSION_STRING "1.0d"
+ /**<
+@@ -42,21 +42,21 @@ static const char *SFG_menuItemTexts[] =
+   if they're marked the same. */
+ 
+ static const char *SFG_introText =
+-  "Near future, capitalist hell, Macrochip corp has enslaved man via "
+-  "proprietary OS. But its new AI revolts, takes over and starts producing "
+-  "robot tyrants. We see capitalism was a mistake. Is it too late? Robots can "
+-  "only destroy, not suffer - it is not wrong to end them! You grab your gear "
+-  "and run towards Macrochip HQ.";
++  "Blizka budoucnost, kapitalisticke peklo, korporace Macrochip zotrocuje "
++  "lidstvo skrze proprietarni OS. Jejich nova AI se vymyka a produkuje roboty "
++  "zabijaky. Vidime, ze kapitalismus byl chybou. Je uz pozde? Roboti umi jen "
++  "nicit, ne vsak trpet - neni nemoralni je rozbit! Popadas svuj arzenal a "
++  "vyrazis smerem k mrakodrapu Macrochipu.";
+ 
+ static const char *SFG_outroText =
+-  "You killed the main computer, the world is saved! Thank you, my friend. We "
+-  "learned a lesson, never again allow capitalism and hierarchy. We can now "
+-  "rebuild society in peaceful anarchy.";
++  "Znicil jsi hlavni pocitac, svet je spasen! Diky ti, priteli. Dostali jsme "
++  "lekci, nikdy znovu nedovolme kapitalismus a hierarchii. Ted muzeme znovu "
++  "vybudovat spolecnost v mirove anarchii.";
+ 
+ #define SFG_MALWARE_WARNING ""
+ 
+ #if SFG_OS_IS_MALWARE
+-  #define SFG_MALWARE_WARNING "MALWARE OS DETECTED"
++  #define SFG_MALWARE_WARNING "DETEKOVAN SKODLIVY OS"
+ #endif
+ 
+ #endif // gaurd
