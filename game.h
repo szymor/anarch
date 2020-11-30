@@ -666,7 +666,9 @@ void SFG_levelEnds()
   SFG_currentLevel.completionTime10sOfS = (SFG_MS_PER_FRAME *
     (SFG_game.frame - SFG_currentLevel.frameStart)) / 100; 
 
-  if (SFG_currentLevel.levelNumber >= (SFG_game.save[0] & 0x0f) &&
+  if (
+   (SFG_player.health != 0) &&
+   (SFG_currentLevel.levelNumber >= (SFG_game.save[0] & 0x0f)) &&
    ((SFG_currentLevel.levelNumber + 1) < SFG_NUMBER_OF_LEVELS))
   {
     SFG_game.save[0] = // save progress

@@ -12,7 +12,7 @@
   whatsoever.
 */
 
-// #define JOYHAT  // compiles the version for Pokitto with joystick hat
+#define JOYHAT // compiles the version for Pokitto with joystick hat
 
 #if 0
 // for debug:
@@ -40,6 +40,15 @@
 #else
   #define SFG_SCREEN_RESOLUTION_X 88
   #define SFG_SCREEN_RESOLUTION_Y 110
+
+  #define SFG_FOV_VERTICAL 350
+  #define SFG_FOV_HORIZONTAL 230
+
+  #include "JoyHat/JoyHat.h"
+  JoyHat joy;
+
+  uint16_t rumbleCooldown = 0;
+  uint16_t axisThreshold1, axisThreshold2;
 #endif
 
 #define SFG_RESOLUTION_SCALEDOWN 1
@@ -92,12 +101,28 @@ int8_t SFG_keyPressed(uint8_t key)
 {
   switch (key)
   {
+#ifdef JOYHAT
+    case SFG_KEY_UP: return joy.JoyX() < axisThreshold1; break;
+    case SFG_KEY_DOWN: return joy.JoyX() > axisThreshold2; break;
+    case SFG_KEY_RIGHT: return joy.JoyY() > axisThreshold2; break;
+    case SFG_KEY_LEFT: return joy.JoyY() < axisThreshold1; break;
+    case SFG_KEY_A: return pokitto.bBtn(); break;
+    case SFG_KEY_B: return pokitto.aBtn(); break;
+    case SFG_KEY_JUMP: return pokitto.rightBtn(); break;
+    case SFG_KEY_STRAFE_RIGHT: return pokitto.downBtn(); break;
+    case SFG_KEY_STRAFE_LEFT: return pokitto.upBtn(); break;
+    case SFG_KEY_MAP: return pokitto.leftBtn(); break;
+    case SFG_KEY_PREVIOUS_WEAPON: return joy.Button1(); break;
+    case SFG_KEY_NEXT_WEAPON: return joy.Button2(); break;
+#else
     case SFG_KEY_UP: return pokitto.upBtn(); break;
-    case SFG_KEY_RIGHT: return pokitto.rightBtn(); break;
     case SFG_KEY_DOWN: return pokitto.downBtn(); break;
+    case SFG_KEY_RIGHT: return pokitto.rightBtn(); break;
     case SFG_KEY_LEFT: return pokitto.leftBtn(); break;
     case SFG_KEY_A: return pokitto.aBtn(); break;
     case SFG_KEY_B: return pokitto.bBtn(); break;
+#endif
+
     case SFG_KEY_C: return pokitto.cBtn(); break;
     default: return 0; break;
   }
@@ -188,7 +213,18 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 void SFG_processEvent(uint8_t event, uint8_t data)
 {
 #ifdef JOYHAT
-  // TODO: vibrate
+  switch (event)
+  {
+    case SFG_EVENT_VIBRATE: 
+      if (rumbleCooldown == 0)
+      {     
+        joy.Rumble(0.025);
+        rumbleCooldown = 32;
+      }
+      break;
+
+    default: break;
+  }
 #endif
 }
 
@@ -221,6 +257,11 @@ int main()
   save.begin("ANARCH",sizeof(save),(char*) &save);
 
   pokitto.begin(); 
+
+#ifdef JOYHAT
+  axisThreshold1 = joy.joyScale / 4;
+  axisThreshold2 = joy.joyScale - axisThreshold1;
+#endif
 
   uint8_t allZeros = 1;
 
@@ -256,6 +297,11 @@ int main()
   {
     if (pokitto.update())
       SFG_mainLoopBody();
+
+#ifdef JOYHAT
+    if (rumbleCooldown > 0)
+      rumbleCooldown--;
+#endif
 
     if (SFG_game.state == SFG_GAME_STATE_MENU &&
         SFG_game.keyStates[SFG_KEY_LEFT] == 255 &&
