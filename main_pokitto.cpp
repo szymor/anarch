@@ -22,7 +22,7 @@
 
 #if _OSCT == 2
   // overclock
-  #define SFG_FPS 35
+  #define SFG_FPS 36
   #define SFG_DIMINISH_SPRITES 1
   #define SFG_RAYCASTING_MAX_HITS 6
 #else
@@ -42,7 +42,7 @@
   #define SFG_SCREEN_RESOLUTION_Y 110
 
   #define SFG_FOV_VERTICAL 350
-  #define SFG_FOV_HORIZONTAL 230
+  #define SFG_FOV_HORIZONTAL 210
 
   #include "JoyHat/JoyHat.h"
   JoyHat joy;
