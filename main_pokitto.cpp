@@ -106,8 +106,6 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_DOWN: return joy.JoyX() > axisThreshold2; break;
     case SFG_KEY_RIGHT: return joy.JoyY() > axisThreshold2; break;
     case SFG_KEY_LEFT: return joy.JoyY() < axisThreshold1; break;
-    case SFG_KEY_A: return pokitto.bBtn(); break;
-    case SFG_KEY_B: return pokitto.aBtn(); break;
     case SFG_KEY_JUMP: return pokitto.rightBtn(); break;
     case SFG_KEY_STRAFE_RIGHT: return pokitto.downBtn(); break;
     case SFG_KEY_STRAFE_LEFT: return pokitto.upBtn(); break;
@@ -119,10 +117,10 @@ int8_t SFG_keyPressed(uint8_t key)
     case SFG_KEY_DOWN: return pokitto.downBtn(); break;
     case SFG_KEY_RIGHT: return pokitto.rightBtn(); break;
     case SFG_KEY_LEFT: return pokitto.leftBtn(); break;
-    case SFG_KEY_A: return pokitto.aBtn(); break;
-    case SFG_KEY_B: return pokitto.bBtn(); break;
 #endif
 
+    case SFG_KEY_A: return pokitto.aBtn(); break;
+    case SFG_KEY_B: return pokitto.bBtn(); break;
     case SFG_KEY_C: return pokitto.cBtn(); break;
     default: return 0; break;
   }

@@ -126,12 +126,8 @@ level ideas:
   over a hole, leading to an easter egg
 - start of level: a corner blocked by an invisible wall, to indicate entrance    DONE
 - small pyramid from diffetently elevated floor tiles
-- add time slowdown constant
 
 bugs:
-
-- On Pokitto/GB Meta sometimes after turn on the game starts midway loading the
-  first level.
 
 done:
 
@@ -221,6 +217,10 @@ done:
 - Add FOV options. RCL doesn't project sprites with different FOV correctly -
   FIX!
 - When selecting continue from menu, the player shoots - fix!
+- FIX: running diagonally (forward + strafe) player can jump over 3 squares!
+- add time slowdown constant
+- On Pokitto/GB Meta sometimes after turn on the game starts midway loading the
+  first level.
 
 scratched:
 - option for disabling wall transparency, for performance?

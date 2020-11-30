@@ -3237,8 +3237,23 @@ void SFG_gameStepPlaying()
 
   if (strafe != 0)
   {
+    uint8_t normalize = (moveOffset.x != 0) || (moveOffset.y != 0);
+
     moveOffset.x += strafe * SFG_player.direction.y;
     moveOffset.y -= strafe * SFG_player.direction.x;
+
+    if (normalize)
+    {
+      // This prevents reaching higher speed when moving diagonally.
+
+      moveOffset = RCL_normalize(moveOffset);
+
+      moveOffset.x = (moveOffset.x * SFG_PLAYER_MOVE_UNITS_PER_FRAME)
+        / RCL_UNITS_PER_SQUARE;
+
+      moveOffset.y = (moveOffset.y * SFG_PLAYER_MOVE_UNITS_PER_FRAME)
+        / RCL_UNITS_PER_SQUARE;
+    }
   }
 
 #if SFG_PREVIEW_MODE
