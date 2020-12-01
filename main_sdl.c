@@ -87,6 +87,8 @@
   #include <signal.h>
 #endif
 
+#define SDL_MAIN_HANDLED 1
+
 #include <stdio.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
@@ -367,7 +369,11 @@ int main(int argc, char *argv[])
 {
   uint8_t argHelp = 0;
   uint8_t argForceWindow = 0;
-  uint8_t argForceFullscreen = 1;
+  uint8_t argForceFullscreen = 0;
+
+#ifndef __EMSCRIPTEN__
+  argForceFullscreen = 1;
+#endif
 
   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
     webKeyboardState[i] = 0;
