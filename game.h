@@ -4614,7 +4614,8 @@ void SFG_drawWinOverlay()
     SFG_drawText(SFG_TEXT_KILLS,x,y,SFG_FONT_SIZE_SMALL,7,255,0);
 
     if ((t >= (SFG_WIN_ANIMATION_DURATION - 1)) && 
-      (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)))
+      (SFG_currentLevel.levelNumber != (SFG_NUMBER_OF_LEVELS - 1)) &&
+      SFG_game.blink)
     {
       y += (SFG_FONT_SIZE_BIG + SFG_FONT_SIZE_MEDIUM) * SFG_FONT_CHARACTER_SIZE;
 
