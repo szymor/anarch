@@ -60,7 +60,11 @@
      your main_*.c frontend source.
    - Implement the following functions in your frontend source.
    - Call SFG_init() from your frontend initialization code.
-   - Call SFG_mainLoopBody() from within your frontend main loop. */
+   - Call SFG_mainLoopBody() from within your frontend main loop.
+
+   If your platform is an AVR CPU (e.g. some Arduinos) and so has Harvard
+   architecture, define #SFG_AVR 1 before including this file in your frontend
+   source. */
 
 #ifndef SFG_LOG
   #define SFG_LOG(str) {} ///< Can be redefined to log game messages.
@@ -195,7 +199,7 @@ void SFG_init();
 
 #include "settings.h"
 
-#if SFG_ARDUINO
+#if SFG_AVR
   #include <avr/pgmspace.h>
 
   #define SFG_PROGRAM_MEMORY const PROGMEM
@@ -1490,7 +1494,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
 
   const SFG_Level *level;
 
-#if SFG_ARDUINO
+#if SFG_AVR
   memcpy_P(&SFG_ramLevel,SFG_levels[levelNumber],sizeof(SFG_Level));
   level = &SFG_ramLevel;
 #else

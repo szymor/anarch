@@ -22,7 +22,6 @@
 
 #include <Gamebuino-Meta.h>
 
-#define SFG_ARDUINO 1
 #define SFG_CAN_EXIT 0
 #define SFG_FPS 22
 #define SFG_TIME_MULTIPLIER 900    /* Without this the game seems too fast. This
