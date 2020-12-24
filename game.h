@@ -2250,11 +2250,11 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
     (attackType == SFG_MONSTER_ATTACK_MELEE) || 
     (attackType == SFG_MONSTER_ATTACK_EXPLODE); 
 
-  uint8_t monsterSquare[2] =
-    {
-      SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
-      SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])
-    };
+  uint8_t monsterSquare[2];
+   /* because of cancerous C++ compilers that error on narrowing conversion in
+      { } we init this way: */
+  monsterSquare[0] = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]);
+  monsterSquare[1] = SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]);
 
   RCL_Unit currentHeight =
     SFG_floorCollisionHeightAt(monsterSquare[0],monsterSquare[1]);
