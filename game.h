@@ -478,7 +478,7 @@ struct
                                is a colliding item or not. */
 } SFG_currentLevel;
 
-#if SFG_ARDUINO
+#if SFG_AVR
 /**
   Copy of the current level that is stored in RAM. This is only done on Arduino
   because accessing it in program memory (PROGMEM) directly would be a pain.
