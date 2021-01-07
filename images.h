@@ -1344,7 +1344,7 @@ uint8_t SFG_charToFontIndex(char c)
 /**
   4x4 font, each character stored as 16 bits.
 */
-uint16_t SFG_font[47] =
+static const uint16_t SFG_font[47] =
 {
   0xfaf0, // 0 "A"
   0xfd70, // 1 "B"

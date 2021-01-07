@@ -513,7 +513,7 @@ uint16_t SFG_monsterAttributeTable[SFG_MONSTERS_TOTAL] =
   cccc:   fire cooldown in frames, i.e. time after which the next shot can be
           shot again, ccccc has to be multiplied by 16 to get the real value
 */
-SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
+static const uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
 {
   /* knife    */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_MELEE,1,650),    // DPS: 6.2
   /* shotgun  */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_BULLET,2,1250),  // DPS: 12.8
@@ -523,7 +523,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_weaponAttributeTable[SFG_WEAPONS_TOTAL] =
   /* solution */ SFG_WEAPON_ATTRIBUTE(SFG_WEAPON_FIRE_TYPE_PLASMA,4,1050)   // DPS: 85.7
 };
 
-SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
+static const uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 {
   /* melee                 */ 4,
   /* bullet                */ 8,
@@ -562,7 +562,7 @@ SFG_PROGRAM_MEMORY uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
 
 #define LOW_FPS (SFG_FPS < 24) ///< low FPS needs low speeds, because collisions
 
-SFG_PROGRAM_MEMORY uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
+static const uint8_t SFG_projectileAttributeTable[SFG_PROJECTILES_TOTAL] =
 {
   /* explosion */ SFG_PROJECTILE_ATTRIBUTE(0,400),
   /* fireball  */ SFG_PROJECTILE_ATTRIBUTE(10,1000),

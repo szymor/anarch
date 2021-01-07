@@ -2991,7 +2991,9 @@ void SFG_drawText(
 
   while (pos < maxLength && text[pos] != 0) // for each character
   {
-    uint16_t character = SFG_font[SFG_charToFontIndex(text[pos])];
+    uint16_t character = 
+      //SFG_PROGRAM_MEMORY_U8(SFG_font + SFG_charToFontIndex(text[pos]));
+      SFG_font[SFG_charToFontIndex(text[pos])];
 
     for (uint8_t i = 0; i < SFG_FONT_CHARACTER_SIZE; ++i) // for each line
     {
@@ -4642,6 +4644,18 @@ void SFG_draw()
   SFG_backgroundBlurIndex = 0;
 #endif
 
+uint8_t aaa = 0;
+/*
+for (uint16_t j = 0; j < SFG_SCREEN_RESOLUTION_Y; ++j)
+for (uint16_t i = 0; i < SFG_SCREEN_RESOLUTION_Y; ++i)
+{
+SFG_setGamePixel(i,j,2);
+aaa++;
+}
+SFG_drawText("aaa",10,10,2,7,255,0);
+
+return;
+*/
   if (SFG_game.state == SFG_GAME_STATE_MENU)
   {
     SFG_drawMenu();
