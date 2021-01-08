@@ -33,6 +33,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
   - Gamebino Meta (80 x 64, 48 MHz ARM, 32 KB RAM, 256 KB flash)
   - Ringo/MAKERphone (160 x 128, 160 MHz ARM, 520 KB RAM, 4 MB flash)
+  - ESPboy (128 x 128, 160 MHz)
   - unofficial [bare metal Raspberry Pi port](https://github.com/msx80/anarch-baremetalpi) by msx80
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb** (including all content, textures etc.).
@@ -72,6 +73,7 @@ compiled:
 | Pokitto              | 180 KB                                     | 35 (overclock), 22 | 110 * 88   | < 32 KB            |
 | Gamebuino Meta       | 215 KB                                     | 18                 | 80 * 64    | < 32 KB            |
 | Ringo (MAKERphone)   | 1.3 MB                                     | 35                 | 160 * 128  |                    |
+| ESPboy               | 376 KB                                     | 22                 | 128 * 128  |                    |
 | browser              | 884 KB (whole output)                      | 35                 | 512 * 320  | ~20 MB             |
 
 system requirements:
