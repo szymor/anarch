@@ -70,7 +70,7 @@ uint32_t SFG_getTimeMs()
 
 int8_t SFG_keyPressed(uint8_t key)
 {
- switch (key)
+  switch (key)
   {
     case SFG_KEY_UP:    return keys & 0x02; break;
     case SFG_KEY_DOWN:  return keys & 0x04; break;
