@@ -39,7 +39,7 @@ if [ $1 == "sdl" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./anarch
+  ${COMMAND} && ./anarch -w
 elif [ $1 == "terminal" ]; then
   # PC terminal build, requires:
   # - g++

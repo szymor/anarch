@@ -245,7 +245,7 @@ int8_t SFG_keyPressed(uint8_t key)
       checkMouse(<)
 
 #undef checkMouse
-        
+      
       return 0;
       break;
 
@@ -253,6 +253,8 @@ int8_t SFG_keyPressed(uint8_t key)
 
     default: return 0; break;
   }
+
+  #undef k
 }
   
 int running;
