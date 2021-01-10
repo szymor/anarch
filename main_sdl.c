@@ -83,6 +83,8 @@
 
 #define SDL_MUSIC_VOLUME 16
 
+#define SDL_ANALOG_DIVIDER 1024
+
 #if !SFG_OS_IS_MALWARE
   #include <signal.h>
 #endif
@@ -100,6 +102,7 @@ const uint8_t *sdlKeyboardState;
 uint8_t webKeyboardState[SFG_KEY_COUNT];
 uint8_t sdlMouseButtonState = 0;
 int8_t sdlMouseWheelState = 0;
+SDL_GameController *sdlController;
 
 uint16_t sdlScreen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565
 
@@ -183,16 +186,28 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
 #ifndef __EMSCRIPTEN__
   if (mouseMoved)
   {
+    int mX, mY;
 
-  int mX, mY;
+    SDL_GetMouseState(&mX,&mY);
 
-  SDL_GetMouseState(&mX,&mY);
+    *x = mX - SFG_SCREEN_RESOLUTION_X / 2;
+    *y = mY - SFG_SCREEN_RESOLUTION_Y / 2;
 
-  *x = mX - SFG_SCREEN_RESOLUTION_X / 2;
-  *y = mY - SFG_SCREEN_RESOLUTION_Y / 2;
+    SDL_WarpMouseInWindow(window,
+      SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
+  }
 
-  SDL_WarpMouseInWindow(window,
-    SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
+  if (sdlController != NULL)
+  {
+    *x +=
+      (SDL_GameControllerGetAxis(sdlController,SDL_CONTROLLER_AXIS_RIGHTX) + 
+      SDL_GameControllerGetAxis(sdlController,SDL_CONTROLLER_AXIS_LEFTX)) /
+      SDL_ANALOG_DIVIDER;
+
+    *y +=
+      (SDL_GameControllerGetAxis(sdlController,SDL_CONTROLLER_AXIS_RIGHTY) + 
+      SDL_GameControllerGetAxis(sdlController,SDL_CONTROLLER_AXIS_LEFTY)) /
+      SDL_ANALOG_DIVIDER;
   }
 #endif
 }
@@ -207,27 +222,32 @@ int8_t SFG_keyPressed(uint8_t key)
     return 1;
 
   #define k(x) sdlKeyboardState[SDL_SCANCODE_ ## x]
+  #define b(x) ((sdlController != NULL) && \
+    SDL_GameControllerGetButton(sdlController,SDL_CONTROLLER_BUTTON_ ## x))
 
   switch (key)
   {
-    case SFG_KEY_UP: return k(UP) || k(W) || k(KP_8); break;
-    case SFG_KEY_RIGHT: return k(RIGHT) || k(E) || k(KP_6); break;
-    case SFG_KEY_DOWN: return k(DOWN) || k(S) || k(KP_5) || k(KP_2); break;
-    case SFG_KEY_LEFT: return k(LEFT) || k(Q) || k(KP_4); break;
-    case SFG_KEY_A: return k(J) || k(RETURN) || k(LCTRL) || k(RCTRL) ||
-                    (sdlMouseButtonState & SDL_BUTTON_LMASK); break;
-    case SFG_KEY_B: return k(K) || k(LSHIFT); break;
-    case SFG_KEY_C: return k(L); break;
-    case SFG_KEY_JUMP: return k(SPACE); break;
+    case SFG_KEY_UP: return k(UP) || k(W) || k(KP_8) || b(DPAD_UP); break;
+    case SFG_KEY_RIGHT: 
+      return k(RIGHT) || k(E) || k(KP_6) || b(DPAD_RIGHT); break;
+    case SFG_KEY_DOWN: 
+      return k(DOWN) || k(S) || k(KP_5) || k(KP_2) || b(DPAD_DOWN); break;
+    case SFG_KEY_LEFT: return k(LEFT) || k(Q) || k(KP_4) || b(DPAD_LEFT); break;
+    case SFG_KEY_A: return k(J) || k(RETURN) || k(LCTRL) || k(RCTRL) || b(X) ||
+      b(RIGHTSTICK) || (sdlMouseButtonState & SDL_BUTTON_LMASK); break;
+    case SFG_KEY_B: return k(K) || k(LSHIFT) || b(B); break;
+    case SFG_KEY_C: return k(L) || b(Y); break;
+    case SFG_KEY_JUMP: return k(SPACE) || b(A); break;
     case SFG_KEY_STRAFE_LEFT: return k(A) || k(KP_7); break;
     case SFG_KEY_STRAFE_RIGHT: return k(D) || k(KP_9); break;
-    case SFG_KEY_MAP: return k(TAB); break;
+    case SFG_KEY_MAP: return k(TAB) || b(BACK); break;
     case SFG_KEY_CYCLE_WEAPON: return k(F) ||
-                               (sdlMouseButtonState & SDL_BUTTON_MMASK); break;
-    case SFG_KEY_TOGGLE_FREELOOK: return sdlMouseButtonState & SDL_BUTTON_RMASK;
-                                  break;
+      (sdlMouseButtonState & SDL_BUTTON_MMASK); break;
+    case SFG_KEY_TOGGLE_FREELOOK: return b(LEFTSTICK) ||
+      (sdlMouseButtonState & SDL_BUTTON_RMASK); break;
+    case SFG_KEY_MENU: return k(ESCAPE) || b(START); break;
     case SFG_KEY_NEXT_WEAPON:
-      if (k(P) || k(X))
+      if (k(P) || k(X) || b(RIGHTSHOULDER))
         return 1;
 
 #define checkMouse(cmp)\
@@ -239,7 +259,7 @@ int8_t SFG_keyPressed(uint8_t key)
       break;
 
     case SFG_KEY_PREVIOUS_WEAPON:
-      if (k(O) || k(Y) || k(Z))
+      if (k(O) || k(Y) || k(Z) || b(LEFTSHOULDER))
         return 1;
 
       checkMouse(<)
@@ -249,12 +269,11 @@ int8_t SFG_keyPressed(uint8_t key)
       return 0;
       break;
 
-    case SFG_KEY_MENU: return k(ESCAPE); break;
-
     default: return 0; break;
   }
 
   #undef k
+  #undef b
 }
   
 int running;
@@ -422,6 +441,8 @@ int main(int argc, char *argv[])
 
   puts("SDL: initializing SDL");
 
+  SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
+
   window =
     SDL_CreateWindow("Anarch", SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED, SFG_SCREEN_RESOLUTION_X, SFG_SCREEN_RESOLUTION_Y,
@@ -447,7 +468,7 @@ int main(int argc, char *argv[])
 
   sdlKeyboardState = SDL_GetKeyboardState(NULL);
 
-  SDL_Init(SDL_INIT_AUDIO);
+  sdlController = SDL_GameControllerOpen(0);
 
 #if !SFG_OS_IS_MALWARE
   signal(SIGINT,handleSignal);
@@ -481,6 +502,7 @@ int main(int argc, char *argv[])
   SDL_ShowCursor(0);
 
   SDL_PumpEvents();
+  SDL_GameControllerUpdate();
 
   SDL_WarpMouseInWindow(window,
     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
@@ -494,6 +516,7 @@ int main(int argc, char *argv[])
 
   puts("SDL: freeing SDL");
 
+  SDL_GameControllerClose(sdlController);
   SDL_PauseAudio(1);
   SDL_CloseAudio();
   SDL_DestroyTexture(texture);
