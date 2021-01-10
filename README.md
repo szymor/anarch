@@ -25,7 +25,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - **Completely public domain (CC0) free softare, free culture, libre game** for the benefit of all living beings in the Universe, **no conoditions on use whatsoever**. **All art is original** work and licensed CC0 (as well as code).
 - **100% non-commercial**, free of any ads, spyware, microtransactions, corporate logos, planned obsolescence etc.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
-- **Suckless, KISS, minimal, simple**, short code (< 10000 LOC TODO).
+- **Suckless, KISS, minimal, simple**, short code (~10000 LOC).
 - **Extremely portable**. So far officially ported to and tested on:
   - GNU/Linux PC, SDL and csfml
   - GNU/Linux PC, terminal
