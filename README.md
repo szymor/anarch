@@ -26,7 +26,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - **100% non-commercial**, free of any ads, spyware, microtransactions, corporate logos, planned obsolescence etc.
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
 - **Suckless, KISS, minimal, simple**, short code (< 10000 LOC TODO).
-- **Extremely portable** (much more than Doom). So far officially ported to and tested on:
+- **Extremely portable**. So far officially ported to and tested on:
   - GNU/Linux PC, SDL and csfml
   - GNU/Linux PC, terminal
   - Browser
