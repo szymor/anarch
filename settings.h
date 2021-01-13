@@ -45,6 +45,14 @@
 #endif
 
 /**
+  Increases or decreases the brightness of the rendered world (but not menu,
+  HUD etc.). Effective values are -8 to 8.
+*/
+#ifndef SFG_BRIGHTNESS
+  #define SFG_BRIGHTNESS 0
+#endif
+
+/**
   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
   RCL_Unit turn angle per mouse pixel travelled.
 */
@@ -146,6 +154,15 @@
 */
 #ifndef SFG_FOG_DIMINISH_STEP
   #define SFG_FOG_DIMINISH_STEP 2048
+#endif
+
+/**
+  If set, floor and ceiling will be colored differently depending on their
+  height. This can be useful when fog is turned on and different floor levels
+  are hard to distinguish.
+*/
+#ifndef SFG_DIFFERENT_FLOOR_CEILING_COLORS
+  #define SFG_DIFFERENT_FLOOR_CEILING_COLORS 0
 #endif
 
 /**

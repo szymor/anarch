@@ -951,12 +951,25 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
 
     shadow = pixel->hit.direction >> 1;
   }
-  else
+  else // floor/ceiling
   {
     color = pixel->isFloor ?
-      (SFG_currentLevel.floorColor) : 
+      (
+#if SFG_DIFFERENT_FLOOR_CEILING_COLORS
+        2 + (pixel->height / SFG_WALL_HEIGHT_STEP) % 4
+#else
+        SFG_currentLevel.floorColor
+#endif
+      ) : 
       (pixel->height < SFG_CEILING_MAX_HEIGHT ?
-         SFG_currentLevel.ceilingColor : SFG_TRANSPARENT_COLOR);
+        (
+#if SFG_DIFFERENT_FLOOR_CEILING_COLORS
+          18 + (pixel->height / SFG_WALL_HEIGHT_STEP) % 4
+#else
+          SFG_currentLevel.ceilingColor 
+#endif
+        )
+        : SFG_TRANSPARENT_COLOR);
   }
 
   if (color != SFG_TRANSPARENT_COLOR)
@@ -1005,6 +1018,12 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
     color = 1;
 #endif
   }
+
+#if SFG_BRIGHTNESS > 0
+  color = palette_plusValue(color,SFG_BRIGHTNESS);
+#elif SFG_BRIGHTNESS < 0
+  color = palette_minusValue(color,-1 * SFG_BRIGHTNESS);
+#endif
 
 #if SFG_RAYCASTING_SUBSAMPLE == 1
   // the other version will probably get optimized to this, but just in case
@@ -4644,18 +4663,6 @@ void SFG_draw()
   SFG_backgroundBlurIndex = 0;
 #endif
 
-uint8_t aaa = 0;
-/*
-for (uint16_t j = 0; j < SFG_SCREEN_RESOLUTION_Y; ++j)
-for (uint16_t i = 0; i < SFG_SCREEN_RESOLUTION_Y; ++i)
-{
-SFG_setGamePixel(i,j,2);
-aaa++;
-}
-SFG_drawText("aaa",10,10,2,7,255,0);
-
-return;
-*/
   if (SFG_game.state == SFG_GAME_STATE_MENU)
   {
     SFG_drawMenu();
