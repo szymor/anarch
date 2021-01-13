@@ -181,6 +181,10 @@ Because assembly isn't portable and even a "portable assembly" (bytecode) would 
 
 Firstly that's not a question and secondly you misunderstand the essence of this project. Your game will merely *look* the same, it will be an insult to good programming, efficient technology, users' freedom, it won't offer the same independence, portability, performance, beauty, it will probably die along with your "Unity", it will be encoumbered by licenses of your asset store, it won't carry the important messages.
 
+### Why is this repo so bloated?
+
+Because it contains not only the game but also all ports, presentation media, binaries, the game's website and other files related to the game. Why not put these into a separate repo? Because that would be stupid. The actual game is contained only in the .h files.
+
 ### How long did this take you to make?
 
 Depends from where you count. From my [first experiments with raycasting on Pokitto](https://talk.pokitto.com/t/pokitto-is-on-the-way-what-games-should-i-make/1266/64?u=drummyfish) it's some two years of relaxed evening programming, with taking quite long breaks.
