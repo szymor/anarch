@@ -884,7 +884,9 @@ static inline uint8_t
       textureIndex != 255 ?
         SFG_currentLevel.textures[textureIndex] :
           (SFG_wallTextures + SFG_currentLevel.levelPointer->doorTextureIndex
-          * SFG_TEXTURE_STORE_SIZE), u / 32, v / 32); 
+          * SFG_TEXTURE_STORE_SIZE), 
+          u / (RCL_UNITS_PER_SQUARE / SFG_TEXTURE_SIZE), 
+          v / (RCL_UNITS_PER_SQUARE / SFG_TEXTURE_SIZE));
 }
 
 static inline uint8_t SFG_getTexelAverage(uint8_t textureIndex)
@@ -4468,9 +4470,8 @@ void SFG_drawMenu()
 
   uint16_t y = SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
 
-  SFG_blitImage(SFG_logoImage,
-    SFG_GAME_RESOLUTION_X / 2 - 16 * SFG_FONT_SIZE_MEDIUM,y,
-    SFG_FONT_SIZE_MEDIUM);
+  SFG_blitImage(SFG_logoImage,SFG_GAME_RESOLUTION_X / 2 - 
+    (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL);
 
 #if SFG_GAME_RESOLUTION_Y > 50
   y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
