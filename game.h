@@ -3750,7 +3750,6 @@ void SFG_gameStepPlaying()
 
   if (SFG_player.weapon != currentWeapon) // if weapon switched, start cooldown
   {
-
     if (SFG_player.weapon == (currentWeapon + 1) % SFG_WEAPONS_TOTAL)
       SFG_player.previousWeaponDirection = -1;
     else if (currentWeapon == (SFG_player.weapon + 1) % SFG_WEAPONS_TOTAL)

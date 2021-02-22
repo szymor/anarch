@@ -34,7 +34,7 @@ static const char *SFG_menuItemTexts[] =
 #define SFG_TEXT_SAVED "saved"
 #define SFG_TEXT_LEVEL_COMPLETE "level done"
 
-#define SFG_VERSION_STRING "1.01d"
+#define SFG_VERSION_STRING "1.02"
 /**<
   Version numbering is following: major.minor for stable releases,
   in-development unstable versions have the version of the latest stable +
