@@ -36,6 +36,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - ESPboy (128 x 128, 160 MHz)
   - Nibble (128 x 128, 160 MHz)
   - unofficial [bare metal Raspberry Pi port](https://github.com/msx80/anarch-baremetalpi) by msx80
+  - unofficial [DOS port](https://gitlab.com/wuuff/anarch-dos) by Wuuff
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
