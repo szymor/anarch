@@ -18,7 +18,7 @@
 */
 
 #ifndef USE_LINUX_FRAMEBUFFER
-  #define USE_LINUX_FRAMEBUFFER 1
+  #define USE_LINUX_FRAMEBUFFER 0
 #endif
 
 // IMPORTANT: You must set these files correctly:
