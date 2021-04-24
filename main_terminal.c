@@ -1,5 +1,7 @@
 /**
-  @file main_pokitto.cpp
+  @file main_terminal.c
+
+  WARNING: VERY EXPERIMENTAL
 
   This is Linux terminal implementation of the game front end. If you replace
   the input methods, it will most likely run in other terminals as well. This
@@ -15,6 +17,16 @@
   whatsoever.
 */
 
+#ifndef USE_LINUX_FRAMEBUFFER
+  #define USE_LINUX_FRAMEBUFFER 1
+#endif
+
+// IMPORTANT: You must set these files correctly:
+#define DEV_KEYBOARD "/dev/input/event3"
+#define DEV_MOUSE "/dev/input/event1"
+#define DEV_TTY "/dev/tty3"
+#define DEV_FRAMBUFFER "/dev/fb0"
+
 #include <stdint.h>
 #include <unistd.h>
 #include <signal.h>
@@ -26,8 +38,22 @@
 
 #include "smallinput.h"
 
-#define SFG_SCREEN_RESOLUTION_X 127
-#define SFG_SCREEN_RESOLUTION_Y 42
+#if USE_LINUX_FRAMEBUFFER
+  #include <stdlib.h>
+  #include <linux/fb.h>
+  #include <linux/kd.h>
+  #include <sys/mman.h>
+  #include <sys/ioctl.h>
+#endif
+
+#if USE_LINUX_FRAMEBUFFER
+  #define SFG_SCREEN_RESOLUTION_X 640
+  #define SFG_SCREEN_RESOLUTION_Y 480
+#else
+  #define SFG_SCREEN_RESOLUTION_X 127
+  #define SFG_SCREEN_RESOLUTION_Y 42
+#endif
+
 #define SFG_DITHERED_SHADOW 1
 #define SFG_FPS 30
 
@@ -36,6 +62,7 @@
 #define SCREENSIZE ((SFG_SCREEN_RESOLUTION_X + 1) * SFG_SCREEN_RESOLUTION_Y + 1)
 
 char screen[SCREENSIZE];
+uint8_t *screenUnsigned = (uint8_t *) screen;
 
 const char shades[] = // adjust according to your terminal
   {
@@ -54,8 +81,13 @@ uint32_t getTime()
 
 void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 {
+#if USE_LINUX_FRAMEBUFFER
+  screenUnsigned[y * SFG_SCREEN_RESOLUTION_X + x] = 
+    colorIndex;
+#else
   screen[y * (SFG_SCREEN_RESOLUTION_X + 1) + x] = 
     shades[(colorIndex > 7) * 8 + colorIndex % 8];
+#endif
 }
 
 uint32_t SFG_getTimeMs()
@@ -125,7 +157,9 @@ int running = 1;
 
 void handleSignal(int signal)
 {
+#if !USE_LINUX_FRAMEBUFFER
   puts("\033[?25h"); // show cursor
+#endif
   running = 0;
 }
 
@@ -142,6 +176,38 @@ int main()
 
   screen[SCREENSIZE - 1] = 0; // string terminator
 
+#if USE_LINUX_FRAMEBUFFER
+
+  #define CHECK(w,err,msg)\
+    if ((w) == (err)) { puts(msg); return 1; }
+
+  int tty = open(DEV_TTY,O_RDWR);
+  CHECK(tty,-1,"couldn't open TTY device")
+
+  CHECK(ioctl(tty,KDSETMODE,KD_GRAPHICS),-1,"couldn't set graphic mode")
+
+  int fb = open(DEV_FRAMBUFFER,O_RDWR);
+  CHECK(fb,-1,"couldn't open framebuffer device")
+
+  struct fb_fix_screeninfo fixInfo;
+  struct fb_var_screeninfo varInfo;
+
+  CHECK(ioctl(fb,FBIOGET_FSCREENINFO,&fixInfo),-1,"couldn't get fixInfo")
+  CHECK(ioctl(fb,FBIOGET_VSCREENINFO,&varInfo),-1,"couldn't get varInfo")
+
+  int bpp = varInfo.bits_per_pixel / 8;
+  uint64_t screenSize = varInfo.xres * varInfo.yres * bpp;
+
+  char *fbScreen = mmap(0,screenSize,PROT_READ | PROT_WRITE,MAP_SHARED,fb,0);
+
+  CHECK(fbScreen,MAP_FAILED,"couldn't map framebuffer")
+
+  int r = varInfo.red.offset / 8, 
+      g = varInfo.green.offset / 8, 
+      b = varInfo.blue.offset / 8,
+      t = varInfo.transp.offset / 8;
+
+#else
   for (uint16_t i = 1; i <= SFG_SCREEN_RESOLUTION_Y; ++i)
     screen[i * (SFG_SCREEN_RESOLUTION_X + 1) - 1] = '\n';
 
@@ -151,20 +217,61 @@ int main()
     putchar('\n');
       
   puts("\033[?25l"); // hide cursor
-  
+#endif  
+
   while (running)
   {
     input_update();
-  
+
+#if USE_LINUX_FRAMEBUFFER
+
+    char *p = fbScreen;
+
+    int linePad = fixInfo.line_length - SFG_SCREEN_RESOLUTION_X * bpp;
+
+    int index = 0;
+
+    for (int y = 0; y < SFG_SCREEN_RESOLUTION_Y; ++y)
+    {
+      for (int x = 0; x < SFG_SCREEN_RESOLUTION_X; ++x)
+      {
+        // inefficient, should be a precomputed RGB32 palette
+        uint16_t c = paletteRGB565[screenUnsigned[index]];
+
+        *(p + b) = (c << 3) & 0xf8;
+        *(p + g) = (c >> 3) & 0xfc;
+        *(p + r) = (c >> 8) & 0xf8;
+        p += bpp;
+        index++;
+      }
+
+      p += linePad;
+    }
+
+#else
     puts("\033[0;0H"); // move cursor to 0;0
     puts(screen);
     fflush(stdout);
+#endif
 
     if (!SFG_mainLoopBody())
       running = 0;
-  }
 
-  puts("\033[?25h"); // show cursor
+//  if (SFG_game.frame > 1000) break; // uncomment for testing, prevents locking
+
+  }
     
   input_end();
+
+#if USE_LINUX_FRAMEBUFFER
+  munmap(screen,screenSize);
+
+  ioctl(tty,KDSETMODE,KD_TEXT); // set back to text mode
+
+  close(fb);
+  close(tty);
+#else
+  puts("\033[?25h"); // show cursor
+#endif
+
 }
