@@ -38,7 +38,7 @@
 #ifndef __EMSCRIPTEN__
   #ifndef GAME_LQ
     // higher quality
-    #define SFG_FPS 60
+    #define SFG_FPS 35
     #define SFG_LOG(str) puts(str);
     #define SFG_SCREEN_RESOLUTION_X 700
     #define SFG_SCREEN_RESOLUTION_Y 512
