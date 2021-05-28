@@ -21,7 +21,7 @@ COMPILER='g++'
 if [ $# -eq 2 ]; then
   COMPILER=$2
 
-  if [ $2 == "tcc" ]; then # you'll probably want to modify this
+  if [ $2 = "tcc" ]; then # you'll probably want to modify this
     C_FLAGS="${C_FLAGS} -L/usr/lib/x86_64-linux-gnu/pulseaudio/ 
       -I/home/tastyfish/git/tcc/tcc-0.9.27/include
       -I/usr/lib/gcc/x86_64-linux-gnu/8/include/"
@@ -30,7 +30,7 @@ fi
 
 echo "compiling"
 
-if [ $1 == "sdl" ]; then
+if [ $1 = "sdl" ]; then
   # PC SDL build, requires:
   # - g++
   # - SDL2 (dev) package
@@ -41,7 +41,7 @@ if [ $1 == "sdl" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && ./anarch -w
-elif [ $1 == "terminal" ]; then
+elif [ $1 = "terminal" ]; then
   # PC terminal build, requires:
   # - g++
 
@@ -50,7 +50,7 @@ elif [ $1 == "terminal" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && sudo ./anarch
-elif [ $1 == "csfml" ]; then
+elif [ $1 = "csfml" ]; then
   # csfml build, requires:
   # - csfml
 
@@ -59,7 +59,7 @@ elif [ $1 == "csfml" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && ./anarch
-elif [ $1 == "test" ]; then
+elif [ $1 = "test" ]; then
   # test build, requires:
   # - g++
 
@@ -68,7 +68,7 @@ elif [ $1 == "test" ]; then
   echo ${COMMAND}
 
   ${COMMAND} && ./anarch
-elif [ $1 == "pokitto" ]; then
+elif [ $1 = "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
   #   "Pokitto" subfolder of PokittoLib
@@ -79,7 +79,7 @@ elif [ $1 == "pokitto" ]; then
 
   make
   ./PokittoEmu BUILD/firmware.bin 
-elif [ $1 == "emscripten" ]; then
+elif [ $1 = "emscripten" ]; then
   # emscripten (browser Javascript) build, requires:
   # - emscripten
 
