@@ -28,6 +28,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - **Suckless, KISS, minimal, simple**, short code (~10000 LOC).
 - **Extremely portable**. So far officially ported to and tested on:
   - GNU/Linux PC: SDL, csfml, terminal (experimental), Linux framebuffer (experimental)
+  - OpenBSD SDL
   - Winshit XP SDL
   - Browser
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
