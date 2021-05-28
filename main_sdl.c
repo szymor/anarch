@@ -91,6 +91,8 @@
 
 #define SDL_MAIN_HANDLED 1
 
+#define SDL_DISABLE_IMMINTRIN_H 1
+
 #include <stdio.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>

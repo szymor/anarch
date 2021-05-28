@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Optional helper build script for Anarch.
 # by drummyfish, released under CC0 1.0, public domain
@@ -14,7 +14,7 @@ fi
 
 clear; clear; 
 
-C_FLAGS='-x c -std=c99 -Wall -Wextra -fmax-errors=5 -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
+C_FLAGS='-x c -std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
 
 COMPILER='g++'
 
@@ -35,7 +35,8 @@ if [ $1 == "sdl" ]; then
   # - g++
   # - SDL2 (dev) package
 
-  COMMAND="${COMPILER} ${C_FLAGS} main_sdl.c -lSDL2"
+  SDL_FLAGS=`sdl2-config --libs --static-libs`
+  COMMAND="${COMPILER} ${C_FLAGS} main_sdl.c -I/usr/local/include ${SDL_FLAGS}"
 
   echo ${COMMAND}
 
