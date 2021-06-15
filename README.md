@@ -341,7 +341,7 @@ Performance and small size are achieved by multiple **optimization** techniques.
 
 **I am not acception any contributions to this repository**, however you can, and are encouraged to, **fork** the repo and do whatever you want with it. This is because I want to keep the original repository completely my own work to prevent the risk of "intellectual property" complications with multiple authors (e.g. a contributor starting to say he agreed to the waiver by mistake) and to make it as clear as possible that this is truly public domain. Yes, **I am afraid of free contribution from volunteers – this is what copyright laws have achieved**. If you dislike this situation, stop supporting copyright and IP laws. Outside this repo of course we can collaborate without borders.
 
-I welcome feedback, such as bug reports, which you can create here on GL as an issue, report to me via email etc.
+I welcome feedback, such as bug reports (you can email me etc).
 
 ## usage rights
 
