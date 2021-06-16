@@ -40,7 +40,7 @@ if [ $1 = "sdl" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./anarch -w
+  ${COMMAND}
 elif [ $1 = "terminal" ]; then
   # PC terminal build, requires:
   # - g++
@@ -49,7 +49,7 @@ elif [ $1 = "terminal" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && sudo ./anarch
+  ${COMMAND}
 elif [ $1 = "csfml" ]; then
   # csfml build, requires:
   # - csfml
@@ -58,7 +58,7 @@ elif [ $1 = "csfml" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./anarch
+  ${COMMAND}
 elif [ $1 = "test" ]; then
   # test build, requires:
   # - g++
@@ -67,7 +67,7 @@ elif [ $1 = "test" ]; then
 
   echo ${COMMAND}
 
-  ${COMMAND} && ./anarch
+  ${COMMAND}
 elif [ $1 = "pokitto" ]; then
   # Pokitto build, requires:
   # - PokittoLib, in this folder create a symlink named "PokittoLib" to the 
