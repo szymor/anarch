@@ -47,7 +47,6 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - Made to **last for centuries** without maintenance.
 - Goes beyond technical design and also **attempts to avoid possible cultural dependencies and barriers** (enemies are only robots, no violence on living beings).
 - **Created with only free software** (GNU/Linux, GIMP, Audacity, gcc, Vim, ...).
-- **Single compilation unit** (only one .c file to compile, very fast and simple). No build systems.
 - Uses a **custom-made 256 color palette** (but can run on platforms with fever colors, even just two).
 - **Well documented and commented code**, written with tinkering and remixing in mind.
 - Has the oldschool feel of games like **Doom** or **Wolf3D**.
