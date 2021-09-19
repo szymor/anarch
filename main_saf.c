@@ -16,6 +16,10 @@
 
 #include "saf.h"
 
+#if SAF_PLATFORM_HARWARD
+  #define SFG_AVR
+#endif
+
 #define SFG_FPS 25
 #define SFG_DIMINISH_SPRITES 1
 #define SFG_RAYCASTING_MAX_HITS 7
