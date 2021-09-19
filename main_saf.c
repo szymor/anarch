@@ -17,7 +17,7 @@
 #include "saf.h"
 
 #if SAF_PLATFORM_HARWARD
-  #define SFG_AVR
+  #define SFG_AVR 1
 #endif
 
 #define SFG_FPS 25
