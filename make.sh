@@ -41,6 +41,17 @@ if [ $1 = "sdl" ]; then
   echo ${COMMAND}
 
   ${COMMAND}
+elif [ $1 = "saf" ]; then
+  # SAF build using SDL, requires:
+  # - saf.h
+  # - SDL2 (dev) package
+
+  SDL_FLAGS=`sdl2-config --libs --static-libs`
+  COMMAND="${COMPILER} ${C_FLAGS} main_saf.c -I/usr/local/include ${SDL_FLAGS}"
+
+  echo ${COMMAND}
+
+  ${COMMAND}
 elif [ $1 = "terminal" ]; then
   # PC terminal build, requires:
   # - g++
