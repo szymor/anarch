@@ -1,16 +1,12 @@
 /**
   @file main_sdl.c
 
-  This is an SDL2 implementation of the game front end. It can be used to
+  This is an SDL implementation of the game front end. It can be used to
   compile a native executable or a transpiled JS browser version with
   emscripten.
 
   This frontend is not strictly minimal, it could be reduced a lot. If you want
   a learning example of frontend, look at another, simpler one, e.g. terminal.
-
-  To compile with emscripten run:
-
-  emcc ./main_sdl.c -s USE_SDL=2 -O3 --shell-file HTMLshell.html -o game.html
 
   by Miloslav Ciz (drummyfish), 2019
 
@@ -36,6 +32,16 @@
 // #define GAME_LQ
 
 #ifndef __EMSCRIPTEN__
+  #ifdef MIYOO
+    #define SFG_FPS 60
+    #define SFG_LOG(str) puts(str);
+    #define SFG_SCREEN_RESOLUTION_X 320
+    #define SFG_SCREEN_RESOLUTION_Y 240
+    #define SFG_DITHERED_SHADOW 1
+    #define SFG_DIMINISH_SPRITES 1
+    #define SFG_HEADBOB_SHEAR (-1 * SFG_SCREEN_RESOLUTION_Y / 80)
+    #define SFG_BACKGROUND_BLUR 1
+  #else
   #ifndef GAME_LQ
     // higher quality
     #define SFG_FPS 60
@@ -60,6 +66,7 @@
     #define SFG_RAYCASTING_MAX_STEPS 18
     #define SFG_RAYCASTING_MAX_HITS 8
   #endif
+  #endif /* MIYOO */
 #else
   // emscripten
   #define SFG_FPS 35
@@ -200,6 +207,31 @@ void SFG_processEvent(uint8_t event, uint8_t data)
 {
 }
 
+#ifdef MIYOO
+int8_t SFG_keyPressed(uint8_t key)
+{
+  #define k(x) sdlKeyboardState[SDLK_ ## x]
+
+  switch (key)
+  {
+    case SFG_KEY_UP: return k(UP); break;
+    case SFG_KEY_RIGHT: return k(RIGHT); break;
+    case SFG_KEY_DOWN: return k(DOWN); break;
+    case SFG_KEY_LEFT: return k(LEFT); break;
+    case SFG_KEY_A: return k(LALT); break;
+    case SFG_KEY_B: return k(LCTRL); break;
+    case SFG_KEY_C: return k(LSHIFT); break;
+    case SFG_KEY_JUMP: return k(SPACE); break;
+    case SFG_KEY_STRAFE_LEFT: return k(TAB); break;
+    case SFG_KEY_STRAFE_RIGHT: return k(BACKSPACE); break;
+    case SFG_KEY_MAP: return k(ESCAPE); break;
+    case SFG_KEY_MENU: return k(RCTRL) || k(RETURN); break;
+    default: return 0; break;
+  }
+
+  #undef k
+}
+#else
 int8_t SFG_keyPressed(uint8_t key)
 {
   if (webKeyboardState[key]) // this only takes effect in the web version 
@@ -255,6 +287,7 @@ int8_t SFG_keyPressed(uint8_t key)
 
   #undef k
 }
+#endif
   
 int running;
 
@@ -282,7 +315,6 @@ void mainLoopIteration()
   if (!SFG_mainLoopBody())
     running = 0;
 
-  SDL_FillRect(screenSurface, NULL, 0);
   SDL_LockSurface(screenSurface);
   memcpy(screenSurface->pixels, sdlScreen, sizeof(sdlScreen));
   SDL_UnlockSurface(screenSurface);

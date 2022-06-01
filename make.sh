@@ -106,6 +106,19 @@ elif [ $1 = "sdl1" ]; then
   echo ${COMMAND}
 
   ${COMMAND}
+elif [ $1 = "miyoo" ]; then
+  # SDL 1.2 build for miyoo, requires:
+  # - arm-linux-g++
+  # - SDL 1.2 (dev) package
+
+  COMPILER="arm-linux-g++"
+  SYSROOT=`${COMPILER} --print-sysroot`
+  SDL_FLAGS=`${SYSROOT}/usr/bin/sdl-config --libs`
+  COMMAND="${COMPILER} ${C_FLAGS} main_sdl1.c ${SDL_FLAGS} -DMIYOO"
+
+  echo ${COMMAND}
+
+  ${COMMAND}
 else
   echo "unknown parameter: $1"
 fi
