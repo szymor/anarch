@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Anarch
+Comment=The suckless FPS game
+Exec=anarch
+Terminal=false
+Type=Game
+StartupNotify=true
+Icon=icon
+Categories=games;
+Version=20220601
+X-OD-Manual=README.md

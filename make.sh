@@ -119,6 +119,20 @@ elif [ $1 = "miyoo" ]; then
   echo ${COMMAND}
 
   ${COMMAND}
+elif [ $1 = "retrofw" ]; then
+  # SDL 1.2 build for retrofw, requires:
+  # - mipsel-linux-g++
+  # - SDL 1.2 (dev) package
+
+  COMPILER="mipsel-linux-g++"
+  SYSROOT=`${COMPILER} --print-sysroot`
+  SDL_FLAGS=`${SYSROOT}/usr/bin/sdl-config --libs`
+  COMMAND="${COMPILER} ${C_FLAGS} main_sdl1.c ${SDL_FLAGS} -DRETROFW"
+
+  echo ${COMMAND}
+
+  ${COMMAND}
+  mksquashfs anarch icon.png LICENSE README.md anarch.retrofw.desktop anarch.opk -noappend -no-xattrs
 else
   echo "unknown parameter: $1"
 fi
