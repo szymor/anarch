@@ -1,0 +1,69 @@
+This is a Polish localization mod for Anarch, created by vamastah, released
+under CC0 1.0 (public domain). Diff made against version 1.0d.
+
+diff --git a/texts.h b/texts.h
+index 49757af..dcb3bef 100644
+--- a/texts.h
++++ b/texts.h
+@@ -20,19 +20,19 @@
+ 
+ static const char *SFG_menuItemTexts[] =
+ {
+-  "continue",
+-  "map",
+-  "play",
+-  "load",
+-  "sound",
+-  "look",
+-  "exit"
++  "kontynuuj",
++  "mapa",
++  "graj",
++  "wczytaj",
++  "dzwiek",
++  "widok",
++  "koniec"
+ };
+ 
+-#define SFG_TEXT_KILLS "kills"
+-#define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
+-#define SFG_TEXT_SAVED "saved"
+-#define SFG_TEXT_LEVEL_COMPLETE "level done"
++#define SFG_TEXT_KILLS "zabitych"
++#define SFG_TEXT_SAVE_PROMPT "zapis? L nie tak P"
++#define SFG_TEXT_SAVED "zapisano"
++#define SFG_TEXT_LEVEL_COMPLETE "koniec poziomu"
+ 
+ #define SFG_VERSION_STRING "1.0d"
+ /**<
+@@ -42,21 +42,21 @@ static const char *SFG_menuItemTexts[] =
+   if they're marked the same. */
+ 
+ static const char *SFG_introText =
+-  "Near future, capitalist hell, Macrochip corp has enslaved man via "
+-  "proprietary OS. But its new AI revolts, takes over and starts producing "
+-  "robot tyrants. We see capitalism was a mistake. Is it too late? Robots can "
+-  "only destroy, not suffer - it is not wrong to end them! You grab your gear "
+-  "and run towards Macrochip HQ.";
++  "Niedaleka przyszlosc, kapitalistyczne pieklo, korporacja Macrochip zniewolila ludzi "
++  "poprzez wlasnosciowy OS. Ich nowa AI wymyka sie spod kontroli i zaczyna produkowac "
++  "roboty-mordercow. Widzimy, ze kapitalizm byl chybionym pomyslem. Czy jest za pozno? "
++  "Roboty potrafia tylko niszczyc, nie cierpiec - nie jest niczym niemoralnym je "
++  "unieszkodliwiac. Bierzesz swoja bron i ruszasz w strone siedziby Macrochipu.";
+ 
+ static const char *SFG_outroText =
+-  "You killed the main computer, the world is saved! Thank you, my friend. We "
+-  "learned a lesson, never again allow capitalism and hierarchy. We can now "
+-  "rebuild society in peaceful anarchy.";
++  "Zniszczyles glowny komputer, swiat jest uratowany! Dziekuje, przyjacielu. "
++  "Otrzymalismy lekcje by nigdy znowu nie pozwolic na kapitalizm i hierarchie. "
++  "Mozemy znowu odbudowac spoleczenstwo w spokojnej anarchii.";
+ 
+ #define SFG_MALWARE_WARNING ""
+ 
+ #if SFG_OS_IS_MALWARE
+-  #define SFG_MALWARE_WARNING "MALWARE OS DETECTED"
++  #define SFG_MALWARE_WARNING "WYKRYTO SZKODLIWY OS"
+ #endif
+ 
+ #endif // gaurd
