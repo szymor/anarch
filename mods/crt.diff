@@ -1,0 +1,91 @@
+This is a mod for Anarch that adds a simple CRT screen effect (scanlines plus
+screen warp). By drummyfish.
+
+diff --git a/game.h b/game.h
+index 24285cb..4625ba1 100755
+--- a/game.h
++++ b/game.h
+@@ -816,24 +816,32 @@ uint16_t SFG_keyRegisters(uint8_t key)
+   return SFG_keyJustPressed(key) || SFG_keyRepeated(key);
+ }
+ 
+-#if SFG_RESOLUTION_SCALEDOWN == 1
+-  #define SFG_setGamePixel SFG_setPixel
+-#else
++uint8_t SFG_screenWarpMap[SFG_GAME_RESOLUTION_X][SFG_GAME_RESOLUTION_Y];
+ 
+ /**
+   Sets the game pixel (a pixel that can potentially be bigger than the screen
+   pixel).
+ */
+-static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
++static inline void SFG_setGamePixel(int16_t x, int16_t y, uint8_t colorIndex)
+ {
+-  uint16_t screenY = y * SFG_RESOLUTION_SCALEDOWN;
+-  uint16_t screenX = x * SFG_RESOLUTION_SCALEDOWN;
++  int16_t screenX = x - SFG_GAME_RESOLUTION_X / 2;
++  int16_t screenY = y - SFG_GAME_RESOLUTION_Y / 2;
++
++  uint8_t mul = SFG_screenWarpMap[x][y];
++
++  screenX = (screenX * mul) / 128;
++  screenY = (screenY * mul) / 128;
+ 
+-  for (uint16_t j = screenY; j < screenY + SFG_RESOLUTION_SCALEDOWN; ++j)
+-    for (uint16_t i = screenX; i < screenX + SFG_RESOLUTION_SCALEDOWN; ++i)
++  screenX = (screenX + SFG_GAME_RESOLUTION_X / 2) * SFG_RESOLUTION_SCALEDOWN;
++  screenY = (screenY + SFG_GAME_RESOLUTION_Y / 2) * SFG_RESOLUTION_SCALEDOWN;
++
++  // scanline effect:
++  colorIndex -= ((screenY / 2) % 2) && (colorIndex % 8 != 0);
++
++  for (int16_t j = screenY; j < screenY + SFG_RESOLUTION_SCALEDOWN; ++j)
++    for (int16_t i = screenX; i < screenX + SFG_RESOLUTION_SCALEDOWN; ++i)
+       SFG_setPixel(i,j,colorIndex);
+ }
+-#endif
+ 
+ void SFG_recomputePLayerDirection()
+ {
+@@ -1691,6 +1699,23 @@ void SFG_init()
+   SFG_game.cheatState = 0;
+   SFG_game.continues = 1;
+ 
++  for (int32_t y = 0; y < SFG_GAME_RESOLUTION_Y; ++y)
++    for (int32_t x = 0; x < SFG_GAME_RESOLUTION_X; ++x)
++    {
++      int32_t dx = x - SFG_GAME_RESOLUTION_X / 2;
++      dx = (dx * dx) / 512;
++
++      int32_t dy = y - SFG_GAME_RESOLUTION_Y / 2;
++      dy = (dy * dy) / 512;
++
++      SFG_screenWarpMap[x][y] = 128 -
++        ((dx + dy) * SFG_SCREEN_WARP) /
++          (
++            ((SFG_GAME_RESOLUTION_X * SFG_GAME_RESOLUTION_X) +
++            (SFG_GAME_RESOLUTION_Y * SFG_GAME_RESOLUTION_Y)) / (4 * 512)
++          );
++    }
++
+   RCL_initRayConstraints(&SFG_game.rayConstraints);
+   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
+   SFG_game.rayConstraints.maxSteps = SFG_RAYCASTING_MAX_STEPS;
+diff --git a/settings.h b/settings.h
+index 2c8820a..663fcec 100644
+--- a/settings.h
++++ b/settings.h
+@@ -84,6 +84,13 @@
+   #define SFG_SCREEN_RESOLUTION_Y 600
+ #endif
+ 
++/**
++  Sets the amount of screen warp for the CRT simulation effect.
++*/
++#ifndef SFG_SCREEN_WARP
++  #define SFG_SCREEN_WARP 16
++#endif
++
+ /**
+   How quickly player turns left/right, in degrees per second.
+ */
