@@ -51,6 +51,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - Uses a **custom-made 256 color palette** (but can run on platforms with fever colors, even just two).
 - **Well documented and commented code**, written with tinkering and remixing in mind.
 - Has the oldschool feel of games like **Doom** or **Wolf3D**.
+- There is already a **number of mods** in the mod folder, of course all in the same spirit and under same conditions as the game. Don't forget to check them out :)
 
 ## Stats and comparisons (for version 1.0)
 
