@@ -40,7 +40,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - unofficial [DOS port](https://gitlab.com/wuuff/anarch-dos) by Wuuff
   - unofficial [RetroFW and MiyooCFW ports](https://github.com/szymor/anarch) by szymor
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
-- Can fit into **less than 256 kb** (including all content, textures etc.).
+- Can fit into **less than 256 kb (60 kb with procgen mod)** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
 - **Works without any file IO**, i.e. can work without config files, save files, **all content and configs are part of the source code**.
 - **Doesn't use any floating point**, everything is integer math (good for platforms without FPU).
@@ -69,16 +69,16 @@ source code stats (80 column wrapping, a lot of empty lines):
 
 compiled:
 
-| binary               | size                                       | target FPS         | resolution | RAM usage (total)  |
-| -------------------- | ------------------------------------------ | ------------------ | ---------- | ------------------ |
-| GNU/Linux, SDL       | 196 KB (gcc), 184 KB (clang), 184 KB (tcc) | 60                 | 700 * 512  | ~40 MB             |
-| GNU/Linux, terminal  | 184 KB (gcc), 176 KB (clang), 176 KB (tcc) | 30                 | 127 * 42   | ~5 MB              |
-| Pokitto              | 180 KB                                     | 35 (overclock), 22 | 110 * 88   | < 32 KB            |
-| Gamebuino Meta       | 215 KB                                     | 18                 | 80 * 64    | < 32 KB            |
-| Ringo (MAKERphone)   | 1.3 MB                                     | 35                 | 160 * 128  |                    |
-| ESPboy               | 376 KB                                     | 22                 | 128 * 128  |                    |
-| Nibble               | 416 KB                                     | 35                 | 128 * 128  |                    |
-| browser              | 884 KB (whole output)                      | 35                 | 512 * 320  | ~20 MB             |
+| binary               | size                                                                | target FPS         | resolution | RAM usage (total)  |
+| -------------------- | ------------------------------------------------------------------- | ------------------ | ---------- | ------------------ |
+| GNU/Linux, SDL       | 196 KB (gcc), 184 KB (clang), 184 KB (tcc), 57 KB (gcc procgen mod) | 60                 | 700 * 512  | ~40 MB             |
+| GNU/Linux, terminal  | 184 KB (gcc), 176 KB (clang), 176 KB (tcc)                          | 30                 | 127 * 42   | ~5 MB              |
+| Pokitto              | 180 KB                                                              | 35 (overclock), 22 | 110 * 88   | < 32 KB            |
+| Gamebuino Meta       | 215 KB                                                              | 18                 | 80 * 64    | < 32 KB            |
+| Ringo (MAKERphone)   | 1.3 MB                                                              | 35                 | 160 * 128  |                    |
+| ESPboy               | 376 KB                                                              | 22                 | 128 * 128  |                    |
+| Nibble               | 416 KB                                                              | 35                 | 128 * 128  |                    |
+| browser              | 884 KB (whole output)                                               | 35                 | 512 * 320  | ~20 MB             |
 
 system requirements:
 
@@ -86,7 +86,7 @@ system requirements:
 | ------------------ | -------------------------------- | --------------------------- | -------------------------- |
 | CPU                | ~40 MHz, 32 bit                  | Intel 286, ~10 MHz 16 bit   | Intel 386, ~40 MHz, 32 bit |
 | RAM                | 32 KB                            | 528 KB                      | 4 MB                       |
-| storage            | 200 KB                           | 8 MB                        | 12 MB                      |
+| storage            | 200 KB (60 KB with a mod)        | 8 MB                        | 12 MB                      |
 | display            | 60 x 32, 8 colors, double buffer | ?                           | ?                          |
 | additional         | 7 buttons, frame buffer          | HDD, frame buffer           | HDD, frame buffer          |
 
