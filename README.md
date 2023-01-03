@@ -12,6 +12,8 @@ everywhere, made for the benefit of all living beings*
 
 **NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.**
 
+![](media/riced.png)
+
 This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https://archive.li/xY4ia), [3](https://archive.li/tFWrL).
 
 - [why this game is special](#why-this-game-is-special)
