@@ -117,7 +117,9 @@ features:
 
 ## compiling
 
-Just compile your platform's frontend implementation, e.g. for GNU/Linux SDL2 compile `main_sdl.c` with C compiler and compile flags of your choice; of course you must have the packages/libraries required by the frontend (e.g. SDL2 for SDL frontend, `sudo apt-get install libsdl2-dev` etc.) installed and you have to link them during compilation (`-lSDL2` or use `sdl2-config` etc.).
+Before compiling you may modify the game settings (change stuff in `settings.h`) and/or apply mods from the mod folder (e.g. with `git apply mods/full_zbuffer.diff` -- some diffs give warnings/errors but still work).
+
+Then just compile your platform's frontend implementation, e.g. for GNU/Linux SDL2 compile `main_sdl.c` with C compiler and compile flags of your choice; of course you must have the packages/libraries required by the frontend (e.g. SDL2 for SDL frontend, `sudo apt-get install libsdl2-dev` etc.) installed and you have to link them during compilation (`-lSDL2` or use `sdl2-config` etc.).
 
 To make this easier there is a simple compile script that should just work in most cases, it should be as simple as doing e.g.:
 
