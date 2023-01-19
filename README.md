@@ -102,8 +102,9 @@ features:
 | ----------------------------- | -------------------------------- | ----------------- | ----------------- |
 | levels                        | 10                               | 60 (10 shareware) | 27 (9 shareware)  |
 | variable floor/ceiling height | yes                              | no                | yes               |
-| engine                        | ray casting                      | ray casting       | BSP               |
-| movement inertia              | no                               | no                | yes               |
+| textured floor/ceiling        | no                               | no                | yes               |
+| engine                        | advanced ray casting             |simple ray casting | BSP               |
+| movement inertia              | no (yes with a mod)              | no                | yes               |
 | head/weapon bobbing           | yes                              | no                | yes               |
 | shearing (up/down look)       | yes                              | no                | no                |
 | non-square based levels       | no                               | no                | yes               |
