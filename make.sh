@@ -14,7 +14,7 @@ fi
 
 clear; clear; 
 
-C_FLAGS='-x c -std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
+C_FLAGS='-std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
 
 COMPILER='g++'
 

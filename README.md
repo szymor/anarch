@@ -34,6 +34,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - **Extremely portable**. So far ported to and tested on:
   - GNU/Linux PC: SDL, csfml, terminal (experimental), Linux framebuffer (experimental)
   - OpenBSD SDL
+  - FreeBSD SDL
   - Winshit XP SDL
   - Browser
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
