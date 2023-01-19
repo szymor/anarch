@@ -269,7 +269,7 @@ Firstly don't panic and please don't hate me, I didn't put that bug there intent
 
 ### Who are you?
 
-I am an anarcho-pacifist programmer. You can read more about me at [my website](https://www.tastyfish.cz). You can read my political manifesto here: [Non-Competitive Society](https://gitlab.com/drummyfish/my_writings/-/blob/master/non-competitive%20society.pdf).
+I am an anarcho-pacifist programmer called drummyfish (real name Miloslav Číž). I love all living beings, even you (even if you hate me). You can read more about me at [my website](https://www.tastyfish.cz). You can read about my technology and life philosophy at my [less retarded wiki](https://www.tastyfish.cz/lrs/main.html).
 
 ### You sound like an insane person, are you crazy?
 
@@ -277,7 +277,7 @@ I have mental issues as most people nowadays and I go crazy from living in this 
 
 ### Can I support you?
 
-Yes. This wasn't made for any profit but if you just want to share with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz#support). You can also pay what you want on itch.io.
+Yes. This wasn't made for any profit but if you have enough resources and just want to share them with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz#support). You can also pay what you want on itch.io.
 
 ### Fuck you.
 
