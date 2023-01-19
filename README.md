@@ -242,13 +242,14 @@ Yes. You can also replace it with your own political stuff, even if it's in conf
 
 The game itself can't communicate many values directly – it is just a simple game with very little text – but it tries to **bring attention** to the values of its author. Some of these are:
 
+- **In general so called [less retarded software/society](https://www.tastyfish.cz/lrs/main.html)** -- my newly created philosophy of technology and life.
 - [Anarchism](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-02-17), which [automatically means](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-12-17#toc16) anti-capitalism and caring about all other living beings.
 - [Pacifism](https://en.wikipedia.org/wiki/Anarcho-pacifism), because true effort for equality can't be pursued by violence and other forms of oppression.
 - [Minimalism](https://suckless.org/philosophy/) and simplicity, in technology and elsewhere, as a means of freedom and beauty.
 - [Software](https://en.wikipedia.org/wiki/Free_software), [cultural](https://en.wikipedia.org/wiki/Free-culture_movement) and information freedom, opposition to intellectual property.
 - Future proof technology.
-- Vegetarianism, veganism, equality of life forms.
 - Selflessness, sharing, collaboration, caring about others.
+- By extension also other peaceful values such as veganism, equality of life forms etc.
 
 ### Why ray casting and not e.g. BSP?
 
@@ -257,6 +258,8 @@ This all started with me just creating a very simple ray casting library while p
 ### Why CC0? Why not MIT or copyleft?
 
 Because I strongly reject the concept of intellectual property and laws in general and because I simply don't want any bullshit burdening my creation. MIT is **not** public domain dedication, it still acknowledges copyright and has a burdening requirement of having to include a copyright notice, and it is also worded kind of vaguely. Copyleft puts even heavier legal burden on users, is by nature unclear and makes us "marry the lawyers", i.e. approve of the IP bullshit and show willingness to enforce only "good" use of our art, as if we're some kind of dictator authority.
+
+Also note that CC0 addresses other legal bullshit such as "moral rights" (in general so called neighboring rights), something that still sneakily applies even if you waive copyright. I don't know about any other license/waiver that does this.
 
 It is shame that so little software is truly in the public domain for anyone to simply use without restriction and distraction. Yes, I am aware of CC0's shortcoming, but it's the best we have and I try to address the issues with an extra waiver.
 
