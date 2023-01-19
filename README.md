@@ -221,18 +221,7 @@ Only free software, preferably suckless tools: Vim text editor on Devuan GNU/Lin
 
 ### How do I compile this?
 
-Compilation depends on platform, but for a Unix PC it goes something like this:
-
-```
-# install SDL2, e.g. on Debian-like systems:
-sudo apt-get install libsdl2-dev libsdl2-mixer-dev
-
-# get the source code:
-git clone https://gitlab.com/drummyfish/anarch.git
-
-cd anarch
-./make.sh sdl # compile, csfml can also be used instead of sdl
-```
+See [compiling](#compiling).
 
 ### So I can do anything with this for free? Even like sell it and stuff?
 
