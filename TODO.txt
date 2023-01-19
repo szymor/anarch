@@ -1,18 +1,7 @@
 general:
 
-- Profile, epsecially Pokitto, small periodical tearing can be noticed (some
-  periodical updates probably).
-- Compile Pokitto overclocked version.
-- Refactor.
-- Check grammar in source code.
-- Polish the emscripten version (is basically unplayable on phone, horizontal
-  mode doesnt show whole screen etc).
-- Polish controls (bindings, mouse sensitivity etc.).
-- Polish weapon switching, maybe add a key to switch to previous weapon?
 - Port to OpenDingux.
 - Rewrite python scripts to C (faster, less bloat, fewer dependencies).
-- try to remove the debug flag (-g1) from compiler and see if it decreases size
-- compile on BSD and WinShit
 - run on raspbery pi
 
 level ideas:
@@ -131,6 +120,17 @@ bugs:
 
 done:
 
+- try to remove the debug flag (-g1) from compiler and see if it decreases size
+- compile on BSD and WinShit
+- Profile, epsecially Pokitto, small periodical tearing can be noticed (some
+  periodical updates probably).
+- Compile Pokitto overclocked version.
+- Refactor.
+- Check grammar in source code.
+- Polish the emscripten version (is basically unplayable on phone, horizontal
+  mode doesnt show whole screen etc).
+- Polish controls (bindings, mouse sensitivity etc.).
+- Polish weapon switching, maybe add a key to switch to previous weapon?
 - add headbob
 - Switch music tracks when level starts?
 - SDL: handle the quit signal so that the program can be closed by closing the

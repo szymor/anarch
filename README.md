@@ -18,6 +18,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 
 - [why this game is special](#why-this-game-is-special)
 - [stats and comparisons (for version 1.0)](#stats-and-comparisons-for-version-10)
+- [compiling](#compiling)
 - [manifesto](#manifesto)
 - [FAQ](#faq)
 - [code guide](#code-guide)
@@ -55,7 +56,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
 - Uses a **custom-made 256 color palette** (but can run on platforms with fever colors, even just two).
 - **Well documented and commented code**, written with tinkering and remixing in mind.
 - Has the oldschool feel of games like **Doom** or **Wolf3D**.
-- There is already a **number of mods** in the mod folder, of course all in the same spirit and under same conditions as the game. Don't forget to check them out :)
+- There is already a **number of mods** in the mod directory, of course all in the same spirit and under same conditions as the game. Don't forget to check them out :)
 
 ## Stats and comparisons (for version 1.0)
 
@@ -112,6 +113,22 @@ features:
 | ammo types                    | 3                                | 1                 | 4                 |
 | armor                         | no                               | no                | yes               |
 | difficulty levels             | no                               | 4                 | 5                 |
+
+## compiling
+
+Just compile your platform's frontend implementation, e.g. for GNU/Linux SDL2 compile `main_sdl.c` with C compiler and compile flags of your choice; of course you must have the packages/libraries required by the frontend (e.g. SDL2 for SDL frontend, `sudo apt-get install libsdl2-dev` etc.) installed and you have to link them during compilation (`-lSDL2` or use `sdl2-config` etc.).
+
+To make this easier there is a simple compile script that should just work in most cases, it should be as simple as doing e.g.:
+
+```
+./make.sh sdl
+```
+
+There can be an extra parameter specifying the compiler, for example on OpenBSD I compiled this with  `./make.sh sdl cc`.
+
+If you are on some exotic platform or have trouble compiling with the script, take a look at the script and try to fiddle with the flags etc., it is generally not hard to compile the game as you just need to compile a single file and there are multiple frontends to try. Still, if you're having real trouble, drop me an email :)
+
+Also there are some precompiled binaries in the bin directory.
 
 ## manifesto
 
@@ -287,14 +304,14 @@ media/           media presenting the game (screenshots, logo, ...)
 mods/            official mods
 constants.h      game constants that aren't considered settings
 game.h           main game logic
-images.h         images (textures, sprites) from assets folder converted to C
-levels.h         levels from assets folder converted to C
+images.h         images (textures, sprites) from assets directory converted to C
+levels.h         levels from assets directory converted to C
 main_*.*         fronted implement. for various platforms, passed to compiler
 palette.h        game 256 color palette
 raycastlib.h     ray casting library
 settings.h       game settings that users can change (FPS, resolution, ...)
 smallinput.h     helper for some frontends and tests, not needed for the game
-sounds.h         sounds from assets folder converted to C
+sounds.h         sounds from assets directory converted to C
 texts.h          game texts
 make.sh          compiling script constaining compiler settings
 HTMLshell.html   HTML shell for emscripten (browser) version
