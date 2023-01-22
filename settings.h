@@ -20,6 +20,14 @@
 #define _SFG_SETTINGS_H
 
 /**
+  Path to the save file. You may want to set this to some absolute path,
+  depending on your system.
+*/
+#ifndef SFG_SAVE_FILE_PATH
+  #define SFG_SAVE_FILE_PATH "anarch.sav"
+#endif
+
+/**
   Time multiplier in SFG_Units (1.0 == 1024). This can be used to slow down or
   speed up the game. Note that this also changes the rendering FPS accordingly
   (e.g. half FPS at half speed), so if you want to keep the FPS, divide it by

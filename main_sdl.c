@@ -127,7 +127,7 @@ uint32_t SFG_getTimeMs()
 
 void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 {
-  FILE *f = fopen("anarch.sav","wb");
+  FILE *f = fopen(SFG_SAVE_FILE_PATH,"wb");
 
   puts("SDL: opening and writing save file");
 
@@ -145,7 +145,7 @@ void SFG_save(uint8_t data[SFG_SAVE_SIZE])
 uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE])
 {
 #ifndef __EMSCRIPTEN__
-  FILE *f = fopen("anarch.sav","rb");
+  FILE *f = fopen(SFG_SAVE_FILE_PATH,"rb");
 
   puts("SDL: opening and reading save file");
 
