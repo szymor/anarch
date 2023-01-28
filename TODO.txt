@@ -3,6 +3,7 @@ general:
 - Port to OpenDingux.
 - Rewrite python scripts to C (faster, less bloat, fewer dependencies).
 - run on raspbery pi
+- mod: terminal messages (when standing near terminal, a message appears)
 
 level ideas:
 
