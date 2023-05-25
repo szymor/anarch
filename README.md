@@ -256,6 +256,20 @@ The game itself can't communicate many values directly – it is just a simple g
 - Selflessness, sharing, collaboration, caring about others.
 - By extension also other peaceful values such as veganism, equality of life forms etc.
 
+### Why do I have to shoot poor robots? Robots can suffer too! How is this promoting pacifism with guns and shooting?!
+
+OK, this is something that also bothers me a bit at times -- not because I think there should be no shooting or guns in games, but because I fear people will misinterpret the message. I actually think that games should allow us to satisfy needs that are not acceptable to satisfy in real life, such as shooting people or even do other extremely immoral things -- a healthy individual knows what's a game and what is real life and by satisfying violent behavior in a game he will avoid satisfying it in real life. However I wanted to make an extremely accessible base game and respect e.g. parents who let their children only play games in which the player doesn't shoot other people, or religious people who refuse to play such games, so I made it with robots, just in case, to make it accessible to more players, keeping in mind modders will be able to make it a bloody gory game if they so desire.
+
+The game is really an **imperfect compromise** between trying to make a shooter game and trying to keep it anarcho pacifist compatible.
+
+I agree robots can suffer too if they are sufficiently advanced and mimic life we've so far only associated with biological life, but we can just assume the robots in the game are still only "dumb" machines simply programmed for shooting at moving targets.
+
+Yes, guns and pacifism usually don't mix well, but it's not impossible to like guns and reject violence at the same time (I am a living example of this). This is my best attempt at mixing two things: making a libre Doom clone while keeping it reasonably pacifist, without resorting to cringe extremes like not portraying any guns at all in a shooter game.
+
+Next, please keep in mind the game content isn't greatly thought-through because I was doing so many things at once that I had to resort to plain and simple pew pew shooter, I basically focused on programming it well and providing some "base" game for modders to improve upon. A good writer and asset artist could make the game content represent said causes much better, and I invite anyone capable of this to do so.
+
+Finally while the game itself may not be the best promotion of anarcho pacifism, it grabs some attention towards my other promotions of anarcho pacifism which are hopefully better. Someone playing the game will at least learn about the term and perhaps look up more about it and maybe even become interested...
+
 ### Why ray casting and not e.g. BSP?
 
 This all started with me just creating a very simple ray casting library while playing around with Pokitto, since ray casting is pretty simple. It e.g. allows easy creation of levels and doesn't require precomputation of accelerating structures. I kept improving the library and ended up with raycastlib, a more advanced ray casting library. The idea of creating a Doom clone wasn't planned from the beginning so when it came, I simply used what I had. Sure, BSP would work too, but raycasting makes Anarch kind of unique, there is not many similar games. Lately I've been thinking about creating a BSP library too, so maybe there will once be Anarch 2, who knows?
