@@ -75,10 +75,10 @@
 #endif
 
 #ifndef SFG_GAME_STEP_COMMAND
-  #define SFG_GAME_STEP_COMMAND {} /**< Will be called each simlation step (good
-                                   for creating deterministic behavior such as
-                                   demos (SFG_mainLoopBody() calls potentially
-                                   multiple simulation steps). */
+  #define SFG_GAME_STEP_COMMAND {} /**< Will be called each simulation step
+                                   (good for creating deterministic behavior
+                                   such as demos (SFG_mainLoopBody() calls
+                                   potentially multiple simulation steps). */
 #endif
 
 /** 
