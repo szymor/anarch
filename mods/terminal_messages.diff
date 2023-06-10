@@ -1,0 +1,118 @@
+This is a mod for Anarch that makes ingame terminals display random messages.
+By drummyfish, released under CC0 1.0, public domain.
+
+diff --git a/game.h b/game.h
+index 991058d..720034e 100755
+--- a/game.h
++++ b/game.h
+@@ -407,6 +407,7 @@ struct
+          6  32b little endian total play time, in 10ths of sec
+          10 16b little endian total enemies killed from start */
+   uint8_t continues;  ///< Whether the game continues or was exited.
++  const char *rollingMessage;
+ } SFG_game;
+ 
+ #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+@@ -476,6 +477,7 @@ struct
+   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
+                           /**< Bit array, for each map square says whether there
+                                is a colliding item or not. */
++  uint8_t checkedTerminalIndex;
+ } SFG_currentLevel;
+ 
+ #if SFG_AVR
+@@ -1536,6 +1538,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+   SFG_currentLevel.ceilingColor = level->ceilingColor;
+   SFG_currentLevel.completionTime10sOfS = 0;
+ 
++  SFG_game.rollingMessage = 0;
++
+   for (uint8_t i = 0; i < 7; ++i)
+     SFG_currentLevel.textures[i] =
+       SFG_wallTextures + level->textureIndices[i] * SFG_TEXTURE_STORE_SIZE;
+@@ -1543,6 +1547,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+   SFG_LOG("initializing doors");
+ 
+   SFG_currentLevel.checkedDoorIndex = 0;
++  SFG_currentLevel.checkedTerminalIndex = 0;
+   SFG_currentLevel.doorRecordCount = 0;
+   SFG_currentLevel.projectileRecordCount = 0;
+   SFG_currentLevel.teleporterCount = 0;
+@@ -2762,6 +2767,41 @@ void SFG_updateLevel()
+     p->doubleFramesToLive -= substractFrames;
+   }
+ 
++  // handle terminal texts:
++
++  if (SFG_game.rollingMessage)
++  {
++    if (SFG_game.frame % SFG_BLINK_PERIOD_FRAMES == 0)
++    {
++      SFG_game.rollingMessage++;
++
++      if (*SFG_game.rollingMessage == 0)
++        SFG_game.rollingMessage = 0;
++    }
++  }
++  else
++  {
++    const SFG_LevelElement *levelElement =
++      &(SFG_currentLevel.levelPointer->elements[
++      SFG_currentLevel.checkedTerminalIndex]);
++
++    if (levelElement->type == SFG_LEVEL_ELEMENT_TERMINAL)
++    {
++      int dx = ((int) levelElement->coords[0]) - 
++        ((int) SFG_player.squarePosition[0]);
++
++      int dy = ((int) levelElement->coords[1]) - 
++        ((int) SFG_player.squarePosition[1]);
++
++      if (dx * dx + dy * dy <= 2)
++        SFG_game.rollingMessage = SFG_terminalTexts[
++         SFG_currentLevel.checkedTerminalIndex % SFG_TERMIAL_TEXTS];
++    }
++
++    SFG_currentLevel.checkedTerminalIndex++;
++    SFG_currentLevel.checkedTerminalIndex %= SFG_MAX_LEVEL_ELEMENTS;
++  }
++
+   // handle door:
+   if (SFG_currentLevel.doorRecordCount > 0) // has to be here
+   {
+@@ -4876,6 +4916,12 @@ void SFG_draw()
+ 
+     // draw HUD:
+ 
++    // terminal message:
++
++    if (SFG_game.rollingMessage)
++      SFG_drawText(SFG_game.rollingMessage,SFG_FONT_SIZE_MEDIUM,
++        SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,7,255,0);
++
+     // bar
+ 
+     uint8_t color = 61;
+diff --git a/texts.h b/texts.h
+index b7e53d4..8e16434 100644
+--- a/texts.h
++++ b/texts.h
+@@ -53,6 +53,18 @@ static const char *SFG_outroText =
+   "learned a lesson, never again allow capitalism and hierarchy. We can now "
+   "rebuild society in peaceful anarchy.";
+ 
++#define SFG_TERMIAL_TEXTS 6
++
++static const char *SFG_terminalTexts[SFG_TERMIAL_TEXTS] =
++{
++  "To whoever might help - the AI brain is on the roof of Macrochip HQ.",
++  "Capitalism is how you enslave a man with his approval. --Macrochip CEO",
++  "Mailbox - The spiders are here. Tell family I love them. God help us.",
++  "Local data, 34012 active units, city 90 percent subdued, 1 intruder.",
++  "News - AI crossing ocean, overpowering army. Macrochip CEO gone.",
++  "Mailbox - Proprietary tech was our biggest error. If we live, stop capitalism."
++};
++
+ #define SFG_MALWARE_WARNING ""
+ 
+ #if SFG_OS_IS_MALWARE
