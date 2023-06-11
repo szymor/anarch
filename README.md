@@ -10,7 +10,7 @@ everywhere, made for the benefit of all living beings*
 
 ![](media/3screens.png)
 
-**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`.
+**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`. You can now also make **tool assisted speedruns** with the demo mod.
 
 ![](media/riced.png)
 
