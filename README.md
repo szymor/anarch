@@ -38,7 +38,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - Winshit XP SDL
   - Browser
   - Pokitto (220 x 116, 48 MHz ARM, 36 KB RAM, 256 KB flash)
-  - Gamebino Meta (80 x 64, 48 MHz ARM, 32 KB RAM, 256 KB flash)
+  - Gamebuino Meta (80 x 64, 48 MHz ARM, 32 KB RAM, 256 KB flash)
   - Ringo/MAKERphone (160 x 128, 160 MHz ARM, 520 KB RAM, 4 MB flash)
   - ESPboy (128 x 128, 160 MHz)
   - Nibble (128 x 128, 160 MHz)
@@ -47,6 +47,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - another unofficial [DOS port](https://codeberg.org/gera/anarch-dos) by gera
   - unofficial [RetroFW and MiyooCFW ports](https://github.com/szymor/anarch) by szymor
   - unofficially ran on/ported to [OpenPandora](https://git.sr.ht/~magic_sam/Anarch) by MagicSam ([forum thread](https://pyra-handheld.com/boards/threads/anarch.99869/#post-1714158))
+  - unofficial [libretro port](https://codeberg.org/iyzsong/anarch-libretro) by iyzsong
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb (60 kb with procgen mod)** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
