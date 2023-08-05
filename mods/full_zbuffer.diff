@@ -1,3 +1,9 @@
+This mod adds full z-buffer that mostly fixes the incorrect sprite visibility,
+however RAM consumption increases quite a bit. Note that visiblity inaccuracies
+may still occur as e.g. floor depth is not accurate and isn't used, but the game
+generally looks much better. By drummyfish, released under CC0 1.0, public
+domain.
+
 diff --git a/constants.h b/constants.h
 index 956baa0..da72f24 100644
 --- a/constants.h
@@ -79,86 +85,3 @@ index 991058d..36bba8e 100755
        SFG_game.zBuffer[i] = 255;
  
      int16_t weaponBobOffset = 0;
-diff --git a/mods/full_zbuffer.diff b/mods/full_zbuffer.diff
-index 9a3ec2f..e69de29 100644
---- a/mods/full_zbuffer.diff
-+++ b/mods/full_zbuffer.diff
-@@ -1,78 +0,0 @@
--This mod adds full z-buffer that mostly fixes the incorrect sprite visibility,
--however RAM consumption increases quite a bit. Note that visiblity inaccuracies
--may still occur as e.g. floor depth is not accurate and isn't used, but the game
--generally looks much better. By drummyfish, released under CC0 1.0, public
--domain.
--
--diff --git a/constants.h b/constants.h
--index 956baa0..da72f24 100644
----- a/constants.h
--+++ b/constants.h
--@@ -352,7 +352,7 @@
--   #define SFG_FONT_SIZE_BIG 1
-- #endif
-- 
---#define SFG_Z_BUFFER_SIZE SFG_GAME_RESOLUTION_X
--+#define SFG_Z_BUFFER_SIZE (SFG_GAME_RESOLUTION_X * SFG_GAME_RESOLUTION_Y)
-- 
-- /**
--   Step in which walls get higher, in raycastlib units.
--diff --git a/game.h b/game.h
--index 24285cb..f8ef257 100755
----- a/game.h
--+++ b/game.h
--@@ -951,6 +951,14 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
--       :
--       SFG_TRANSPARENT_COLOR;
-- 
--+    uint8_t *zValue = SFG_game.zBuffer +
--+      pixel->position.y * SFG_GAME_RESOLUTION_X + pixel->position.x;
--+  
--+    uint8_t zDistance = SFG_RCLUnitToZBuffer(pixel->depth);
--+
--+    if (*zValue >= zDistance)
--+      *zValue = zDistance;
--+
--     shadow = pixel->hit.direction >> 1;
--   }
--   else // floor/ceiling
--@@ -1216,29 +1224,25 @@ void SFG_drawScaledSprite(
-- 
--   for (int16_t x = x0, u = u0; x <= x1; ++x, ++u)
--   {
---    if (SFG_game.zBuffer[x] >= zDistance)
--+    for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
--     {
---      int8_t columnTransparent = 1;
--+      uint8_t color =
--+        SFG_getTexel(image,SFG_game.spriteSamplingPoints[u],
--+          SFG_game.spriteSamplingPoints[v]);
-- 
---      for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
--+      if (color != SFG_TRANSPARENT_COLOR)
--       {
---        uint8_t color =
---          SFG_getTexel(image,SFG_game.spriteSamplingPoints[u],
---            SFG_game.spriteSamplingPoints[v]);
---
---        if (color != SFG_TRANSPARENT_COLOR)
---        {
-- #if SFG_DIMINISH_SPRITES
---          color = palette_minusValue(color,minusValue);
--+        color = palette_minusValue(color,minusValue);
-- #endif 
---          columnTransparent = 0;
--+        uint8_t *zValue = SFG_game.zBuffer + y * SFG_GAME_RESOLUTION_X + x;
-- 
--+        if (*zValue >= zDistance)
--+        {       
--           SFG_setGamePixel(x,y,color);
--+          *zValue = zDistance;
--         }
--       }
---
---      if (!columnTransparent)
---        SFG_game.zBuffer[x] = zDistance;
--     }
--   }
-- }
