@@ -14,7 +14,7 @@ fi
 
 clear; clear; 
 
-C_FLAGS='-std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch'
+C_FLAGS="-std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch"
 
 COMPILER='g++'
 
@@ -35,7 +35,7 @@ if [ $1 = "sdl" ]; then
   # - g++
   # - SDL2 (dev) package
 
-  SDL_FLAGS=`sdl2-config --libs --static-libs`
+  SDL_FLAGS=`sdl2-config --cflags --libs --static-libs`
   COMMAND="${COMPILER} ${C_FLAGS} main_sdl.c -I/usr/local/include ${SDL_FLAGS}"
 
   echo ${COMMAND}
@@ -46,7 +46,7 @@ elif [ $1 = "saf" ]; then
   # - saf.h
   # - SDL2 (dev) package
 
-  SDL_FLAGS=`sdl2-config --libs --static-libs`
+  SDL_FLAGS=`sdl2-config --cflags --libs --static-libs`
   COMMAND="${COMPILER} ${C_FLAGS} main_saf.c -I/usr/local/include ${SDL_FLAGS}"
 
   echo ${COMMAND}
