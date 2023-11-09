@@ -11,6 +11,7 @@ git apply mods/movement_inertia.diff
 git apply mods/full_zbuffer.diff
 git apply mods/demo.diff
 git apply mods/terminal_messages.diff
+git apply mods/weapon_swing.diff
 
 sed -i 's/\(SFG_VERSION_STRING ".*\)"/\1 consoomer"/g' texts.h
 sed -i 's/SFG_PLAYER_DAMAGE_MULTIPLIER 512/SFG_PLAYER_DAMAGE_MULTIPLIER 300/g' settings.h # make the game easier
