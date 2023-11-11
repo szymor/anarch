@@ -5,13 +5,13 @@
 
 echo "making consoomer edition"
 
+git apply mods/particle_effects.diff
 git apply mods/hd/hd.diff
 git apply mods/crt.diff
 git apply mods/movement_inertia.diff
 git apply mods/full_zbuffer.diff
 git apply mods/demo.diff
 git apply mods/terminal_messages.diff
-git apply mods/particle_effects.diff
 git apply mods/weapon_swing.diff
 
 sed -i 's/\(SFG_VERSION_STRING ".*\)"/\1 consoomer"/g' texts.h
