@@ -1,0 +1,412 @@
+This mod adds a simple particle system and uses it to create effects such as
+more fancy explosions. By drummyfish, released under CC0 1.0, public domain.
+
+diff --git a/game.h b/game.h
+index 991058d..27473e4 100755
+--- a/game.h
++++ b/game.h
+@@ -339,6 +339,15 @@ typedef struct
+ 
+ #define SFG_MENU_ITEM_NONE 255
+ 
++typedef struct
++{
++  uint8_t dieIn;        ///< Double frames left to live.
++  uint8_t color;
++  uint8_t height;       ///< Floor h. under part., in RCL_UNITS_PER_SQUARE / 4s.
++  uint16_t position[3];
++  int8_t velocity[3];   ///< Velocity, simply added to position each frame.
++} SFG_Particle;
++
+ /*
+   GLOBAL VARIABLES
+ ===============================================================================
+@@ -476,6 +485,8 @@ struct
+   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
+                           /**< Bit array, for each map square says whether there
+                                is a colliding item or not. */
++  SFG_Particle particles[SFG_MAX_PARTICLES];
++  uint16_t particleCount;
+ } SFG_currentLevel;
+ 
+ #if SFG_AVR
+@@ -1312,6 +1323,79 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
+   return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
+ }
+ 
++/**
++  Emits new particle in the particle system, velocity is in 1/16ths of a square
++  per second.
++*/
++void SFG_emitParticle(uint8_t timeToLive, uint8_t color, RCL_Unit position[3],
++  int8_t velocity[3])
++{
++  if (timeToLive == 0)
++    return;
++
++  SFG_Particle *p = SFG_currentLevel.particles;
++
++  if (SFG_currentLevel.particleCount >= SFG_MAX_PARTICLES)
++    p += SFG_game.frame % SFG_currentLevel.particleCount; // replace random
++  else
++  { // append new particle
++    p += SFG_currentLevel.particleCount;
++    SFG_currentLevel.particleCount++;
++  }
++
++  p->height = SFG_floorHeightAt(
++    position[0] / RCL_UNITS_PER_SQUARE,
++    position[1] / RCL_UNITS_PER_SQUARE) / (RCL_UNITS_PER_SQUARE / 4);
++
++  p->dieIn = timeToLive;
++  p->color = color;
++
++  for (uint8_t i = 0; i < 3; ++i)
++  {
++    p->position[i] = position[i];
++
++    int16_t v = velocity[i];
++
++    v = (v * (RCL_UNITS_PER_SQUARE / 16)) / SFG_FPS;
++
++    if (v < -128)
++      v = -128;
++    else if (v > 127)
++      v = 127;
++
++    p->velocity[i] = v;
++  }
++}
++
++void SFG_explodeParticles(RCL_Unit position[3], uint8_t speed, uint8_t count,
++  uint16_t randomSeed, uint8_t color, uint8_t timeToLive, uint8_t allowDown)
++{
++  while (count)
++  {
++    int8_t v[3];
++    uint8_t randomAxis = randomSeed % 3;
++    uint8_t randomizedSpeed = speed - 2 + count % 4;
++
++    // select random point on a speed x speed x speed cube:
++    for (uint8_t i = 0; i < 3; ++i)
++    {
++      randomSeed = randomSeed * 123 + 10;
++      
++      v[i] = (i == randomAxis) ?
++        (((randomSeed / 32) % 2) ? -1 * randomizedSpeed : randomizedSpeed) :
++        ((randomSeed % (randomizedSpeed * 2)) - randomizedSpeed);
++    }
++
++    if (!allowDown && v[2] < 0)
++      v[2] *= -1;   
++
++    SFG_emitParticle(timeToLive + (timeToLive > 127 ? -1 * (randomSeed % 32) : 
++     (randomSeed % 32)),color,position,v);
++
++    count--;
++  }
++}
++
+ /**
+   Like SFG_floorCollisionHeightAt, but takes into account colliding items on
+   the map, so the squares that have these items are higher. The former function
+@@ -1662,6 +1746,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+     }
+   } 
+ 
++  SFG_currentLevel.particleCount = 0;
++
+   SFG_currentLevel.timeStart = SFG_game.frameTime; 
+   SFG_currentLevel.frameStart = SFG_game.frame;
+ 
+@@ -2000,18 +2086,24 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
+   if (healthAdd < 0)
+   {
+     // play hurt sound
++
++    RCL_Unit pos[3];
++
++    pos[0] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
++    pos[1] = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
++    pos[2] = SFG_floorHeightAt(SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
++      SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1]));
++
++    uint8_t volume = SFG_distantSoundVolume(pos[0],pos[1],pos[2]);
+     
+-    uint8_t volume = SFG_distantSoundVolume( 
+-      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]),
+-      SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]),
+-      SFG_floorHeightAt(
+-        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+-        SFG_MONSTER_COORD_TO_SQUARES(monster->coords[1])));
+-    
+-      SFG_playGameSound(5,volume);
++    SFG_playGameSound(5,volume);
+     
+     if (monster->health == 0)
++    {
+       SFG_playGameSound(2,volume);
++      SFG_explodeParticles(pos,25,SFG_MAX_PARTICLES / 3,SFG_game.frame + pos[0],
++        52,255,0);
++    }
+   }
+ }
+ 
+@@ -2222,6 +2314,14 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+         i--;
+       }
+     }
++
++  RCL_Unit pos[3];
++  pos[0] = x;
++  pos[1] = y;
++  pos[2] = z;
++
++  SFG_explodeParticles(pos,43,(SFG_MAX_PARTICLES * 3) / 2,
++    SFG_game.frame + x + y,191,150,1);
+ }
+ 
+ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+@@ -2242,6 +2342,14 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+     RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_DUST) / 2);
+ 
+   SFG_createProjectile(dust);
++
++  RCL_Unit pos[3];
++  pos[0] = x;
++  pos[1] = y;
++  pos[2] = z;
++
++  SFG_explodeParticles(pos,30,SFG_MAX_PARTICLES / 3,SFG_game.frame + x + y,5,
++    5,1);
+ }
+ 
+ void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
+@@ -2645,6 +2753,31 @@ void SFG_updateLevel()
+       }
+     }
+ 
++    if (!eliminate && ((SFG_game.frame % (SFG_FPS / 20 + 1)) == 0) &&
++      (p->type == SFG_PROJECTILE_FIREBALL || p->type == SFG_PROJECTILE_PLASMA))
++    {
++      // rocket and plasma emit particles as they fly  
++      int8_t vel[3];
++      uint8_t col = 95;
++
++      vel[0] = 0;
++      vel[1] = 0;
++
++      if (p->type == SFG_PROJECTILE_PLASMA)
++      {
++        col = 207;
++
++        vel[0] = p->direction[1] / 32;
++        vel[1] = p->direction[0] / 32;
++        vel[(SFG_game.frame % 8) == 0] *= -1;
++        vel[2] = (pos[0] % 3 + pos[1] % 2) * 4;
++      }
++      else
++        vel[2] = 8;
++
++      SFG_emitParticle(30,col - p->doubleFramesToLive / 4  ,pos,vel);
++    }
++
+     if (p->doubleFramesToLive == 0) // no more time to live?
+     {
+       eliminate = 1;
+@@ -2974,6 +3107,93 @@ void SFG_updateLevel()
+       }
+     }
+   }
++
++  // update particles:
++
++  SFG_Particle *p = SFG_currentLevel.particles;
++  uint8_t evenFrame = SFG_game.frame % 2;
++
++  if (SFG_currentLevel.particleCount > 0)
++  {
++    // check visibility of one random particle
++    SFG_Particle *p = SFG_currentLevel.particles +
++      (SFG_game.frame % SFG_currentLevel.particleCount);
++
++    RCL_Vector2D particlePos;
++
++    particlePos.x = p->position[0];
++    particlePos.y = p->position[1];
++
++    if (RCL_castRay3D(
++      SFG_player.camera.position,
++      SFG_player.camera.height,
++      particlePos,
++      p->position[2],
++      SFG_floorHeightAt,
++      SFG_ceilingHeightAt,
++      SFG_game.visibilityRayConstraints
++      ) < (7 * RCL_UNITS_PER_SQUARE) / 8)
++      p->dieIn = 0; // particle out of sight: just kill it
++  }
++
++  for (int i = 0; i < SFG_currentLevel.particleCount; ++i)
++  {
++    if (p->dieIn != 0)
++    {
++      if (evenFrame)
++        p->dieIn--;
++
++      RCL_Unit height = p->height;
++      height *= RCL_UNITS_PER_SQUARE / 4;
++
++      uint8_t squareX = p->position[0] / RCL_UNITS_PER_SQUARE,
++              squareY = p->position[1] / RCL_UNITS_PER_SQUARE;
++
++      p->position[0] += p->velocity[0];
++      p->position[1] += p->velocity[1];
++
++      if (squareX != p->position[0] / RCL_UNITS_PER_SQUARE ||
++          squareY != p->position[1] / RCL_UNITS_PER_SQUARE)
++      {
++        // particle changed square, handle change in floor height
++
++        RCL_Unit newHeight = SFG_floorHeightAt(
++          p->position[0] / RCL_UNITS_PER_SQUARE,
++          p->position[1] / RCL_UNITS_PER_SQUARE);
++
++        if (p->position[2] >= newHeight)
++        {
++          p->height = newHeight / (RCL_UNITS_PER_SQUARE / 4);
++          height = newHeight;
++        }
++        else
++        {
++          p->position[0] -= p->velocity[0];
++          p->position[1] -= p->velocity[1];
++          p->velocity[0] = 0;
++          p->velocity[1] = 0;
++        }
++      }
++
++      if (p->velocity[2] > 0 || p->position[2] >= -1 * p->velocity[2])
++        p->position[2] += p->velocity[2];
++
++      if (p->position[2] < height)
++        p->position[2] = height;
++
++      if (evenFrame && p->velocity[2] > -30)
++        p->velocity[2] -= (RCL_UNITS_PER_SQUARE / 16) / SFG_FPS  ; // gravity
++    }
++    else
++    {
++      SFG_currentLevel.particleCount--;
++
++      if (SFG_currentLevel.particleCount > 0)
++        *p = SFG_currentLevel.particles[SFG_currentLevel.particleCount];
++    }
++
++    p++;
++  }
+ }
+ 
+ /**
+@@ -3591,6 +3811,24 @@ void SFG_gameStepPlaying()
+         default:                         sound = 0; break;
+       }
+ 
++      if (SFG_player.weapon == SFG_WEAPON_SHOTGUN ||
++        SFG_player.weapon == SFG_WEAPON_MACHINE_GUN)
++      {
++        // spawn bullet shell:
++        RCL_Unit shellP[3];
++        int8_t shellV[3];
++
++        shellP[0] = SFG_player.camera.position.x;
++        shellP[1] = SFG_player.camera.position.y;
++        shellP[2] = SFG_player.camera.height;
++
++        shellV[0] = SFG_player.direction.x / 16 - SFG_player.direction.y / 32;
++        shellV[1] = SFG_player.direction.y / 16 + SFG_player.direction.x / 32;
++        shellV[2] = 2;
++
++        SFG_emitParticle(255,20,shellP,shellV);
++      }
++
+       if (sound != 255)
+         SFG_playGameSound(sound,255);
+ 
+@@ -3769,6 +4007,14 @@ void SFG_gameStepPlaying()
+     SFG_processEvent(SFG_EVENT_VIBRATE,0);
+     SFG_processEvent(SFG_EVENT_PLAYER_DIES,0);
+     SFG_setGameState(SFG_GAME_STATE_LOSE);
++  
++    RCL_Unit pos[3];
++    pos[0] = SFG_player.camera.position.x + (SFG_player.direction.x * 2) / 3;
++    pos[1] = SFG_player.camera.position.y + (SFG_player.direction.y * 2) / 3;
++    pos[2] = SFG_player.camera.height;
++
++    // blood:
++    SFG_explodeParticles(pos,8,(SFG_MAX_PARTICLES * 2) / 3,123,175,255,0);
+   }
+ #endif
+ }
+@@ -4860,6 +5106,36 @@ void SFG_draw()
+             p.depth);  
+     }
+ 
++    // particles:
++
++    SFG_Particle *particle = SFG_currentLevel.particles;
++
++    for (int i = 0; i < SFG_currentLevel.particleCount; ++i)
++    {
++      RCL_Vector2D worldPosition;
++
++      worldPosition.x = particle->position[0];
++      worldPosition.y = particle->position[1];
++
++      RCL_PixelInfo p =
++        RCL_mapToScreen(worldPosition,particle->position[2],SFG_player.camera);
++
++      p.position.x *= SFG_RAYCASTING_SUBSAMPLE;
++
++      if (p.depth > 127 &&
++        p.position.x >= 0 &&
++        p.position.x < (SFG_GAME_RESOLUTION_X - SFG_PARTICLE_SIZE) &&
++        p.position.y >= 0 &&
++        p.position.y < (SFG_GAME_RESOLUTION_Y - SFG_PARTICLE_SIZE))
++      {
++        for (int y = p.position.y; y < p.position.y + SFG_PARTICLE_SIZE; ++y)
++          for (int x = p.position.x; x < p.position.x + SFG_PARTICLE_SIZE; ++x)
++            SFG_setGamePixel(x,y,particle->color);
++      }
++
++      particle++;
++    }
++
+ #if SFG_HEADBOB_ENABLED
+     // after rendering sprites substract back the head bob offset
+     SFG_player.camera.height -= headBobOffset;
+diff --git a/settings.h b/settings.h
+index a0d8c1f..2155369 100644
+--- a/settings.h
++++ b/settings.h
+@@ -457,6 +457,20 @@
+   #define SFG_FORCE_SINGLE_ITEM_MENU 0
+ #endif
+ 
++/**
++  Maximum number of particles for the game's particle system.
++*/
++#ifndef SFG_MAX_PARTICLES
++  #define SFG_MAX_PARTICLES 64
++#endif
++
++/**
++  Particle size in pixels, for particle system.
++*/
++#ifndef SFG_PARTICLE_SIZE
++  #define SFG_PARTICLE_SIZE 4
++#endif
++
+ //------ developer/debug settings ------
+ 
+ /**
