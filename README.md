@@ -248,7 +248,7 @@ Yes. You can also replace it with your own political stuff, even if it's in conf
 
 The game itself can't communicate many values directly – it is just a simple game with very little text – but it tries to **bring attention** to the values of its author. Some of these are:
 
-- **In general so called [less retarded software/society](https://www.tastyfish.cz/lrs/main.html)** -- my newly created philosophy of technology and life.
+- **In general so called [less retarded software/society](http://www.tastyfish.cz/lrs/main.html)** -- my newly created philosophy of technology and life.
 - [Anarchism](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-02-17), which [automatically means](https://theanarchistlibrary.org/library/the-anarchist-faq-editorial-collective-an-anarchist-faq-12-17#toc16) anti-capitalism and caring about all other living beings.
 - [Pacifism](https://en.wikipedia.org/wiki/Anarcho-pacifism), because true effort for equality can't be pursued by violence and other forms of oppression.
 - [Minimalism](https://suckless.org/philosophy/) and simplicity, in technology and elsewhere, as a means of freedom and beauty.
@@ -289,7 +289,7 @@ Firstly don't panic and please don't hate me, I didn't put that bug there intent
 
 ### Who are you?
 
-I am an anarcho-pacifist programmer called drummyfish (real name Miloslav Číž). I love all living beings, even you (even if you hate me). You can read more about me at [my website](https://www.tastyfish.cz). You can read about my technology and life philosophy at my [less retarded wiki](https://www.tastyfish.cz/lrs/main.html).
+I am an anarcho-pacifist programmer called drummyfish (real name Miloslav Číž). I love all living beings, even you (even if you hate me). You can read more about me at [my website](http://www.tastyfish.cz). You can read about my technology and life philosophy at my [less retarded wiki](https://www.tastyfish.cz/lrs/main.html).
 
 ### You sound like an insane person, are you crazy?
 
@@ -297,7 +297,7 @@ I have mental issues as most people nowadays and I go crazy from living in this 
 
 ### Can I support you?
 
-Yes. This wasn't made for any profit but if you have enough resources and just want to share them with a fellow human being, I'll be glad. You can find my support info at [my website](https://www.tastyfish.cz#support). You can also pay what you want on itch.io.
+Yes. This wasn't made for any profit but if you have enough resources and just want to share them with a fellow human being, I'll be glad. You can find my support info at [my website](http://www.tastyfish.cz#support). You can also pay what you want on itch.io.
 
 ### Fuck you.
 
