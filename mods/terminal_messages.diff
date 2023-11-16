@@ -1,26 +1,23 @@
-This is a mod for Anarch that makes ingame terminals display random messages.
-By drummyfish, released under CC0 1.0, public domain.
-
 diff --git a/game.h b/game.h
-index 991058d..720034e 100755
+index 991058d..a96df00 100755
 --- a/game.h
 +++ b/game.h
-@@ -407,6 +407,7 @@ struct
-          6  32b little endian total play time, in 10ths of sec
-          10 16b little endian total enemies killed from start */
-   uint8_t continues;  ///< Whether the game continues or was exited.
+@@ -390,6 +390,7 @@ struct
+                            0 (not saved), 1 (just saved) or 255 (can't save).*/
+   uint8_t cheatState; /**< Highest bit say whether cheat is enabled, other bits
+                            represent the state of typing the cheat code. */
 +  const char *rollingMessage;
- } SFG_game;
+   uint8_t save[SFG_SAVE_SIZE];  /**< Stores the game save state that's kept in
+                            the persistent memory.
  
- #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
-@@ -476,6 +477,7 @@ struct
-   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
-                           /**< Bit array, for each map square says whether there
-                                is a colliding item or not. */
+@@ -467,6 +468,7 @@ struct
+ 
+   SFG_ProjectileRecord projectileRecords[SFG_MAX_PROJECTILES];
+   uint8_t projectileRecordCount;
 +  uint8_t checkedTerminalIndex;
- } SFG_currentLevel;
- 
- #if SFG_AVR
+   uint8_t bossCount;
+   uint8_t monstersDead;
+   uint8_t backgroundImage;
 @@ -1536,6 +1538,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
    SFG_currentLevel.ceilingColor = level->ceilingColor;
    SFG_currentLevel.completionTime10sOfS = 0;
