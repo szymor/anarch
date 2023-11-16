@@ -1,8 +1,5 @@
-This mod adds a simple particle system and uses it to create effects such as
-more fancy explosions. By drummyfish, released under CC0 1.0, public domain.
-
 diff --git a/game.h b/game.h
-index 991058d..27473e4 100755
+index 991058d..328ed68 100755
 --- a/game.h
 +++ b/game.h
 @@ -339,6 +339,15 @@ typedef struct
@@ -21,16 +18,17 @@ index 991058d..27473e4 100755
  /*
    GLOBAL VARIABLES
  ===============================================================================
-@@ -476,6 +485,8 @@ struct
-   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
-                           /**< Bit array, for each map square says whether there
-                                is a colliding item or not. */
+@@ -453,6 +462,9 @@ struct
+   uint8_t floorColor;
+   uint8_t ceilingColor;
+ 
 +  SFG_Particle particles[SFG_MAX_PARTICLES];
 +  uint16_t particleCount;
- } SFG_currentLevel;
- 
- #if SFG_AVR
-@@ -1312,6 +1323,79 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
++
+   SFG_DoorRecord doorRecords[SFG_MAX_DOORS];
+   uint8_t doorRecordCount;
+   uint8_t checkedDoorIndex; ///< Says which door are currently being checked.
+@@ -1312,6 +1324,79 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
    return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
  }
  
@@ -110,7 +108,7 @@ index 991058d..27473e4 100755
  /**
    Like SFG_floorCollisionHeightAt, but takes into account colliding items on
    the map, so the squares that have these items are higher. The former function
-@@ -1662,6 +1746,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+@@ -1662,6 +1747,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
      }
    } 
  
@@ -119,7 +117,7 @@ index 991058d..27473e4 100755
    SFG_currentLevel.timeStart = SFG_game.frameTime; 
    SFG_currentLevel.frameStart = SFG_game.frame;
  
-@@ -2000,18 +2086,24 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
+@@ -2000,18 +2087,24 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
    if (healthAdd < 0)
    {
      // play hurt sound
@@ -152,7 +150,7 @@ index 991058d..27473e4 100755
    }
  }
  
-@@ -2222,6 +2314,14 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+@@ -2222,6 +2315,14 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
          i--;
        }
      }
@@ -167,7 +165,7 @@ index 991058d..27473e4 100755
  }
  
  void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
-@@ -2242,6 +2342,14 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+@@ -2242,6 +2343,14 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
      RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(SFG_PROJECTILE_DUST) / 2);
  
    SFG_createProjectile(dust);
@@ -182,7 +180,7 @@ index 991058d..27473e4 100755
  }
  
  void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
-@@ -2645,6 +2753,31 @@ void SFG_updateLevel()
+@@ -2645,6 +2754,31 @@ void SFG_updateLevel()
        }
      }
  
@@ -214,7 +212,7 @@ index 991058d..27473e4 100755
      if (p->doubleFramesToLive == 0) // no more time to live?
      {
        eliminate = 1;
-@@ -2974,6 +3107,93 @@ void SFG_updateLevel()
+@@ -2974,6 +3108,93 @@ void SFG_updateLevel()
        }
      }
    }
@@ -308,7 +306,7 @@ index 991058d..27473e4 100755
  }
  
  /**
-@@ -3591,6 +3811,24 @@ void SFG_gameStepPlaying()
+@@ -3591,6 +3812,24 @@ void SFG_gameStepPlaying()
          default:                         sound = 0; break;
        }
  
@@ -333,7 +331,7 @@ index 991058d..27473e4 100755
        if (sound != 255)
          SFG_playGameSound(sound,255);
  
-@@ -3769,6 +4007,14 @@ void SFG_gameStepPlaying()
+@@ -3769,6 +4008,14 @@ void SFG_gameStepPlaying()
      SFG_processEvent(SFG_EVENT_VIBRATE,0);
      SFG_processEvent(SFG_EVENT_PLAYER_DIES,0);
      SFG_setGameState(SFG_GAME_STATE_LOSE);
@@ -348,7 +346,7 @@ index 991058d..27473e4 100755
    }
  #endif
  }
-@@ -4860,6 +5106,36 @@ void SFG_draw()
+@@ -4860,6 +5107,36 @@ void SFG_draw()
              p.depth);  
      }
  
