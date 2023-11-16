@@ -1,0 +1,167 @@
+This mod adds a simple quicksave/quickload functionality, quicksaves do NOT
+survive game restart, they are only kept in RAM. By drummyfish, released under
+CC0 1.0, public domain.
+
+diff --git a/game.h b/game.h
+index 991058d..14644f3 100755
+--- a/game.h
++++ b/game.h
+@@ -335,7 +335,9 @@ typedef struct
+ #define SFG_MENU_ITEM_LOAD 3
+ #define SFG_MENU_ITEM_SOUND 4
+ #define SFG_MENU_ITEM_SHEAR 5
+-#define SFG_MENU_ITEM_EXIT 6
++#define SFG_MENU_ITEM_QUICKSAVE 6
++#define SFG_MENU_ITEM_QUICKLOAD 7
++#define SFG_MENU_ITEM_EXIT 8
+ 
+ #define SFG_MENU_ITEM_NONE 255
+ 
+@@ -348,7 +350,7 @@ typedef struct
+   Groups global variables related to the game as such in a single struct. There
+   are still other global structs for player, level etc.
+ */
+-struct
++typedef struct
+ {
+   uint8_t state;                 ///< Current game state.
+   uint32_t stateTime;            ///< Time in ms from last state change.
+@@ -407,7 +409,9 @@ struct
+          6  32b little endian total play time, in 10ths of sec
+          10 16b little endian total enemies killed from start */
+   uint8_t continues;  ///< Whether the game continues or was exited.
+-} SFG_game;
++} SFG_Game;
++
++SFG_Game SFG_game;
+ 
+ #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+   SFG_game.save[8] * 65536 + SFG_game.save[9] * 4294967296)
+@@ -415,7 +419,7 @@ struct
+ /**
+   Stores player state.
+ */
+-struct
++typedef struct
+ {
+   RCL_Camera camera;
+   int8_t squarePosition[2];
+@@ -437,12 +441,14 @@ struct
+                                    the last 2 bits are a blink reset counter. */
+   uint8_t  justTeleported;
+   int8_t   previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
+-} SFG_player;
++} SFG_Player;
++
++SFG_Player SFG_player;
+ 
+ /**
+   Stores the current level and helper precomputed values for better performance.
+ */
+-struct
++typedef struct
+ {
+   const SFG_Level *levelPointer;
+   uint8_t levelNumber;
+@@ -476,7 +482,13 @@ struct
+   uint8_t itemCollisionMap[(SFG_MAP_SIZE * SFG_MAP_SIZE) / 8];
+                           /**< Bit array, for each map square says whether there
+                                is a colliding item or not. */
+-} SFG_currentLevel;
++} SFG_CurrentLevel;
++
++SFG_CurrentLevel SFG_currentLevel;
++
++SFG_Game SFG_quickSaveGame;
++SFG_Player SFG_quickSavePlayer;
++SFG_CurrentLevel SFG_quickSaveCurrentLevel;
+ 
+ #if SFG_AVR
+ /**
+@@ -633,6 +645,25 @@ void SFG_gameLoad()
+     SFG_game.saved = SFG_CANT_SAVE;
+ }
+ 
++void SFG_quickSave(void)
++{
++  SFG_quickSaveGame = SFG_game;
++  SFG_quickSavePlayer = SFG_player;
++  SFG_quickSaveCurrentLevel = SFG_currentLevel;
++  SFG_LOG("quicksaved");
++}
++
++void SFG_quickLoad(void)
++{
++  uint32_t frameTime = SFG_game.frameTime;
++
++  SFG_game = SFG_quickSaveGame;
++  SFG_player = SFG_quickSavePlayer;
++  SFG_currentLevel = SFG_quickSaveCurrentLevel;
++  SFG_game.frameTime = frameTime;
++  SFG_LOG("quickloaded");
++}
++
+ /**
+   Returns ammo type for given weapon.
+ */
+@@ -1685,6 +1716,8 @@ void SFG_init()
+ {
+   SFG_LOG("initializing game")
+ 
++  SFG_quickSaveGame.frame = 0; // indicate no quicksave performed yet
++
+   SFG_game.frame = 0;
+   SFG_game.frameTime = 0;
+   SFG_game.currentRandom = 0;
+@@ -3784,7 +3817,10 @@ uint8_t SFG_getMenuItem(uint8_t index)
+   {
+     if ( // skip non-legitimate items
+       ((current <= SFG_MENU_ITEM_MAP) && (SFG_currentLevel.levelPointer == 0))
+-      || ((current == SFG_MENU_ITEM_LOAD) && ((SFG_game.save[0] >> 4) == 0)))
++      || ((current == SFG_MENU_ITEM_LOAD) && ((SFG_game.save[0] >> 4) == 0))
++      || (current == SFG_MENU_ITEM_QUICKLOAD && SFG_quickSaveGame.frame == 0)
++      || (current == SFG_MENU_ITEM_QUICKSAVE &&
++        SFG_currentLevel.levelPointer == 0))
+     {
+       current++;
+       continue;
+@@ -3924,6 +3960,18 @@ void SFG_gameStepMenu()
+         SFG_setGameState(SFG_GAME_STATE_MAP);
+         break;
+ 
++      case SFG_MENU_ITEM_QUICKSAVE:
++        SFG_quickSave();
++        SFG_game.selectedMenuItem = 0;
++        SFG_setGameState(SFG_GAME_STATE_PLAYING);
++        break;
++
++      case SFG_MENU_ITEM_QUICKLOAD:
++        SFG_quickLoad();
++        SFG_game.selectedMenuItem = 0;
++        SFG_setGameState(SFG_GAME_STATE_PLAYING);
++        break;
++
+       case SFG_MENU_ITEM_SOUND:
+         SFG_LOG("sound changed");
+ 
+@@ -4982,7 +5030,6 @@ uint8_t SFG_mainLoopBody()
+           SFG_processEvent(SFG_EVENT_PLAYER_CHANGES_WEAPON,SFG_player.weapon);
+ 
+         timeSinceLastFrame -= SFG_MS_PER_FRAME;
+-
+         SFG_game.frame++;
+         steps++;
+       }
+diff --git a/texts.h b/texts.h
+index b7e53d4..0964b91 100644
+--- a/texts.h
++++ b/texts.h
+@@ -26,6 +26,8 @@ static const char *SFG_menuItemTexts[] =
+   "load",
+   "sound",
+   "look",
++  "qsave",
++  "qload",
+   "exit"
+ };
+ 
