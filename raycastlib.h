@@ -26,7 +26,7 @@
 
   author: Miloslav "drummyfish" Ciz
   license: CC0 1.0
-  version: 0.908d
+  version: 0.909d
 
   Version numbering: major.minor[d], id 'd' is appended, this is a
   in-development version based on the previous stable major.minor version. Two
@@ -39,7 +39,8 @@
                              Only use if neccesarry, looks ugly. Also not done
                              yet. */
   #define RCL_UNITS_PER_SQUARE 1024 /**< Number of RCL_Units in a side of a
-                                         spatial square. */
+                                         spatial square, i.e. the fixed point
+                                         scaling. */
   typedef int32_t RCL_Unit; /**< Smallest spatial unit, there is
                                  RCL_UNITS_PER_SQUARE units in a square's
                                  length. This effectively serves the purpose of
@@ -51,6 +52,8 @@
   #define RCL_INFINITY 30000
   #define RCL_USE_DIST_APPROX 2
 #endif
+  
+#define RCL_U RCL_UNITS_PER_SQUARE ///< shorthand for RCL_UNITS_PER_SQUARE
 
 #ifndef RCL_COMPUTE_WALL_TEXCOORDS
 #define RCL_COMPUTE_WALL_TEXCOORDS 1
@@ -1781,7 +1784,7 @@ RCL_Unit RCL_castRay3D(
   ray.direction.x = pos2.x - pos1.x;
   ray.direction.y = pos2.y - pos1.y;
 
-  distance = RCL_len(ray.direction);
+  distance = RCL_nonZero(RCL_len(ray.direction));
 
   ray.direction = RCL_normalize(ray.direction); 
 
