@@ -1,0 +1,150 @@
+This mod rotates and flips sprites some sprites during gameplay so as to make
+them appear animated. By drummyfish, released under CC0 1.0, public domain.
+
+diff --git a/game.h b/game.h
+index 991058d..7e1a103 100755
+--- a/game.h
++++ b/game.h
+@@ -1041,6 +1041,29 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
+ #endif
+ }
+ 
++#define SFG_TEXTURE_TRANSOFRM_FLIP_X 0x01
++#define SFG_TEXTURE_TRANSOFRM_FLIP_Y 0x02
++#define SFG_TEXTURE_TRANSOFRM_SWAP   0x04
++
++static inline void SFG_transformTextureCoords(uint8_t *x, uint8_t *y,
++  uint8_t transform)
++{
++  // NOTE: using switch with all 8 possible cases might be faster
++
++  if (transform & SFG_TEXTURE_TRANSOFRM_FLIP_X)
++    *x = SFG_TEXTURE_SIZE - 1 - *x;
++
++  if (transform & SFG_TEXTURE_TRANSOFRM_FLIP_Y)
++    *y = SFG_TEXTURE_SIZE - 1 - *y;
++
++  if (transform & SFG_TEXTURE_TRANSOFRM_SWAP)
++  {
++    *y ^= *x;
++    *x ^= *y;
++    *y ^= *x;
++  }
++}
++
+ /**
+   Draws image on screen, with transparency. This is faster than sprite drawing.
+   For performance sake drawing near screen edges is not pixel perfect.
+@@ -1049,7 +1072,8 @@ void SFG_blitImage(
+   const uint8_t *image,
+   int16_t posX,
+   int16_t posY,
+-  uint8_t scale)
++  uint8_t scale,
++  uint8_t transform)
+ {
+   if (scale == 0)
+     return;
+@@ -1100,7 +1124,10 @@ void SFG_blitImage(
+ 
+     for (uint16_t x = x0; x < x1; x += scale)
+     {
+-      uint8_t color = SFG_getTexel(image,u,v);
++      uint8_t tx = u, ty = v;
++      SFG_transformTextureCoords(&tx,&ty,transform);
++
++      uint8_t color = SFG_getTexel(image,tx,ty);
+ 
+       if (color != SFG_TRANSPARENT_COLOR)
+       {
+@@ -1131,7 +1158,8 @@ void SFG_drawScaledSprite(
+   int16_t centerY,
+   int16_t size,
+   uint8_t minusValue,
+-  RCL_Unit distance)
++  RCL_Unit distance,
++  uint8_t transform)
+ {
+   if (size == 0)
+     return;
+@@ -1222,9 +1250,12 @@ void SFG_drawScaledSprite(
+ 
+       for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
+       {
+-        uint8_t color =
+-          SFG_getTexel(image,SFG_game.spriteSamplingPoints[u],
+-            SFG_game.spriteSamplingPoints[v]);
++        uint8_t tx = SFG_game.spriteSamplingPoints[u],
++          ty = SFG_game.spriteSamplingPoints[v];
++
++        SFG_transformTextureCoords(&tx,&ty,transform);
++
++        uint8_t color = SFG_getTexel(image,tx,ty);
+ 
+         if (color != SFG_TRANSPARENT_COLOR)
+         {
+@@ -4262,7 +4293,7 @@ void SFG_drawStoryText()
+     SFG_blitImage(SFG_monsterSprites + sprite * SFG_TEXTURE_STORE_SIZE,
+         (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
+         SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
+-        SFG_FONT_SIZE_SMALL);  
++        SFG_FONT_SIZE_SMALL,0);  
+ 
+   uint16_t textLen = 0;
+ 
+@@ -4408,14 +4439,15 @@ void SFG_drawWeapon(int16_t bobOffset)
+           SFG_WEAPON_IMAGE_POSITION_X,
+           SFG_WEAPON_IMAGE_POSITION_Y -
+             (SFG_TEXTURE_SIZE / 3) * SFG_WEAPON_IMAGE_SCALE + bobOffset,
+-          SFG_WEAPON_IMAGE_SCALE);
++          SFG_WEAPON_IMAGE_SCALE,
++          (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 8);
+     }
+   }
+ 
+   SFG_blitImage(SFG_weaponImages + SFG_player.weapon * SFG_TEXTURE_STORE_SIZE,
+   SFG_WEAPON_IMAGE_POSITION_X,
+   SFG_WEAPON_IMAGE_POSITION_Y + bobOffset - 1,
+-  SFG_WEAPON_IMAGE_SCALE);
++  SFG_WEAPON_IMAGE_SCALE,0);
+ }
+ 
+ uint16_t SFG_textLen(const char *text)
+@@ -4470,7 +4502,7 @@ void SFG_drawMenu()
+   uint16_t y = SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
+ 
+   SFG_blitImage(SFG_logoImage,SFG_GAME_RESOLUTION_X / 2 - 
+-    (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL);
++    (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL,0);
+ 
+ #if SFG_GAME_RESOLUTION_Y > 50
+   y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
+@@ -4771,7 +4803,8 @@ void SFG_draw()
+             RCL_perspectiveScaleVertical(
+             SFG_SPRITE_SIZE_PIXELS(spriteSize),
+             p.depth),
+-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
++            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth,
++            ((worldPosition.x + worldPosition.y) / RCL_UNITS_PER_SQUARE) % 2);
+         }
+       }
+     }
+@@ -4810,7 +4843,7 @@ void SFG_draw()
+             SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
+               p.position.y,
+               RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
+-              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
++              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth,0);
+         }
+       }
+ 
+@@ -4857,7 +4890,8 @@ void SFG_draw()
+             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+             RCL_perspectiveScaleVertical(spriteSize,p.depth),
+             SFG_fogValueDiminish(p.depth),
+-            p.depth);  
++            p.depth,((p.position.x + p.position.y + SFG_game.frame * 2) /
++              SFG_BLINK_PERIOD_FRAMES) % 8);
+     }
+ 
+ #if SFG_HEADBOB_ENABLED
