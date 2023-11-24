@@ -1,0 +1,96 @@
+Joke mod that adds earthquake. By drummyfish, released under CC0 1.0, public
+domain.
+
+diff --git a/game.h b/game.h
+index 991058d..fdb53e8 100755
+--- a/game.h
++++ b/game.h
+@@ -1272,6 +1272,14 @@ RCL_Unit SFG_movingWallHeight
+     low + halfHeight + (RCL_sin(sinArg) * halfHeight) / RCL_UNITS_PER_SQUARE;
+ }
+ 
++RCL_Unit SFG_earthQuakeHeightAt(int16_t x, int16_t y)
++{
++  return SFG_EARTHQUAKE_HEIGHT * (
++    RCL_sin((((x + y) * RCL_UNITS_PER_SQUARE) / SFG_EARTHQUAKE_WAVELENGTH +
++      (SFG_game.frameTime * RCL_UNITS_PER_SQUARE) / SFG_EARTHQUAKE_SPEED) %
++      RCL_UNITS_PER_SQUARE)) / RCL_UNITS_PER_SQUARE;
++}
++
+ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
+ {
+   uint8_t properties;
+@@ -1306,10 +1314,12 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
+     return SFG_movingWallHeight(
+       height,
+       height + SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+-      SFG_game.frameTime - SFG_currentLevel.timeStart);
++      SFG_game.frameTime - SFG_currentLevel.timeStart) +
++        SFG_earthQuakeHeightAt(x,y);
+   }
+- 
+-  return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
++
++  return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight +
++    SFG_earthQuakeHeightAt(x,y);
+ }
+ 
+ /**
+@@ -1427,11 +1437,13 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
+     SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
+ 
+   if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+-    return SFG_CEILING_MAX_HEIGHT;
++    return SFG_CEILING_MAX_HEIGHT + SFG_earthQuakeHeightAt(x,y);
+ 
+   uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
+ 
+-  return properties != SFG_TILE_PROPERTY_SQUEEZER ?
++  return SFG_earthQuakeHeightAt(x,y) +
++  (
++    properties != SFG_TILE_PROPERTY_SQUEEZER ?
+     (
+       height != SFG_TILE_CEILING_MAX_HEIGHT ?
+       ((SFG_TILE_FLOOR_HEIGHT(tile) + height) * SFG_WALL_HEIGHT_STEP) :
+@@ -1441,7 +1453,8 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
+       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+       (SFG_TILE_CEILING_HEIGHT(tile) + SFG_TILE_FLOOR_HEIGHT(tile))
+          * SFG_WALL_HEIGHT_STEP,
+-      SFG_game.frameTime - SFG_currentLevel.timeStart);
++      SFG_game.frameTime - SFG_currentLevel.timeStart)
++  );
+ }
+ 
+ /**
+diff --git a/settings.h b/settings.h
+index a0d8c1f..16674a2 100644
+--- a/settings.h
++++ b/settings.h
+@@ -343,6 +343,27 @@
+   #define SFG_BACKGROUND_BLUR 0
+ #endif
+ 
++/**
++  Specifies the amplitude of eartquake, in RCL_Units.
++*/
++#ifndef SFG_EARTHQUAKE_HEIGHT
++  #define SFG_EARTHQUAKE_HEIGHT 256
++#endif
++
++/**
++  Specifies eartquake wavelength, in game tiles.
++*/
++#ifndef SFG_EARTHQUAKE_WAVELENGTH
++  #define SFG_EARTHQUAKE_WAVELENGTH 8
++#endif
++
++/**
++  Specifies eartquake speen in the wave time period in milliseconds.
++*/
++#ifndef SFG_EARTHQUAKE_SPEED
++  #define SFG_EARTHQUAKE_SPEED 1024
++#endif
++
+ /**
+   Defines the period, in ms, of things that blink, such as text.
+ */
