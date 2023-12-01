@@ -48,6 +48,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - unofficial [RetroFW and MiyooCFW ports](https://github.com/szymor/anarch) by szymor
   - unofficially ran on/ported to [OpenPandora](https://git.sr.ht/~magic_sam/Anarch) by MagicSam ([forum thread](https://pyra-handheld.com/boards/threads/anarch.99869/#post-1714158))
   - unofficial [libretro port](https://codeberg.org/iyzsong/anarch-libretro) by iyzsong
+  - rumor has it Anarch was also run in Emacs
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kb (60 kb with procgen mod)** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
