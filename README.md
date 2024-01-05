@@ -42,6 +42,7 @@ This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https:
   - Ringo/MAKERphone (160 x 128, 160 MHz ARM, 520 KB RAM, 4 MB flash)
   - ESPboy (128 x 128, 160 MHz)
   - Nibble (128 x 128, 160 MHz)
+  - ncurses (not very playable)
   - unofficial [bare metal Raspberry Pi port](https://github.com/msx80/anarch-baremetalpi) by msx80
   - unofficial [DOS port](https://gitlab.com/wuuff/anarch-dos) by Wuuff
   - another unofficial [DOS port](https://codeberg.org/gera/anarch-dos) by gera

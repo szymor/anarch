@@ -41,6 +41,15 @@ if [ $1 = "sdl" ]; then
   echo ${COMMAND}
 
   ${COMMAND}
+elif [ $1 = "ncurses" ]; then
+  # ncurses build, requires:
+  # - libncurses-dev
+
+  COMMAND="${COMPILER} ${C_FLAGS} -lncurses main_ncurses.c"
+
+  echo ${COMMAND}
+
+  ${COMMAND}
 elif [ $1 = "saf" ]; then
   # SAF build using SDL, requires:
   # - saf.h
