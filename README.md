@@ -10,7 +10,7 @@ everywhere, made for the benefit of all living beings*
 
 ![](media/3screens.png)
 
-**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`. You can now also make **tool assisted speedruns** with the demo mod.
+**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`. You can now also make **tool assisted speedruns** with the demo mod. Now there is also a **mod that replaces the assets with Freedoom ones**: see [here](https://codeberg.org/drummyfish/drummy_utils/src/branch/master/anarch_fd) (separate repo as for different license).
 
 ![](media/riced.png)
 
