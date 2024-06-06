@@ -1,0 +1,2528 @@
+Anarch cooperative multiplayer mod. More info in README_multiplayer.txt.
+
+by drummyfish, released under CC0 1.0, public domain
+
+diff --git a/README_multiplayer.txt b/README_multiplayer.txt
+new file mode 100644
+index 0000000..51925e1
+--- /dev/null
++++ b/README_multiplayer.txt
+@@ -0,0 +1,100 @@
++ANARCH: COOPERATIVE MULTIPLAYER MOD README
++
++by drummyfish, released under CC0 1.0, public domain
++
++This mod adds cooperative multiplayer for up to 4 players. The game is further
++modified a bit to make it better playable that way -- for example dying just
++respawns the player at the beginning of the level, items give more resources
++(because players share them) and so on. Players can't hurt each other directly.
++Only the SDL frontend is supported now, but it shouldn't be hard to add it to
++other frontends either. Unix socket library is used in the SDL frontend, so it
++won't work on systems that don't have those libraries.
++
++The mod is pretty simple, don't expect any miracles.
++
++Networking is abstracted but basically it's made with UDP over IPv4 in mind now.
++
++Some other mods can possibly be applied on top of the multiplayer client but all
++players should in general be using the same kind of game, i.e. same version with
++the same mods.
++
++The multiplayer is peer-to-peer, NOT client-server! There are no anticheat
++measures or anything too advanced going on. In essence players send others their
++state of the world and they all try to synchronize in some way. It is very
++possible they sometimes see things a bit differently (for example a monster may
++shoot on different players sometimes) but in general you will hardly notice, it
++is relied on the fact that imperfections will get lost in the chaos :)))
++
++Connecting works like this: you start your game, possibly telling it to connect
++to some other player by giving it the address. Whenever someone connects to
++someone else, they will be exchanging their addresses and addresses of all their
++partners, so if let's say someone connects to your partner, he will also connect
++to you etc.
++
++Each player tries to send everyone else his data, but players also resend some
++of the data between the other players in case some of them can't communicate
++directly between themselves, though with lower frequency and with reduced
++information, so if two players can't communicate they will probably appear much
++laggier and may further be a bit more desynchronized.
++
++If it's laggy, try to either decrease the network sending interval in settings
++and/or make sure all players can directly talk to each other (if they're behind
++NAT, they may neet to set up some tunnels or something).
++
++Players communicate via unreliable messages (typically UDP), each message from
++one player to another is 64 bytes long. The bytes in the message have the
++following meaning (figure the rest out from the code):
++
++0: magic number 1 (for detecting start of message in byte stream)
++1: magic number 2 (again, for detecting start of message)
++2: checksum: sum of all following bytes modulo 256 (poor man's reliability)
++3: player position x (lower 8 bits)          \
++4: player position x (upper 8 bits)           |
++5: player position y (lower 8 bits)           |
++6: player position y (upper 8 bits)           | player state
++7: player direction (1 byte per whole angle)  | bytes
++8: player vertical position (lower 8 bits)    |
++9: player vertical position (upper 8 bits)    |
++10: split into two halves:                   /
++   - upper 4 bits: level the player is in
++   - lower 4 bits: player state, possible values are:
++     - 0: normal
++     - 1: attacking with knife
++     - 2: shooting with machine gun
++     - 3: shooting with shotgun
++     - 4: shooting with rocket launcher (straight)
++     - 5  -||- (slightly up)
++     - 6  -||- (completely up)
++     - 7  -||- (down)
++     - 8: shooting with plasma gun (straight)
++     - 9: -||- (slightly up)
++     - 10: -||- (completely up)
++     - 11: -||- (down)
++     - 12: shooting with solution (straight)
++     - 13: -||- (slightly up)
++     - 14: -||- (completely up)
++     - 15: -||- (down)
++11: type of message, defines what bytes will follow, possible values:
++  - 0: next bytes will be
++    - 48 bytes of the first 16 monster records, each monster consisting of 3
++      bytes: position x, position y, health
++    - 1 byte: the player's key cards (in lowest bits)
++    - 3 bytes: first part of chat buffer (4 characters)
++  - 1: next bytes will be
++    - 48 bytes of the next 16 monster records
++    - 4 bytes: network frame
++  - 2: next bytes will be
++    - 48 bytes of the next 16 monster records
++    - 4 bytes: another part of chat buffer (5 characters)
++  - 3: next bytes will be
++    - 48 bytes of the next 16 monster records
++    - 4 bytes: another part of chat buffer (5 characters)
++  - 4: next bytes will be
++    - 16 bytes: 128 item records (each item only 1 bit, saying if it's NONE)
++    - 18 bytes: another partner's data (used to inform other about someone
++      joining in plus resending communication if some players can't communicate
++      directly)
++      - 6 bytes: address
++      - 8 bytes: player state bytes for the partner (same format as above)
++      - 4 bytes: part of chat buffer and its bytes (5 characters)
++    - 18 bytes: same as above but for the other partner
+diff --git a/constants.h b/constants.h
+index 956baa0..9ffb479 100644
+--- a/constants.h
++++ b/constants.h
+@@ -70,6 +70,16 @@
+ */
+ #define SFG_LEVEL_ELEMENT_ACTIVE_DISTANCE (12 * 1024)
+ 
++/**
++  Maximum number of partner players in multiplayer.
++*/
++#define SFG_MULTIPLAYER_MAX_PARTNERS 3
++
++/**
++  Number of characters in chat buffer (not including terminating zero).
++*/
++#define SFG_CHAT_BUFFER_SIZE 14
++
+ /**
+   Rate at which AI will be updated, which also affects how fast enemies will
+   appear.
+@@ -124,6 +134,21 @@
+ */
+ #define SFG_PLAYER_START_HEALTH 100
+ 
++/**
++  Size of network buffer in bytes.
++*/
++#define SFG_NETWORK_BUFFER_SIZE 64
++
++/**
++  First magic number that starts a network message.
++*/
++#define SFG_NETWORK_MAGIC_NUMBER1 'A'
++
++/**
++  Second magic number that starts a network packet.
++*/
++#define SFG_NETWORK_MAGIC_NUMBER2 'm'
++
+ /**
+   At which value health indicator shows a warning (red color).
+ */
+diff --git a/game.h b/game.h
+index 991058d..bb94225 100755
+--- a/game.h
++++ b/game.h
+@@ -61,6 +61,12 @@
+    - Implement the following functions in your frontend source.
+    - Call SFG_init() from your frontend initialization code.
+    - Call SFG_mainLoopBody() from within your frontend main loop.
++   - For multiplayer call SFG_networkMessageReceived() from your frontend when
++     you receive network data.
++   - Also for multiplayer you can use SFG_addPartnerAddress(...) to inform the
++     game about the initial partner to connect to.
++   - Call SFG_chatCharacterInput(...) to inform the game the player has input
++     a chat character.
+ 
+    If your platform is an AVR CPU (e.g. some Arduinos) and so has Harvard
+    architecture, define #SFG_AVR 1 before including this file in your frontend
+@@ -81,6 +87,10 @@
+                                    potentially multiple simulation steps). */
+ #endif
+ 
++#define SFG_NETWORK_ADDRESS_SIZE 6
++#define SFG_NETWORK_MESSAGE_SIZE 64
++typedef uint8_t SFG_NetworkAddress[SFG_NETWORK_ADDRESS_SIZE];
++
+ /** 
+   Returns 1 (0) if given key is pressed (not pressed). At least the mandatory
+   keys have to be implemented, the optional keys don't have to ever return 1.
+@@ -131,6 +141,13 @@ void SFG_playSound(uint8_t soundIndex, uint8_t volume);
+ #define SFG_MUSIC_TURN_ON 1
+ #define SFG_MUSIC_NEXT 2
+ 
++/**
++  This function will be called by the game to send messages over network.
++  Network delivery doesn't have to be reliable.
++*/
++void SFG_networkMessageSend(SFG_NetworkAddress address,
++  uint8_t message[SFG_NETWORK_MESSAGE_SIZE]);
++
+ /**
+   Informs the frontend how music should play, e.g. turn on/off, change track,
+   ... See SFG_MUSIC_* constants. Playing music is optional and the frontend may
+@@ -197,6 +214,26 @@ uint8_t SFG_mainLoopBody();
+ */
+ void SFG_init();
+ 
++/**
++  Hands received data from network to the game for multiplayer play. Call this
++  function from your frontend any time you receive new data, as soon as
++  possible. The data don't have to be delivered reliably, just pass them as you
++  receive them, the game handles the rest.
++*/
++void SFG_networkMessageReceived(SFG_NetworkAddress senderAddress,
++  const uint8_t *data, uint16_t dataSize);
++   
++/**
++  Informs the game that the player typed a chat character.
++*/
++void SFG_chatCharacterInput(char character);
++
++/**
++  Informs the game about a new address of a partner player. This can be used
++  to add initial partner's network address.
++*/
++void SFG_addPartnerAddress(SFG_NetworkAddress address);
++
+ #include "settings.h"
+ 
+ #if SFG_AVR
+@@ -231,6 +268,38 @@ void SFG_init();
+ 
+ #include "constants.h"
+ 
++#define SFG_PARTNER_STATE_NORMAL 0
++#define SFG_PARTNER_STATE_RUNNING 1
++#define SFG_PARTNER_STATE_SHOOTING 2
++
++typedef struct
++{
++  int8_t level;                  ///< level the player is in, -1 means none
++  uint8_t state;
++  uint16_t stateFrameCountdown;
++  RCL_Vector2D latestPosition;   ///< latest known position
++  uint32_t latestPositionFrame;  ///< this game's frame of receiving latest p.
++  RCL_Unit verticalPosition;
++
++  RCL_Vector2D previousPosition; ///< position we're interpolating from
++  uint32_t previousPositionFrame;
++
++  RCL_Vector2D drawPosition;     ///< interpolated position for rendering
++
++  RCL_Unit direction;
++
++  uint8_t networkBuffer[SFG_NETWORK_BUFFER_SIZE]; ///< circular net. buffer
++  uint8_t networkBufferPos;
++
++  uint8_t nextMessageType;       ///< what message type to send next
++  uint8_t nextChatBufferPart;
++  uint8_t sendSpecialState;      /**< whether next mess. should send the
++                                      player's recorded network state or not */
++  SFG_NetworkAddress address;
++  uint32_t lastHeardFromFrame;   ///< last game frame of the last p's message
++  char chatBuffer[SFG_CHAT_BUFFER_SIZE + 1];
++} SFG_PartnerPlayer;
++
+ typedef struct
+ {
+   uint8_t coords[2];
+@@ -310,6 +379,7 @@ typedef struct
+ typedef struct
+ {
+   uint8_t  type;
++  uint8_t  isFake;             ///< Fake projectiles are for networking.
+   uint8_t  doubleFramesToLive; /**< This number times two (because 255 could be
+                                     too little at high FPS) says after how many
+                                     frames the projectile is destroyed. */
+@@ -373,6 +443,7 @@ struct
+                                                      drawing. */
+   uint32_t frameTime;      ///< time (in ms) of the current frame start
+   uint32_t frame;          ///< frame number
++  uint32_t networkFrame;   ///< more or less synchronized between players
+   uint8_t selectedMenuItem;
+   uint8_t selectedLevel;   ///< level to play selected in the main menu
+   uint8_t antiSpam;        ///< Prevents log message spamming.
+@@ -406,7 +477,12 @@ struct
+          5  8b  plasma ammo at saved position
+          6  32b little endian total play time, in 10ths of sec
+          10 16b little endian total enemies killed from start */
+-  uint8_t continues;  ///< Whether the game continues or was exited.
++  uint8_t continues;            ///< Whether the game continues or was exited.
++
++  uint32_t nextNetworkSendTime; ///< When to send next message.
++  uint8_t sendingTo;            ///< Index of partner player we're sending to.
++  uint8_t helperNetworkBuffer[SFG_NETWORK_BUFFER_SIZE];
++  SFG_LevelElement levelElementNone; ///< Helper dummy none element.
+ } SFG_game;
+ 
+ #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+@@ -437,7 +513,18 @@ struct
+                                    the last 2 bits are a blink reset counter. */
+   uint8_t  justTeleported;
+   int8_t   previousWeaponDirection; ///< Direction (+/0/-) of previous weapon.
++
++  uint8_t  networkState;       /**< For network multiplayer, holds the network
++                                    state to send. */
++  RCL_Unit networkStatePos[4]; /**< Remembers the last position (x,y,dir,z) when
++                                    the networkState changed; it's important to
++                                    know the exact position for spawning fake
++                                    projectiles precisely. */
++  char chatBuffer[SFG_CHAT_BUFFER_SIZE + 1];
++  uint32_t chatClearCountdown;
+ } SFG_player;
++  
++SFG_PartnerPlayer SFG_partnerPlayers[SFG_MULTIPLAYER_MAX_PARTNERS];
+ 
+ /**
+   Stores the current level and helper precomputed values for better performance.
+@@ -461,6 +548,8 @@ struct
+   uint8_t itemRecordCount;
+   uint8_t checkedItemIndex; ///< Same as checkedDoorIndex, but for items.
+ 
++  uint8_t itemBitMask[SFG_MAX_ITEMS / 8];    ///< 0 bits remove corresp. items
++
+   SFG_MonsterRecord monsterRecords[SFG_MAX_MONSTERS];
+   uint8_t monsterRecordCount;
+   uint8_t checkedMonsterIndex; 
+@@ -499,6 +588,41 @@ void SFG_getItemCollisionMapIndex(
+   *bit = index % 8;
+ }
+ 
++/**
++  Adds a header to network message (which rewrites the first 3 bytes of the
++  message, so they mustn't be used) and sends it.
++*/
++void SFG_networkMessageWrapAndSend(SFG_NetworkAddress address,
++  uint8_t message[SFG_NETWORK_MESSAGE_SIZE])
++{
++  message[0] = SFG_NETWORK_MAGIC_NUMBER1;
++  message[1] = SFG_NETWORK_MAGIC_NUMBER2;
++  message[2] = 0; // checksum
++
++  for (int i = 3; i < SFG_NETWORK_BUFFER_SIZE; ++i)
++    message[2] += message[i];
++
++  SFG_networkMessageSend(address,message);
++}
++
++uint8_t SFG_networkAddressIsEmpty(SFG_NetworkAddress address)
++{
++  for (int i = 0; i < SFG_NETWORK_ADDRESS_SIZE; ++i)
++    if (address[i])
++      return 0;
++
++  return 1;
++}
++
++uint8_t SFG_networkAddressEquals(SFG_NetworkAddress a1, SFG_NetworkAddress a2)
++{
++  for (int i = 0; i < SFG_NETWORK_ADDRESS_SIZE; ++i)
++    if (a1[i] != a2[i])
++      return 0;
++
++  return 1;
++}
++
+ void SFG_setItemCollisionMapBit(uint8_t x, uint8_t y, uint8_t value)
+ {
+   uint16_t byte;
+@@ -569,6 +693,15 @@ uint8_t SFG_random()
+   return SFG_game.currentRandom;
+ }
+ 
++uint8_t SFG_hash8(uint8_t n)
++{
++  n *= 23;
++  n = ((n >> 4) | (n << 4)) * 11;
++  n = ((n >> 1) | (n << 7)) * 9;
++
++  return n;
++}
++
+ void SFG_playGameSound(uint8_t soundIndex, uint8_t volume)
+ {
+   if (!(SFG_game.settings & 0x01))
+@@ -1131,7 +1264,8 @@ void SFG_drawScaledSprite(
+   int16_t centerY,
+   int16_t size,
+   uint8_t minusValue,
+-  RCL_Unit distance)
++  RCL_Unit distance,
++  uint8_t flip)
+ {
+   if (size == 0)
+     return;
+@@ -1223,7 +1357,9 @@ void SFG_drawScaledSprite(
+       for (int16_t y = y0, v = v0; y <= y1; ++y, ++v)
+       {
+         uint8_t color =
+-          SFG_getTexel(image,SFG_game.spriteSamplingPoints[u],
++          SFG_getTexel(image,   
++            flip ? (SFG_TEXTURE_SIZE - 1 - SFG_game.spriteSamplingPoints[u]) :
++              SFG_game.spriteSamplingPoints[u],
+             SFG_game.spriteSamplingPoints[v]);
+ 
+         if (color != SFG_TRANSPARENT_COLOR)
+@@ -1306,7 +1442,7 @@ RCL_Unit SFG_floorHeightAt(int16_t x, int16_t y)
+     return SFG_movingWallHeight(
+       height,
+       height + SFG_TILE_CEILING_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+-      SFG_game.frameTime - SFG_currentLevel.timeStart);
++      SFG_game.networkFrame * SFG_MS_PER_FRAME);
+   }
+  
+   return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
+@@ -1391,6 +1527,8 @@ void SFG_initPlayer()
+   SFG_player.camera.direction = SFG_currentLevel.levelPointer->playerStart[2] *
+     (RCL_UNITS_PER_SQUARE / 256);
+ 
++  SFG_player.chatClearCountdown = 0;
++
+   SFG_recomputePLayerDirection(); 
+ 
+   SFG_player.previousVerticalSpeed = 0;
+@@ -1416,8 +1554,10 @@ void SFG_initPlayer()
+ 
+   SFG_player.justTeleported = 0;
+ 
++  // in multiplayer we'll give some bullets to the start
++
+   for (uint8_t i = 0; i < SFG_AMMO_TOTAL; ++i)
+-    SFG_player.ammo[i] = 0;
++    SFG_player.ammo[i] = i == SFG_AMMO_BULLETS ? 15 : 0;
+ }
+ 
+ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
+@@ -1441,7 +1581,7 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
+       SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP,
+       (SFG_TILE_CEILING_HEIGHT(tile) + SFG_TILE_FLOOR_HEIGHT(tile))
+          * SFG_WALL_HEIGHT_STEP,
+-      SFG_game.frameTime - SFG_currentLevel.timeStart);
++      SFG_game.networkFrame * SFG_MS_PER_FRAME);
+ }
+ 
+ /**
+@@ -1611,9 +1751,16 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+         monster->stateType = (SFG_MONSTER_TYPE_TO_INDEX(e->type) << 4)
+           | SFG_MONSTER_STATE_INACTIVE;
+  
+-        monster->health =
++        int monsterHealth =
+           SFG_GET_MONSTER_MAX_HEALTH(SFG_MONSTER_TYPE_TO_INDEX(e->type));
+ 
++        monsterHealth = (monsterHealth * SFG_MULTIPLAYER_MONSTER_BOOST) / 4;
++
++        if (monsterHealth > 255)
++          monsterHealth = 255;
++
++        monster->health = monsterHealth;
++
+         monster->coords[0] = e->coords[0] * 4 + 2;
+         monster->coords[1] = e->coords[1] * 4 + 2;
+ 
+@@ -1662,17 +1809,84 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+     }
+   } 
+ 
++  for (uint8_t i = 0; i < SFG_MAX_ITEMS / 8; ++i)
++    SFG_currentLevel.itemBitMask[i] = 0xff;
++
+   SFG_currentLevel.timeStart = SFG_game.frameTime; 
+   SFG_currentLevel.frameStart = SFG_game.frame;
+ 
+   SFG_game.spriteAnimationFrame = 0;
+ 
+   SFG_initPlayer();
++
+   SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
+   SFG_setMusic(SFG_MUSIC_NEXT);
+   SFG_processEvent(SFG_EVENT_LEVEL_STARTS,levelNumber);
+ }
+ 
++/**
++  This should be called whenever new information about a partner player appears.
++*/
++void SFG_updatePartnerPlayerInfo(uint8_t playerIndex, RCL_Unit posX,
++  RCL_Unit posY, RCL_Unit direction, RCL_Unit height, uint8_t shooting,
++  int8_t level)
++{
++  SFG_PartnerPlayer *p = SFG_partnerPlayers + playerIndex;
++
++  p->level = (level >= 0 && level < SFG_NUMBER_OF_LEVELS) ? level : -1;
++
++  p->previousPosition = p->drawPosition;
++  p->previousPositionFrame = p->latestPositionFrame;
++
++  p->latestPosition.x = posX;
++  p->latestPosition.y = posY;
++  p->latestPositionFrame = SFG_game.frame;
++
++  p->verticalPosition = height;
++  p->direction = direction;
++
++  if (shooting)
++  {
++    p->state = SFG_PARTNER_STATE_SHOOTING;
++    p->stateFrameCountdown = SFG_BLINK_PERIOD_FRAMES;
++  }
++}
++
++uint8_t SFG_addOrFindPartnerAddress(SFG_NetworkAddress address, uint8_t *isNew)
++{
++  int playerIndex = -1;
++
++  if (isNew != 0)
++    *isNew = 0;
++
++  for (int i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++  {
++    if (SFG_networkAddressIsEmpty(SFG_partnerPlayers[i].address))
++    {
++      if (isNew != 0)
++        *isNew = 1;
++
++      for (int j = 0; j < SFG_NETWORK_ADDRESS_SIZE; ++j)
++        SFG_partnerPlayers[i].address[j] = address[j];
++
++      playerIndex = i;
++      break;
++    }
++    else if (SFG_networkAddressEquals(address,SFG_partnerPlayers[i].address))
++    {
++      playerIndex = i;
++      break;
++    }
++  }
++
++  return playerIndex;
++}
++
++void SFG_addPartnerAddress(SFG_NetworkAddress address)
++{
++  SFG_addOrFindPartnerAddress(address,0);
++}
++
+ void SFG_createDefaultSaveData(uint8_t *memory)
+ {
+   for (uint16_t i = 0; i < SFG_SAVE_SIZE; ++i)
+@@ -1681,15 +1895,28 @@ void SFG_createDefaultSaveData(uint8_t *memory)
+   memory[1] = SFG_DEFAULT_SETTINGS;
+ }
+ 
++void SFG_chatBufferClear(void)
++{
++  for (uint8_t i = 0; i < SFG_CHAT_BUFFER_SIZE + 1; ++i)
++    SFG_player.chatBuffer[i] = i < SFG_CHAT_BUFFER_SIZE ? ' ' : 0;
++}
++
+ void SFG_init()
+ {
+   SFG_LOG("initializing game")
+ 
+   SFG_game.frame = 0;
++  SFG_game.networkFrame = 0;
+   SFG_game.frameTime = 0;
+   SFG_game.currentRandom = 0;
+   SFG_game.cheatState = 0;
+   SFG_game.continues = 1;
++  SFG_game.nextNetworkSendTime = SFG_getTimeMs() + SFG_NETWORK_SEND_INTERVAL_MS;
++  SFG_game.sendingTo = 0;
++
++  SFG_game.levelElementNone.type = SFG_LEVEL_ELEMENT_NONE;
++  SFG_game.levelElementNone.coords[0] = 0;
++  SFG_game.levelElementNone.coords[1] = 0;
+ 
+   RCL_initRayConstraints(&SFG_game.rayConstraints);
+   SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
+@@ -1744,6 +1971,8 @@ void SFG_init()
+     SFG_game.textureAverageColors[i] = maxIndex * 4;
+   }
+ 
++  SFG_chatBufferClear();
++
+   for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_Y; ++i)
+     SFG_game.backgroundScaleMap[i] =
+       (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
+@@ -1785,6 +2014,33 @@ void SFG_init()
+ #else
+   SFG_setAndInitLevel(SFG_START_LEVEL - 1);
+ #endif
++
++  for (int i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++  {
++    SFG_PartnerPlayer *p = SFG_partnerPlayers + i;
++
++    p->level = -1;
++    p->state = SFG_PARTNER_STATE_NORMAL;
++    p->latestPosition.x = 0;
++    p->latestPosition.y = 0;
++    p->verticalPosition = 0;
++    p->sendSpecialState = 0;
++    p->nextMessageType = 0;
++    p->nextChatBufferPart = 0;
++    p->previousPosition = p->latestPosition;
++    p->latestPositionFrame = SFG_game.frame;
++    p->lastHeardFromFrame = 0;
++    p->previousPositionFrame = SFG_game.frame;
++    p->drawPosition = p->latestPosition;
++
++    p->networkBufferPos = 0;
++  
++    for (int j = 0; j < SFG_NETWORK_BUFFER_SIZE; ++j)
++      p->networkBuffer[j] = 0;
++
++    for (int j = 0; j < SFG_CHAT_BUFFER_SIZE + 1; ++j)
++      p->chatBuffer[j] = j < SFG_CHAT_BUFFER_SIZE ? ' ' : 0;
++  }
+ }
+ 
+ /**
+@@ -1810,7 +2066,8 @@ uint8_t SFG_createProjectile(SFG_ProjectileRecord projectile)
+   shooting entity). Returns the same value as SFG_createProjectile.
+ */
+ uint8_t SFG_launchProjectile(
+-  uint8_t type,   
++  uint8_t type,
++  uint8_t fake,
+   RCL_Vector2D shootFrom,
+   RCL_Unit shootFromHeight,
+   RCL_Vector2D direction,
+@@ -1824,6 +2081,7 @@ uint8_t SFG_launchProjectile(
+   SFG_ProjectileRecord p;
+ 
+   p.type = type;
++  p.isFake = fake;
+   p.doubleFramesToLive = 
+     RCL_nonZero(SFG_GET_PROJECTILE_FRAMES_TO_LIVE(type) / 2);
+   
+@@ -1986,6 +2244,357 @@ uint8_t SFG_distantSoundVolume(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+   return (result * result) / 256;
+ }
+ 
++uint8_t SFG_chatCharacterEncode(char character)
++{
++  // we reduce 7 bit ASCII to 6 bits
++
++  if (character >= 'a' && character <= 'z')
++    character = (character - 'a') + 'A';
++  if (character > 'Z')
++    character = '?';
++
++  return (character - 32) & 0x3f;
++}
++
++char SFG_chatCharacterDecode(uint8_t value)
++{
++  return value + 32;
++}
++
++/**
++  Handles a correctly received message that has been copied to
++  SFG_game.helperNetworkBuffer for partner player of given index.
++*/
++void SFG_handleNetworkMessage(uint8_t playerIndex)
++{
++  uint8_t *b = SFG_game.helperNetworkBuffer + 3;
++  uint8_t level = b[7] >> 4;
++  uint8_t state = b[7] & 0x0f;
++
++  SFG_partnerPlayers[playerIndex].lastHeardFromFrame = SFG_game.frame;
++
++  SFG_updatePartnerPlayerInfo(playerIndex,
++    b[0] + (((int) b[1]) * 256),
++    b[2] + (((int) b[3]) * 256),
++    (b[4] * RCL_UNITS_PER_SQUARE) / 256,
++    b[5] + ((RCL_Unit) b[6]) * 256,
++    b[7] & state,level);
++
++  if (state)
++  {
++    uint8_t weapon = SFG_WEAPON_KNIFE;
++    RCL_Unit verticalDirection = 0;
++    uint8_t volume = SFG_distantSoundVolume(
++      SFG_partnerPlayers[playerIndex].drawPosition.x,
++      SFG_partnerPlayers[playerIndex].drawPosition.y,
++      SFG_partnerPlayers[playerIndex].verticalPosition);
++
++    if (state >= 12)
++    {
++      SFG_playGameSound(4,volume);
++      weapon = SFG_WEAPON_SOLUTION;
++      verticalDirection = state - 12;
++    }
++    else if (state >= 8)
++    {
++      SFG_playGameSound(4,volume);
++      weapon = SFG_WEAPON_PLASMAGUN;
++      verticalDirection = state - 8;
++    }
++    else if (state >= 4)
++    {
++      SFG_playGameSound(2,volume);
++      weapon = SFG_WEAPON_ROCKET_LAUNCHER;
++      verticalDirection = state - 4;
++    }
++    else if (state == 3) // shotgun
++      SFG_playGameSound(2,volume);
++    else if (state == 2) // machine gun
++      SFG_playGameSound(0,volume);
++    else                 // knife
++      SFG_playGameSound(3,volume);
++
++    if (verticalDirection == 3)
++      verticalDirection = -1;
++
++    uint8_t projectile = weapon == SFG_WEAPON_ROCKET_LAUNCHER ?
++      SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA;
++
++    verticalDirection = (verticalDirection *
++      SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 2;
++
++    if (weapon == SFG_WEAPON_ROCKET_LAUNCHER ||
++      weapon == SFG_WEAPON_PLASMAGUN)
++      SFG_launchProjectile(
++        projectile,
++        1,
++        SFG_partnerPlayers[playerIndex].latestPosition,
++        SFG_partnerPlayers[playerIndex].verticalPosition +
++          RCL_CAMERA_COLL_HEIGHT_BELOW,
++        RCL_angleToDirection(SFG_partnerPlayers[playerIndex].direction +
++          RCL_UNITS_PER_SQUARE / 2),
++        verticalDirection,
++        SFG_PROJECTILE_SPAWN_OFFSET);
++    else if (weapon == SFG_WEAPON_SOLUTION)
++    {
++      uint8_t projectiles =
++        SFG_GET_WEAPON_PROJECTILE_COUNT(SFG_WEAPON_SOLUTION);
++      
++      RCL_Unit angleAdd = SFG_PROJECTILE_SPREAD_ANGLE / (projectiles + 1);
++
++      RCL_Unit dir = SFG_partnerPlayers[playerIndex].direction -
++        (SFG_PROJECTILE_SPREAD_ANGLE / 2) + angleAdd + RCL_UNITS_PER_SQUARE / 2;
++     
++      for (uint8_t i = 0; i < projectiles; ++i)
++        SFG_launchProjectile(
++          SFG_PROJECTILE_PLASMA,
++          1,
++          SFG_partnerPlayers[playerIndex].latestPosition,
++          SFG_partnerPlayers[playerIndex].verticalPosition +
++            RCL_CAMERA_COLL_HEIGHT_BELOW,
++          RCL_angleToDirection(dir + i * angleAdd),
++          verticalDirection,
++          SFG_PROJECTILE_SPAWN_OFFSET);
++    }
++  }
++
++  if (b[8] < 4 && level == SFG_currentLevel.levelNumber)
++  {
++    switch (b[8])
++    {
++      case 0:
++      {
++        SFG_player.cards |= b[57];
++
++        for (uint8_t i = 0; i < 3; ++i)
++          SFG_partnerPlayers[playerIndex].chatBuffer[i] = 
++            SFG_chatCharacterDecode(b[58 + i] & 0x3f);
++
++        SFG_partnerPlayers[playerIndex].chatBuffer[3] =
++          SFG_chatCharacterDecode(
++             (b[58] >> 6) | ((b[59] & 0xc0) >> 4) | ((b[60] & 0xc0) >> 2));
++
++        break;
++      }
++
++      case 1:
++      {
++        uint32_t netFrame = b[57] | (((uint32_t) b[58]) << 8) |
++          (((uint32_t) b[59]) << 16) | (((uint32_t) b[60]) << 24);
++
++        if (netFrame > SFG_game.networkFrame)
++          SFG_game.networkFrame = netFrame; // take max of all known frames
++
++        break;
++      }
++
++      case 2:
++      case 3:
++      {
++        char *cb = SFG_partnerPlayers[playerIndex].chatBuffer + 4 +
++          5 * (b[8] == 3);
++
++        for (uint8_t i = 0; i < 4; ++i)
++          cb[i] = SFG_chatCharacterDecode(b[57 + i] & 0x3f);
++
++        cb[4] = SFG_chatCharacterDecode(
++          (b[57] >> 6) | ((b[58] & 0xc0) >> 4) | ((b[59] & 0xc0) >> 2));
++
++        break;
++      }
++
++      default: break;
++    }
++
++    SFG_MonsterRecord *m = SFG_currentLevel.monsterRecords + b[8] * 16;
++    uint8_t *v = b + 9;
++
++    for (uint8_t i = 0; i < 16; ++i)
++    {
++      if (v[2] < m->health)
++      {
++        m->health = v[2]; // we take minimum of all lives
++      
++        if (m->health == 0)
++        {
++          m->stateType = (m->stateType & 0xf0) | SFG_MONSTER_STATE_DEAD;
++          m->health = 0;
++        }
++      }
++
++      /* Position resolution works basically like this: if the monster is
++        active and I am the closest of ALL players to it, it is considered to
++        belong to me and I take its position as canon, i.e. I do nothing. If
++        this is not the case, I average my monster's position with the other
++        player's monster (this keeps converging them to the same place). */
++
++      if (SFG_MR_STATE((*m)) == SFG_MONSTER_STATE_INACTIVE ||
++        SFG_MR_STATE((*m)) == SFG_MONSTER_STATE_DEAD)
++      {
++        m->coords[0] = (v[0] + m->coords[0]) / 2;
++        m->coords[1] = (v[1] + m->coords[1]) / 2;
++      }
++      else
++      {
++        uint8_t iAmClosest = 1;
++        RCL_Vector2D mp, pp;
++        RCL_Unit mh, ph;
++
++        // average the monster position for the check:
++        mp.x = (SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]) +
++          SFG_MONSTER_COORD_TO_RCL_UNITS(v[0])) / 2;
++
++        mp.y = (SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]) +
++          SFG_MONSTER_COORD_TO_RCL_UNITS(v[1])) / 2;
++
++        mh = SFG_floorHeightAt(mp.x / RCL_UNITS_PER_SQUARE,
++          mp.y / RCL_UNITS_PER_SQUARE);
++
++        for (uint8_t j = 0; j < SFG_MULTIPLAYER_MAX_PARTNERS; ++j)
++          if (SFG_partnerPlayers[j].level == SFG_currentLevel.levelNumber)
++          {
++            pp.x = SFG_partnerPlayers[j].latestPosition.x;
++            pp.y = SFG_partnerPlayers[j].latestPosition.y;
++            ph = SFG_partnerPlayers[j].verticalPosition;
++        
++            if (SFG_taxicabDistance(mp.x,mp.y,mh,SFG_player.camera.position.x,
++              SFG_player.camera.position.y,SFG_player.camera.height) >
++              SFG_taxicabDistance(mp.x,mp.y,mh,pp.x,pp.y,ph))
++            {
++              iAmClosest = 0;
++              break;
++            }
++          }
++
++        if (!iAmClosest)
++        {
++          m->coords[0] = (v[0] + m->coords[0]) / 2;
++          m->coords[1] = (v[1] + m->coords[1]) / 2;
++        }
++      }
++
++      v += 3;
++      m++;
++    }
++  }
++  else if (b[8] == 4)
++  {
++    if (level == SFG_currentLevel.levelNumber)
++      for (uint8_t i = 0; i < 16; ++i)
++        SFG_currentLevel.itemBitMask[i] &= b[9 + i];
++
++    // resent data of other players:
++    uint8_t offset = 0;
++
++    for (uint8_t i = 0; i < 2; ++i)
++    {
++      SFG_NetworkAddress address;
++      
++      for (uint8_t j = 0; j < 6; ++j)
++        address[j] = b[25 + j + offset];
++
++      if (!SFG_networkAddressIsEmpty(address))
++      {
++        int playerIndex = SFG_addOrFindPartnerAddress(address,0);
++
++        if ((playerIndex >= 0) && (
++          SFG_game.frame - // haven't heard from him for long?
++          SFG_partnerPlayers[playerIndex].lastHeardFromFrame >
++          ((4 * SFG_NETWORK_SEND_INTERVAL_MS) / (SFG_MS_PER_FRAME))))
++        {
++          SFG_updatePartnerPlayerInfo(playerIndex,
++            b[31 + offset] | (((RCL_Unit) b[32 + offset]) << 8),
++            b[33 + offset] | (((RCL_Unit) b[34 + offset]) << 8),
++            (b[35 + offset] * RCL_UNITS_PER_SQUARE) / 256,
++            b[36 + offset] | (((RCL_Unit) b[37 + offset]) << 8),
++            b[38 + offset] & 0x0f,
++            b[38 + offset] >> 4);
++        
++          char *cb = SFG_partnerPlayers[playerIndex].chatBuffer +
++            (b[42 + offset] >> 6) * 5;
++
++          for (uint8_t i = 0; i < 4; ++i)
++            cb[i] = SFG_chatCharacterDecode(b[39 + i + offset] & 0x3f);
++         
++          cb[4] = SFG_chatCharacterDecode((b[39 + offset] >> 6) |
++            ((b[40 + offset] & 0xc0) >> 4) | ((b[41 + offset] & 0xc0) >> 2));
++        }
++      }
++
++      offset = 18;
++    }
++  }
++}
++
++void SFG_chatCharacterInput(char character)
++{
++  if (!character)
++    return;
++
++  for (uint8_t i = 0; i < SFG_CHAT_BUFFER_SIZE - 1; ++i)
++    SFG_player.chatBuffer[i] = SFG_player.chatBuffer[i + 1];
++
++  // we encode and decode to ensure we see what the others will see
++
++  SFG_player.chatBuffer[SFG_CHAT_BUFFER_SIZE - 1] =
++    SFG_chatCharacterDecode(SFG_chatCharacterEncode(character));
++
++  SFG_player.chatClearCountdown = SFG_CHAT_DURATION / SFG_MS_PER_FRAME;
++}
++
++void SFG_networkMessageReceived(SFG_NetworkAddress senderAddress,
++  const uint8_t *data, uint16_t dataSize)
++{
++  uint8_t isNew;
++    
++  int playerIndex = SFG_addOrFindPartnerAddress(senderAddress,&isNew);
++
++  if (isNew)
++    SFG_LOG("new player connected")
++
++  if (playerIndex < 0)
++  {
++    SFG_LOG("player tried to connect but there is no more room")
++  }
++  else
++  {
++    SFG_PartnerPlayer *p = SFG_partnerPlayers + playerIndex;
++
++    while (dataSize)
++    {
++      p->networkBuffer[p->networkBufferPos] = *data;
++      p->networkBufferPos = (p->networkBufferPos + 1) % SFG_NETWORK_BUFFER_SIZE;
++
++      if (p->networkBuffer[p->networkBufferPos] == SFG_NETWORK_MAGIC_NUMBER1 &&
++          p->networkBuffer[(p->networkBufferPos + 1) % SFG_NETWORK_ADDRESS_SIZE]
++          == SFG_NETWORK_MAGIC_NUMBER2)
++      {
++        SFG_game.helperNetworkBuffer[0] = SFG_NETWORK_MAGIC_NUMBER1;
++        SFG_game.helperNetworkBuffer[1] = SFG_NETWORK_MAGIC_NUMBER2;
++        SFG_game.helperNetworkBuffer[2] =
++          p->networkBuffer[(p->networkBufferPos + 2) % SFG_NETWORK_BUFFER_SIZE];
++
++        uint8_t checksum = 0;
++
++        for (int j = 3; j < SFG_NETWORK_BUFFER_SIZE; ++j)
++        {
++          uint8_t val = p->networkBuffer[(p->networkBufferPos + j) %
++            SFG_NETWORK_BUFFER_SIZE];
++
++          SFG_game.helperNetworkBuffer[j] = val;
++          checksum += val;
++        }
++
++        if (checksum == SFG_game.helperNetworkBuffer[2])
++          SFG_handleNetworkMessage(playerIndex);
++      }
++
++      data++;
++      dataSize--;
++    }
++  }
++}
++
+ /**
+   Same as SFG_playerChangeHealth but for monsters.
+ */
+@@ -2015,15 +2624,18 @@ void SFG_monsterChangeHealth(SFG_MonsterRecord *monster, int8_t healthAdd)
+   }
+ }
+ 
++uint8_t SFG_getLevelItemBit(uint8_t index)
++{
++  return (SFG_currentLevel.itemBitMask[index / 8] >> (index % 8)) & 0x01;
++}
++
+ void SFG_removeItem(uint8_t index)
+ {
+   SFG_LOG("removing item");
+ 
+-  for (uint16_t j = index; j < SFG_currentLevel.itemRecordCount - 1; ++j)
+-    SFG_currentLevel.itemRecords[j] =
+-      SFG_currentLevel.itemRecords[j + 1];
++  // multiplayer change against vanilla here: we remove items with bit mask
+ 
+-  SFG_currentLevel.itemRecordCount--; 
++  SFG_currentLevel.itemBitMask[index / 8] &= ~(0x01 << (index % 8));
+ }
+ 
+ /**
+@@ -2102,13 +2714,14 @@ RCL_Unit SFG_autoaimVertically()
+ 
+ /**
+   Helper function, returns a pointer to level element representing item with
+-  given index, but only if the item is active (otherwise 0 is returned).
++  given index, but only if the item is active and has item bit set (otherwise 0
++  is returned).
+ */
+ static inline const SFG_LevelElement *SFG_getActiveItemElement(uint8_t index)
+ {
+   SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
+ 
+-  if ((item & SFG_ITEM_RECORD_ACTIVE_MASK) == 0)
++  if (!SFG_getLevelItemBit(index) || (item & SFG_ITEM_RECORD_ACTIVE_MASK) == 0)
+     return 0;
+ 
+   return &(SFG_currentLevel.levelPointer->elements[item &
+@@ -2119,21 +2732,24 @@ static inline const SFG_LevelElement *SFG_getLevelElement(uint8_t index)
+ {
+   SFG_ItemRecord item = SFG_currentLevel.itemRecords[index];
+ 
++  if (!SFG_getLevelItemBit(index))
++    return &(SFG_game.levelElementNone);
++
+   return &(SFG_currentLevel.levelPointer->elements[item &
+            ~SFG_ITEM_RECORD_ACTIVE_MASK]);
+ }
+   
+-void SFG_createExplosion(RCL_Unit, RCL_Unit, RCL_Unit); // forward decl
++void SFG_createExplosion(RCL_Unit, RCL_Unit, RCL_Unit, uint8_t fake); // forw d.
+ 
+ void SFG_explodeBarrel(uint8_t itemIndex, RCL_Unit x, RCL_Unit y, RCL_Unit z)
+ {
+   const SFG_LevelElement *e = SFG_getLevelElement(itemIndex);
+   SFG_setItemCollisionMapBit(e->coords[0],e->coords[1],0);
+   SFG_removeItem(itemIndex);
+-  SFG_createExplosion(x,y,z);
++  SFG_createExplosion(x,y,z,0);
+ }
+ 
+-void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
++void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z, uint8_t fake)
+ {
+   SFG_ProjectileRecord explosion;
+ 
+@@ -2141,6 +2757,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+   SFG_processEvent(SFG_EVENT_EXPLOSION,0);
+ 
+   explosion.type = SFG_PROJECTILE_EXPLOSION;
++  explosion.isFake = fake;
+ 
+   explosion.position[0] = x;
+   explosion.position[1] = y;
+@@ -2155,6 +2772,9 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+ 
+   SFG_createProjectile(explosion);
+ 
++  if (fake)
++    return;
++
+   uint8_t damage = SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_FIREBALL);
+ 
+   if (SFG_taxicabDistance(x,y,z,SFG_player.camera.position.x,
+@@ -2203,7 +2823,7 @@ void SFG_createExplosion(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+ 
+       SFG_LevelElement element = SFG_ITEM_RECORD_LEVEL_ELEMENT(item);
+ 
+-      if (element.type != SFG_LEVEL_ELEMENT_BARREL)
++      if (!SFG_getLevelItemBit(i) || element.type != SFG_LEVEL_ELEMENT_BARREL)
+         continue;
+ 
+       RCL_Unit elementX =
+@@ -2229,6 +2849,7 @@ void SFG_createDust(RCL_Unit x, RCL_Unit y, RCL_Unit z)
+   SFG_ProjectileRecord dust;
+ 
+   dust.type = SFG_PROJECTILE_DUST;
++  dust.isFake = 0;
+ 
+   dust.position[0] = x;
+   dust.position[1] = y;
+@@ -2280,15 +2901,50 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+   RCL_Unit currentHeight =
+     SFG_floorCollisionHeightAt(monsterSquare[0],monsterSquare[1]);
+ 
++  RCL_Unit pX, pY, pZ;
++  SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
++
++  RCL_Unit closestPlayerPos[3]; // monster will be attacking the closest one
++        
++  RCL_Unit closestDistance = 
++    SFG_taxicabDistance(pX,pY,pZ,
++      SFG_player.camera.position.x,
++      SFG_player.camera.position.y,
++      SFG_player.camera.height);
++
++  closestPlayerPos[0] = SFG_player.camera.position.x;
++  closestPlayerPos[1] = SFG_player.camera.position.y;
++  closestPlayerPos[2] = SFG_player.camera.height + RCL_CAMERA_COLL_HEIGHT_BELOW;
++
++  for (uint8_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++    if (SFG_partnerPlayers[i].level == SFG_currentLevel.levelNumber)
++    {
++      RCL_Unit dist = SFG_taxicabDistance(pX,pY,pZ,
++        SFG_partnerPlayers[i].latestPosition.x,
++        SFG_partnerPlayers[i].latestPosition.y,
++        SFG_partnerPlayers[i].verticalPosition);
++
++      if (dist < closestDistance)
++      {
++        closestPlayerPos[0] = SFG_partnerPlayers[i].latestPosition.x;
++        closestPlayerPos[1] = SFG_partnerPlayers[i].latestPosition.y;
++        closestPlayerPos[2] = SFG_partnerPlayers[i].verticalPosition +
++          RCL_CAMERA_COLL_HEIGHT_BELOW;
++
++        closestDistance = dist;
++      }
++    }
++
+   if ( // ranged monsters: sometimes randomly attack
+        !notRanged &&
+-       (SFG_random() < 
++       (SFG_hash8(SFG_game.networkFrame) < 
+        SFG_GET_MONSTER_AGGRESSIVITY(SFG_MONSTER_TYPE_TO_INDEX(type)))
+      )
+   { 
+     RCL_Vector2D pos;
+-    pos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[0]);
+-    pos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(monster->coords[1]);
++
++    pos.x = pX;
++    pos.y = pY;
+ 
+     if (SFG_random() % 4 != 0 &&
+       SFG_spriteIsVisible(pos,currentHeight + // only if player is visible
+@@ -2302,11 +2958,11 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+ 
+       RCL_Vector2D dir;
+ 
+-      dir.x = SFG_player.camera.position.x - pos.x
++      dir.x = closestPlayerPos[0] - pos.x
+         - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+         SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+ 
+-      dir.y = SFG_player.camera.position.y - pos.y
++      dir.y = closestPlayerPos[1] - pos.y
+         - 128 * SFG_MONSTER_AIM_RANDOMNESS + 
+         SFG_random() * SFG_MONSTER_AIM_RANDOMNESS;
+ 
+@@ -2358,13 +3014,14 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+       RCL_Unit verticalSpeed = (
+         ((projectile != SFG_PROJECTILE_NONE) ? 
+         SFG_GET_PROJECTILE_SPEED_UPS(projectile) : 0) * 
+-        SFG_directionTangent(dir.x,dir.y,SFG_player.camera.height -
++        SFG_directionTangent(dir.x,dir.y,closestPlayerPos[2] -
+         middleHeight)) / RCL_UNITS_PER_SQUARE;
+       
+       dir = RCL_normalize(dir);
+ 
+       SFG_launchProjectile(
+         projectile,
++        0,
+         pos,
+         middleHeight,
+         dir,
+@@ -2381,42 +3038,38 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+     {
+       // non-ranged monsters: walk towards player
+ 
+-      RCL_Unit pX, pY, pZ;
+-      SFG_getMonsterWorldPosition(monster,&pX,&pY,&pZ);
++      uint16_t closestSquare[2]; // closest player square
+ 
+-      uint8_t isClose = // close to player?
+-        SFG_taxicabDistance(pX,pY,pZ,
+-          SFG_player.camera.position.x,
+-          SFG_player.camera.position.y,
+-          SFG_player.camera.height) <= SFG_MELEE_RANGE;
++      closestSquare[0] = closestPlayerPos[0] / RCL_UNITS_PER_SQUARE;
++      closestSquare[1] = closestPlayerPos[1] / RCL_UNITS_PER_SQUARE;
+ 
+-      if (!isClose)
++      if (closestDistance > SFG_MELEE_RANGE)
+       {
+         // walk towards player
+ 
+-        if (monsterSquare[0] > SFG_player.squarePosition[0])
++        if (monsterSquare[0] > closestSquare[0])
+         {
+-          if (monsterSquare[1] > SFG_player.squarePosition[1])
++          if (monsterSquare[1] > closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_NW;
+-          else if (monsterSquare[1] < SFG_player.squarePosition[1])
++          else if (monsterSquare[1] < closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_SW;
+           else
+             state = SFG_MONSTER_STATE_GOING_W;
+         }
+-        else if (monsterSquare[0] < SFG_player.squarePosition[0])
++        else if (monsterSquare[0] < closestSquare[0])
+         {
+-          if (monsterSquare[1] > SFG_player.squarePosition[1])
++          if (monsterSquare[1] > closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_NE;
+-          else if (monsterSquare[1] < SFG_player.squarePosition[1])
++          else if (monsterSquare[1] < closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_SE;
+           else
+             state = SFG_MONSTER_STATE_GOING_E;
+         }
+         else
+         {
+-          if (monsterSquare[1] > SFG_player.squarePosition[1])
++          if (monsterSquare[1] > closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_N;
+-          else if (monsterSquare[1] < SFG_player.squarePosition[1])
++          else if (monsterSquare[1] < closestSquare[1])
+             state = SFG_MONSTER_STATE_GOING_S;
+         }
+       }
+@@ -2430,16 +3083,19 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+ 
+           state = SFG_MONSTER_STATE_ATTACKING;
+ 
+-          SFG_playerChangeHealth(
+-            -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
+-              
+-          SFG_playGameSound(3,255);
++          if (closestSquare[0] == SFG_player.squarePosition[0] &&
++              closestSquare[1] == SFG_player.squarePosition[1])
++            SFG_playerChangeHealth(
++              -1 * SFG_getDamageValue(SFG_WEAPON_FIRE_TYPE_MELEE)); 
++           
++          SFG_playGameSound(3,SFG_distantSoundVolume(closestPlayerPos[0],
++            closestPlayerPos[1],closestPlayerPos[2]));
+         }
+         else // SFG_MONSTER_ATTACK_EXPLODE
+         {
+           // explode
+ 
+-          SFG_createExplosion(pX,pY,pZ);
++          SFG_createExplosion(pX,pY,pZ,0);
+           monster->health = 0;
+         }
+       }
+@@ -2653,7 +3309,8 @@ void SFG_updateLevel()
+       (p->type != SFG_PROJECTILE_EXPLOSION) &&
+       (p->type != SFG_PROJECTILE_DUST))
+     {
+-      if (SFG_projectileCollides( // collides with player?
++      if ((!p->isFake) &&
++          SFG_projectileCollides( // collides with player?
+             p,
+             SFG_player.camera.position.x,
+             SFG_player.camera.position.y,
+@@ -2661,7 +3318,8 @@ void SFG_updateLevel()
+         {
+           eliminate = 1;
+ 
+-          SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
++          if (!p->isFake)
++            SFG_playerChangeHealth(-1 * SFG_getDamageValue(attackType));
+         }
+ 
+       /* Check collision with the map (we don't use SFG_floorCollisionHeightAt
+@@ -2698,7 +3356,10 @@ void SFG_updateLevel()
+                    ))
+             {
+               eliminate = 1;
+-              SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
++
++              if (!p->isFake)
++                SFG_monsterChangeHealth(m,-1 * SFG_getDamageValue(attackType));
++
+               break;
+             }
+           }
+@@ -2717,7 +3378,7 @@ void SFG_updateLevel()
+ 
+             if (SFG_projectileCollides(p,x,y,z))
+             {
+-              if (
++              if ((!p->isFake) &&
+                    (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
+                    (SFG_getDamageValue(attackType) >= 
+                      SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
+@@ -2736,7 +3397,8 @@ void SFG_updateLevel()
+     if (eliminate)
+     {
+       if (p->type == SFG_PROJECTILE_FIREBALL)
+-        SFG_createExplosion(p->position[0],p->position[1],p->position[2]);
++        SFG_createExplosion(p->position[0],p->position[1],p->position[2],
++          p->isFake);
+       else if (p->type == SFG_PROJECTILE_BULLET)
+         SFG_createDust(p->position[0],p->position[1],p->position[2]);
+       else if (p->type == SFG_PROJECTILE_PLASMA)
+@@ -2792,11 +3454,35 @@ void SFG_updateLevel()
+       
+       uint8_t lock = SFG_DOOR_LOCK(door->state);
+ 
++      uint8_t partnerNearDoor = 0;
++
++      for (uint8_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++        if (SFG_partnerPlayers[i].level == SFG_currentLevel.levelNumber)
++        {
++          uint8_t partnerSquare[2];
++
++          partnerSquare[0] = SFG_partnerPlayers[i].latestPosition.x /
++            RCL_UNITS_PER_SQUARE;
++          partnerSquare[1] = SFG_partnerPlayers[i].latestPosition.y /
++            RCL_UNITS_PER_SQUARE;
++
++          if ( // partner near door?
++            (door->coords[0] >= (partnerSquare[0] - 1)) &&
++            (door->coords[0] <= (partnerSquare[0] + 1)) &&
++            (door->coords[1] >= (partnerSquare[1] - 1)) &&
++            (door->coords[1] <= (partnerSquare[1] + 1)))
++          {
++            partnerNearDoor = 1;
++            break;
++          }
++        }
++
+       if ( // player near door?
++        partnerNearDoor || (
+         (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+         (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+         (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+-        (door->coords[1] <= (SFG_player.squarePosition[1] + 1)))
++        (door->coords[1] <= (SFG_player.squarePosition[1] + 1))))
+       {
+         if (lock == 0)
+         {
+@@ -2858,13 +3544,18 @@ void SFG_updateLevel()
+       SFG_LevelElement e =
+         SFG_currentLevel.levelPointer->elements[item];
+ 
+-      if (
+-        SFG_isInActiveDistanceFromPlayer(
+-          e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+-          e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
+-          SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2)
+-        )
+-        item |= SFG_ITEM_RECORD_ACTIVE_MASK;
++      if (SFG_getLevelItemBit(SFG_currentLevel.checkedItemIndex))
++      {
++        if (item && // ignore NONE items
++          SFG_isInActiveDistanceFromPlayer(
++            e.coords[0] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
++            e.coords[1] * RCL_UNITS_PER_SQUARE + RCL_UNITS_PER_SQUARE / 2,
++            SFG_floorHeightAt(e.coords[0],e.coords[1]) + RCL_UNITS_PER_SQUARE / 2)
++          )
++          item |= SFG_ITEM_RECORD_ACTIVE_MASK;
++      }
++      else
++        SFG_setItemCollisionMapBit(e.coords[0],e.coords[1],0);
+ 
+       SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
+ 
+@@ -2964,7 +3655,7 @@ void SFG_updateLevel()
+             SFG_floorCollisionHeightAt(
+               SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
+               SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0])) +
+-            RCL_UNITS_PER_SQUARE / 2);
++            RCL_UNITS_PER_SQUARE / 2,0);
+       }
+       else
+       {
+@@ -3093,6 +3784,18 @@ void SFG_updatePlayerHeight()
+       RCL_CAMERA_COLL_HEIGHT_BELOW;
+ }
+ 
++/**
++  Returns color of a player, 0 means local player, higher values mean
++  multiplayer partners.
++*/
++uint8_t SFG_getPlayerColor(uint8_t index)
++{
++  if (index >= SFG_MULTIPLAYER_MAX_PARTNERS + 1)
++    return 0; // shouldn't happen
++
++  return 6 + index * 16;
++}
++
+ void SFG_winLevel()
+ {
+   SFG_levelEnds();
+@@ -3107,6 +3810,26 @@ void SFG_winLevel()
+ */
+ void SFG_gameStepPlaying()
+ {
++#if 0
++  // network debug
++
++  puts("partners:");
++
++  for (int i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++  {
++    putchar(' ');
++    putchar(' ');
++
++    for (int j = 0; j < SFG_NETWORK_ADDRESS_SIZE; ++j)
++      printf("%d ",SFG_partnerPlayers[i].address[j]);
++
++    printf("(level %d, state %d, last heard: %u)\n",
++      SFG_partnerPlayers[i].level,
++      SFG_partnerPlayers[i].state,
++      SFG_partnerPlayers[i].lastHeardFromFrame);
++  }
++#endif
++
+ #if SFG_QUICK_WIN
+   if (SFG_game.stateTime > 500)
+     SFG_winLevel();
+@@ -3390,7 +4113,8 @@ void SFG_gameStepPlaying()
+   for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+     // ^ has to be int16_t (signed)
+   {
+-    if (!(SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK))
++    if (!SFG_getLevelItemBit(i) ||
++      !(SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK))
+       continue;
+ 
+     const SFG_LevelElement *e = SFG_getActiveItemElement(i);
+@@ -3427,7 +4151,8 @@ void SFG_gameStepPlaying()
+         {
+           case SFG_LEVEL_ELEMENT_HEALTH:
+             if (SFG_player.health < SFG_PLAYER_MAX_HEALTH)
+-              SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
++              SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE *
++                SFG_MULTIPLAYER_ITEM_BOOST);
+             else
+               eliminate = 0;
+             break;
+@@ -3436,7 +4161,8 @@ void SFG_gameStepPlaying()
+   if (SFG_player.ammo[SFG_AMMO_##type] < SFG_AMMO_MAX_##type) \
+   {\
+     SFG_player.ammo[SFG_AMMO_##type] = RCL_min(SFG_AMMO_MAX_##type,\
+-      SFG_player.ammo[SFG_AMMO_##type] + SFG_AMMO_INCREASE_##type);\
++      SFG_player.ammo[SFG_AMMO_##type] + SFG_AMMO_INCREASE_##type * \
++      SFG_MULTIPLAYER_ITEM_BOOST);\
+     if (onlyKnife) SFG_playerRotateWeapon(1); \
+   }\
+   else\
+@@ -3579,16 +4305,56 @@ void SFG_gameStepPlaying()
+ 
+     if (canShoot)
+     {
++      /* Shooting will make the game remember the exact position and send it
++         with the shoot info so that other clients can precisely spawn fake
++         projectiles. */
++
++      SFG_player.networkState = 0;
++      SFG_player.networkStatePos[0] = SFG_player.camera.position.x;
++      SFG_player.networkStatePos[1] = SFG_player.camera.position.y;
++      SFG_player.networkStatePos[2] = SFG_player.camera.direction;
++      SFG_player.networkStatePos[3] = SFG_player.camera.height;
++
++      for (uint8_t j = 0; j < SFG_MULTIPLAYER_MAX_PARTNERS; ++j)
++        SFG_partnerPlayers[j].sendSpecialState = 1;
++
+       uint8_t sound;
+ 
+       switch (SFG_player.weapon)
+       {
+-        case SFG_WEAPON_KNIFE:           sound = 255; break;
+-        case SFG_WEAPON_ROCKET_LAUNCHER: 
+-        case SFG_WEAPON_SHOTGUN:         sound = 2; break; 
++        case SFG_WEAPON_KNIFE:
++          sound = 255;
++          SFG_player.networkState = 1;
++          break;
++
++        case SFG_WEAPON_MACHINE_GUN:
++          sound = 0;
++          SFG_player.networkState = 2;
++          break;
++
++        case SFG_WEAPON_SHOTGUN:
++          sound = 2;
++          SFG_player.networkState = 3;
++          break; 
++
++        case SFG_WEAPON_ROCKET_LAUNCHER:
++          sound = 2;
++          SFG_player.networkState = 4;
++          break;
++ 
+         case SFG_WEAPON_PLASMAGUN:
+-        case SFG_WEAPON_SOLUTION:        sound = 4; break;
+-        default:                         sound = 0; break;
++          sound = 4;
++          SFG_player.networkState = 8;
++          break;
++
++        case SFG_WEAPON_SOLUTION:
++          SFG_player.networkState = 12;
++          sound = 4;
++          break;
++
++        default:
++          sound = 0;
++          break;
+       }
+ 
+       if (sound != 255)
+@@ -3640,10 +4406,17 @@ void SFG_gameStepPlaying()
+           :
+           (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
+ 
++        if (SFG_player.networkState >= 4)
++          SFG_player.networkState += // record vertical direction
++            (verticalSpeed >= projectileSpeed / 3) +
++            (verticalSpeed >= (3 * projectileSpeed) / 4) +
++             3 * (verticalSpeed < -1 * projectileSpeed / 2);
++
+         for (uint8_t i = 0; i < projectileCount; ++i)
+         {
+           SFG_launchProjectile(
+             projectile,
++            0,
+             SFG_player.camera.position,
+             SFG_player.camera.height,
+             RCL_angleToDirection(direction),
+@@ -3765,10 +4538,9 @@ void SFG_gameStepPlaying()
+   if (SFG_player.health == 0)
+   {
+     SFG_LOG("player dies");
+-    SFG_levelEnds();
+     SFG_processEvent(SFG_EVENT_VIBRATE,0);
+     SFG_processEvent(SFG_EVENT_PLAYER_DIES,0);
+-    SFG_setGameState(SFG_GAME_STATE_LOSE);
++    SFG_initPlayer(); // we just respawn the player in multiplayer
+   }
+ #endif
+ }
+@@ -3984,10 +4756,208 @@ void SFG_gameStepMenu()
+   }
+ }
+ 
++/**
++  Updates info about partner players as part of one game step.
++*/
++
++void SFG_partnerPlayersStep()
++{
++  for (int i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++  {
++    SFG_PartnerPlayer *p = SFG_partnerPlayers + i;
++   
++    uint16_t frameDiff = SFG_game.frame - p->latestPositionFrame; 
++    uint16_t interpInterval = 
++      RCL_nonZero(p->latestPositionFrame - p->previousPositionFrame);
++
++    if (p->state == SFG_PARTNER_STATE_SHOOTING)
++    {
++      if (p->stateFrameCountdown)
++        p->stateFrameCountdown--;
++      else
++        p->state = SFG_PARTNER_STATE_NORMAL;
++    }
++
++    if (frameDiff >= interpInterval || 
++      (p->drawPosition.x == p->latestPosition.x &&
++      p->drawPosition.y == p->latestPosition.y))
++    {
++      p->drawPosition = p->latestPosition;
++      
++      if (p->state == SFG_PARTNER_STATE_RUNNING)
++        p->state = SFG_PARTNER_STATE_NORMAL;
++    }
++    else
++    {
++      p->drawPosition.x = p->previousPosition.x + 
++        (frameDiff * (p->latestPosition.x - p->previousPosition.x))
++        / interpInterval;
++
++      p->drawPosition.y = p->previousPosition.y + 
++        (frameDiff * (p->latestPosition.y - p->previousPosition.y))
++        / interpInterval;
++
++      if (p->state == SFG_PARTNER_STATE_NORMAL)
++        p->state = SFG_PARTNER_STATE_RUNNING;
++    }
++  }
++}
++
++void SFG_makeMessageAndSend(uint8_t partnerIndex)
++{
++  uint8_t *b = SFG_game.helperNetworkBuffer + 3;
++
++  RCL_Unit
++    x = SFG_player.camera.position.x,
++    y = SFG_player.camera.position.y,
++    dir = SFG_player.camera.direction,
++    height = SFG_player.camera.height;
++
++  uint8_t netState = 0;
++
++  if (SFG_partnerPlayers[partnerIndex].sendSpecialState)
++  {
++    x = SFG_player.networkStatePos[0],
++    y = SFG_player.networkStatePos[1],
++    dir = SFG_player.networkStatePos[2],
++    height = SFG_player.networkStatePos[3];
++    netState = SFG_player.networkState;
++
++    SFG_partnerPlayers[partnerIndex].sendSpecialState = 0;
++  }
++
++  height -= RCL_CAMERA_COLL_HEIGHT_BELOW;
++
++  b[0] = x % 256;
++  b[1] = x / 256;
++  b[2] = y % 256;
++  b[3] = y / 256;
++
++  b[4] = (256 * dir) / RCL_UNITS_PER_SQUARE + 128;
++  b[5] = height % 256;
++  b[6] = height / 256;
++ 
++  b[7] = netState | (SFG_currentLevel.levelPointer == 0 ? 0xf0 :
++    (SFG_currentLevel.levelNumber << 4));
++
++  b[8] = SFG_partnerPlayers[partnerIndex].nextMessageType;
++
++  SFG_partnerPlayers[partnerIndex].nextMessageType =
++    (SFG_partnerPlayers[partnerIndex].nextMessageType + 1) % 5;
++
++  if (b[8] < 4)
++  {
++    SFG_MonsterRecord *m = SFG_currentLevel.monsterRecords + b[8] * 16; 
++    uint8_t *v = b + 9;
++
++    for (uint8_t i = 0; i < 16; ++i)
++    {
++      *v = m->coords[0]; v++;
++      *v = m->coords[1]; v++;
++      *v = m->health; v++;
++      m++;
++    }
++
++    switch (b[8])
++    {
++      case 0:
++      {
++        b[57] = SFG_player.cards & 0x03;
++
++        uint8_t lastChar = SFG_chatCharacterEncode(SFG_player.chatBuffer[3]);
++
++        for (uint8_t i = 0; i < 3; ++i)
++        {
++          b[58 + i] = SFG_chatCharacterEncode(SFG_player.chatBuffer[i]) |
++            (lastChar << 6);
++
++          lastChar >>= 2; 
++        }
++
++        break;
++      }
++
++      case 1:
++        b[57] = SFG_game.networkFrame % 256;
++        b[58] = (SFG_game.networkFrame >> 8) % 256;
++        b[59] = (SFG_game.networkFrame >> 16) % 256;
++        b[60] = (SFG_game.networkFrame >> 24) % 256;
++        break;
++
++      case 2:
++      case 3:
++      {
++        char *cb = SFG_player.chatBuffer + 4 + 5 * (b[8] == 3);
++
++        uint8_t lastChar = SFG_chatCharacterEncode(cb[4]);
++
++        for (uint8_t i = 0; i < 4; ++i)
++        {
++          b[57 + i] = SFG_chatCharacterEncode(cb[i]) | (lastChar << 6);
++          lastChar >>= 2;
++        }
++
++        break;
++      }
++
++      default: break;
++    }
++
++  }
++  else // 4
++  {
++    for (uint8_t i = 0; i < 16; ++i)
++      b[9 + i] = SFG_currentLevel.itemBitMask[i];
++
++    uint8_t partner = 0, offset = 0;
++
++    for (uint8_t i = 0; i < 2; ++i) // other partners
++    {
++      if (partner == partnerIndex)
++        partner++;
++
++      SFG_PartnerPlayer *p = SFG_partnerPlayers + partner;
++
++      for (uint8_t j = 0; j < 6; ++j)
++        b[25 + j + offset] = p->address[j];
++
++      b[31 + offset] = p->latestPosition.x % 256;
++      b[32 + offset] = p->latestPosition.x / 256;
++      b[33 + offset] = p->latestPosition.y % 256;
++      b[34 + offset] = p->latestPosition.y / 256;
++      b[35 + offset] = (256 * p->direction) / RCL_UNITS_PER_SQUARE;
++      b[36 + offset] = p->verticalPosition % 256;      
++      b[37 + offset] = p->verticalPosition / 256;      
++      b[38 + offset] = (p->state == SFG_PARTNER_STATE_SHOOTING) |
++        (p->level << 4); // ^ this we simplyfy to just shooting or not, KISS
++
++      char *cb = p->chatBuffer + (p->nextChatBufferPart) * 5;
++      uint8_t lastChar = SFG_chatCharacterEncode(cb[4]);
++        
++      for (uint8_t i = 0; i < 4; ++i)
++      {
++        b[39 + i + offset] = SFG_chatCharacterEncode(cb[i]) | (lastChar << 6);
++        lastChar >>= 2;
++      }
++
++      b[42 + offset] |= p->nextChatBufferPart << 6;
++
++      p->nextChatBufferPart = (p->nextChatBufferPart + 1) % 3;
++
++      partner++;
++      offset = 18;
++    }
++  }
++
++  SFG_networkMessageWrapAndSend(SFG_partnerPlayers[partnerIndex].address,
++    SFG_game.helperNetworkBuffer);
++}
++
+ /**
+   Performs one game step (logic, physics, menu, ...), happening SFG_MS_PER_FRAME
+   after the previous step.
+ */
++
+ void SFG_gameStep()
+ {
+   SFG_GAME_STEP_COMMAND
+@@ -4006,6 +4976,35 @@ void SFG_gameStep()
+       SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
+     SFG_game.spriteAnimationFrame++;
+ 
++  SFG_partnerPlayersStep();
++
++  if (SFG_player.chatClearCountdown)
++  {
++    SFG_player.chatClearCountdown--;
++
++    if (SFG_player.chatClearCountdown == 0)
++      SFG_chatBufferClear();
++  }
++
++  if (SFG_getTimeMs() >= SFG_game.nextNetworkSendTime)
++  {
++    SFG_game.nextNetworkSendTime =
++      SFG_getTimeMs() + SFG_NETWORK_SEND_INTERVAL_MS;
++
++    for (uint8_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++    {
++      SFG_game.sendingTo = (SFG_game.sendingTo + 1) %
++        SFG_MULTIPLAYER_MAX_PARTNERS;
++
++      if (!SFG_networkAddressIsEmpty(
++        SFG_partnerPlayers[SFG_game.sendingTo].address))
++      {
++        SFG_makeMessageAndSend(SFG_game.sendingTo); 
++        break;
++      }
++    }
++  }
++
+   switch (SFG_game.state)
+   {
+     case SFG_GAME_STATE_PLAYING:
+@@ -4186,8 +5185,19 @@ void SFG_drawMap()
+   uint16_t x;
+   uint16_t y = topLeftY;
+ 
+-  uint8_t playerColor = 
+-    SFG_game.blink ? SFG_MAP_PLAYER_COLOR1 : SFG_MAP_PLAYER_COLOR2;
++  uint8_t playerPositions[2 * (SFG_MULTIPLAYER_MAX_PARTNERS + 1)];
++
++  playerPositions[0] = SFG_player.squarePosition[0];
++  playerPositions[1] = SFG_player.squarePosition[1];
++
++  for (uint8_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++  {
++    playerPositions[2 * (i + 1)] = SFG_partnerPlayers[i].drawPosition.x /
++      RCL_UNITS_PER_SQUARE;
++
++    playerPositions[2 * (i + 1) + 1] = SFG_partnerPlayers[i].drawPosition.y /
++      RCL_UNITS_PER_SQUARE;
++  }
+ 
+   for (int16_t j = 0; j < maxJ; ++j)
+   {
+@@ -4204,10 +5214,16 @@ void SFG_drawMap()
+         SFG_TileDefinition tile =
+           SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
+ 
+-        color = playerColor; // start with player color
++        for (uint8_t k = 0; k < (SFG_MULTIPLAYER_MAX_PARTNERS + 1) * 2; k += 2)
++          if (i == playerPositions[k] && j == playerPositions[k + 1])
++          {
++            color = SFG_game.blink ? SFG_getPlayerColor(k / 2) :
++              SFG_MAP_PLAYER_COLOR1;
++
++            break;
++          }
+ 
+-        if (i != SFG_player.squarePosition[0] ||
+-            j != SFG_player.squarePosition[1])
++        if (!color)
+         {
+           if (properties == SFG_TILE_PROPERTY_ELEVATOR)
+             color = SFG_MAP_ELEVATOR_COLOR;
+@@ -4472,6 +5488,10 @@ void SFG_drawMenu()
+   SFG_blitImage(SFG_logoImage,SFG_GAME_RESOLUTION_X / 2 - 
+     (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL);
+ 
++  SFG_drawText(SFG_TEXT_MULTIPLAYER_TITLE,SFG_GAME_RESOLUTION_X / 2 -
++    (7 * SFG_FONT_SIZE_SMALL * (SFG_FONT_CHARACTER_SIZE + 1)) / 2,
++    y + SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL,SFG_FONT_SIZE_SMALL,7,32,0);
++
+ #if SFG_GAME_RESOLUTION_Y > 50
+   y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
+ #else
+@@ -4771,14 +5791,98 @@ void SFG_draw()
+             RCL_perspectiveScaleVertical(
+             SFG_SPRITE_SIZE_PIXELS(spriteSize),
+             p.depth),
+-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
++            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth,0);
++        }
++      }
++    }
++
++    // partner player sprites:
++    for (int_fast16_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS; ++i)
++    {
++      if (SFG_partnerPlayers[i].level != SFG_currentLevel.levelNumber)
++        continue;
++
++      RCL_Vector2D facingDir;
++
++      facingDir.x = SFG_partnerPlayers[i].drawPosition.x -
++        SFG_player.camera.position.x;
++
++      facingDir.y = SFG_partnerPlayers[i].drawPosition.y -
++        SFG_player.camera.position.y;
++
++      if (RCL_abs(facingDir.x) <= SFG_MULTIPLAYER_PLAYER_DRAW_DISTANCE &&
++        RCL_abs(facingDir.y) <= SFG_MULTIPLAYER_PLAYER_DRAW_DISTANCE)
++      {
++        facingDir = RCL_normalize(facingDir);
++
++        RCL_Unit oldX = facingDir.x;
++        RCL_Unit angleSin = RCL_sin(SFG_partnerPlayers[i].direction);
++        RCL_Unit angleCos = RCL_cos(SFG_partnerPlayers[i].direction);
++
++        // rotate the direction vector by the partner's facing angle
++        facingDir.x = (facingDir.x * angleCos - facingDir.y * angleSin) /
++          RCL_UNITS_PER_SQUARE;
++        facingDir.y = (oldX * angleSin + facingDir.y * angleCos) /
++          RCL_UNITS_PER_SQUARE;
++
++        uint8_t playerSprite, flip = 0;
++
++        if (RCL_abs(facingDir.x) > RCL_abs(facingDir.y))
++          playerSprite = facingDir.x > 0 ? 0 : 3;
++        else
++        {
++          playerSprite = 6;
++          flip = facingDir.y > 0;
++        }
++
++        if (SFG_partnerPlayers[i].state == SFG_PARTNER_STATE_RUNNING)
++        {
++          // running animation
++
++          if (playerSprite <= 3)
++          {
++            playerSprite++;
++            flip = SFG_game.blink; 
++          }
++          else if (SFG_game.blink)
++            playerSprite++;
++        }
++        else if (SFG_partnerPlayers[i].state == SFG_PARTNER_STATE_SHOOTING)
++          playerSprite += 2;
++
++        RCL_Unit worldHeight = SFG_partnerPlayers[i].verticalPosition +
++          SFG_SPRITE_SIZE_TO_HEIGHT_ABOVE_GROUND(
++          SFG_MULTIPLAYER_PLAYER_SPRITE_SIZE);
++
++        RCL_PixelInfo p = RCL_mapToScreen(
++          SFG_partnerPlayers[i].drawPosition,worldHeight,SFG_player.camera);
++
++        if (p.depth > 0 && SFG_spriteIsVisible(
++          SFG_partnerPlayers[i].drawPosition,worldHeight))
++        {
++          RCL_Unit scale = RCL_perspectiveScaleVertical(
++            SFG_SPRITE_SIZE_PIXELS(SFG_MULTIPLAYER_PLAYER_SPRITE_SIZE),p.depth);
++
++          int16_t posX = p.position.x * SFG_RAYCASTING_SUBSAMPLE;
++
++          SFG_drawScaledSprite(SFG_playerImages + playerSprite *
++            SFG_TEXTURE_STORE_SIZE,
++            posX,p.position.y,
++            scale,
++            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth,flip);
++
++          // player's color above his head
++          SFG_fillRectangle(posX - SFG_FONT_SIZE_BIG / 2,
++            p.position.y - scale / 2 - SFG_FONT_SIZE_BIG / 2,SFG_FONT_SIZE_BIG,
++              SFG_FONT_SIZE_BIG,SFG_getPlayerColor(i + 1));
+         }
+       }
+     }
+ 
+     // item sprites:
+     for (int_fast16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+-      if (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK)
++      if (SFG_getLevelItemBit(i) &&
++        (SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK))
+       {
+         RCL_Vector2D worldPosition;
+ 
+@@ -4810,7 +5914,7 @@ void SFG_draw()
+             SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
+               p.position.y,
+               RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
+-              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
++              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth,0);
+         }
+       }
+ 
+@@ -4857,7 +5961,7 @@ void SFG_draw()
+             p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
+             RCL_perspectiveScaleVertical(spriteSize,p.depth),
+             SFG_fogValueDiminish(p.depth),
+-            p.depth);  
++            p.depth,0);  
+     }
+ 
+ #if SFG_HEADBOB_ENABLED
+@@ -4927,6 +6031,14 @@ void SFG_draw()
+           SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
+           i == 0 ? 93 : (i == 1 ? 124 : 60));
+ 
++    for (uint8_t i = 0; i < SFG_MULTIPLAYER_MAX_PARTNERS + 1; ++i) // chat
++      SFG_drawText(
++        i ? SFG_partnerPlayers[i - 1].chatBuffer : SFG_player.chatBuffer,2,
++        SFG_GAME_RESOLUTION_Y -
++        SFG_HUD_BAR_HEIGHT - (i + 1) * (SFG_FONT_SIZE_SMALL *
++        SFG_FONT_CHARACTER_SIZE + 3),SFG_FONT_SIZE_SMALL,SFG_getPlayerColor(i),
++        SFG_CHAT_BUFFER_SIZE,0);
++
+     #undef TEXT_Y
+ 
+     // border indicator
+@@ -4984,6 +6096,7 @@ uint8_t SFG_mainLoopBody()
+         timeSinceLastFrame -= SFG_MS_PER_FRAME;
+ 
+         SFG_game.frame++;
++        SFG_game.networkFrame++;
+         steps++;
+       }
+ 
+diff --git a/images.h b/images.h
+index 8f88bcc..f07bb7c 100644
+--- a/images.h
++++ b/images.h
+@@ -701,6 +701,170 @@ SFG_PROGRAM_MEMORY uint8_t SFG_backgroundImages[3 * SFG_TEXTURE_STORE_SIZE] =
+ 101,85,34,34,34,35,54,119,23,16,0,0,0,0,0,0,4,69,82,34,34,35,51
+ };
+ 
++SFG_PROGRAM_MEMORY uint8_t SFG_playerImages[9 * SFG_TEXTURE_STORE_SIZE] =
++{
++// 0, player forward
++175,160,0,3,2,4,66,60,1,5,91,114,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,1,17,17,0,0,0,0,0,0,0,0,0,0,0,0,0,25,149,149,17,0,0,0,0,0,0,0,0,0,0,0,1,154,
++74,51,53,16,0,0,0,0,1,17,0,0,0,1,21,51,68,100,51,81,0,17,16,0,23,65,0,0,0,20,
++134,102,34,34,67,50,17,85,145,17,23,65,0,0,18,34,36,119,119,66,36,52,36,51,89,
++88,51,97,0,17,50,34,88,76,51,116,34,67,36,67,51,84,68,97,0,21,54,36,37,131,195,
++54,36,36,34,68,51,56,74,97,1,147,115,42,35,180,60,66,83,42,98,100,68,136,129,17,
++1,151,55,36,35,184,136,130,147,66,162,34,34,32,0,0,1,147,115,36,35,180,68,68,83,
++50,162,34,70,34,33,17,1,87,59,42,35,180,60,60,41,50,34,36,51,56,74,97,0,27,182,
++36,35,131,195,60,69,100,34,36,179,52,70,97,0,17,178,18,56,76,51,116,66,83,42,98,
++67,56,99,97,0,0,18,34,36,119,119,66,34,147,66,162,68,84,55,65,0,0,0,20,134,102,
++98,41,84,83,50,98,85,17,23,65,0,0,0,1,25,58,53,147,51,37,52,161,17,0,1,17,0,0,0,
++0,1,149,74,51,52,185,66,16,0,0,0,0,0,0,0,0,0,17,21,51,65,21,34,16,0,0,0,0,0,0,0,
++0,0,0,1,17,16,1,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 1, player forward run
++175,3,0,2,160,4,60,1,66,91,5,114,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,4,68,68,0,0,0,0,0,0,0,0,0,0,0,0,4,69,90,165,64,0,0,0,0,0,0,0,0,0,0,0,74,147,
++25,17,84,0,0,0,0,0,0,0,0,0,0,4,81,49,19,131,21,64,68,68,0,0,0,0,0,0,0,68,19,56,
++34,35,49,82,49,85,68,68,64,0,0,0,66,71,135,49,22,50,49,18,35,17,87,49,100,0,0,4,
++165,50,37,115,17,104,34,51,40,49,83,54,100,0,0,4,81,98,34,87,193,18,50,41,50,51,
++23,51,132,0,0,74,22,18,146,27,28,50,19,34,146,131,119,152,132,0,0,74,97,98,50,
++19,119,114,81,50,146,34,34,36,64,0,0,69,22,18,50,27,51,55,161,19,34,34,56,34,68,
++68,0,69,97,98,146,27,193,17,37,131,34,51,17,55,145,100,0,4,17,18,34,23,17,17,50,
++49,57,35,177,19,134,20,0,4,177,50,33,115,22,19,50,81,19,148,49,23,134,20,0,0,68,
++34,34,54,99,34,37,42,17,52,51,83,51,52,0,0,0,4,116,136,129,53,81,37,17,68,53,68,
++68,64,0,0,0,0,69,25,21,81,19,50,163,68,68,0,0,0,0,0,0,0,4,85,25,17,51,52,84,34,
++0,0,0,0,0,0,0,0,0,36,17,51,52,0,34,32,0,0,0,0,0,0,0,0,0,0,36,68,64,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 2, player forward attack
++175,160,3,2,0,1,4,183,91,191,66,5,60,50,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,68,68,68,0,0,0,0,0,0,1,17,0,0,0,0,65,
++104,107,182,16,0,0,0,0,0,18,49,0,0,0,1,104,34,34,34,97,0,1,17,17,17,28,49,0,0,0,
++21,51,83,51,50,38,17,18,102,187,101,34,161,0,0,20,69,83,165,68,86,34,52,51,34,
++34,99,51,161,0,1,182,52,69,19,51,84,98,40,74,50,35,37,56,161,0,1,98,196,68,101,
++211,213,66,35,19,51,51,53,81,17,0,27,44,36,132,37,85,85,134,40,68,163,52,64,0,0,
++0,27,194,196,52,37,83,51,56,55,132,68,16,0,0,0,0,22,44,36,52,37,45,45,40,71,116,
++68,68,68,65,17,0,22,194,196,132,35,210,210,35,121,116,78,38,37,56,161,0,1,34,52,
++68,101,34,34,55,153,151,67,34,35,58,161,0,1,227,68,70,83,83,55,121,153,151,120,
++35,42,35,49,0,0,17,68,68,50,53,88,119,121,153,119,120,53,194,49,0,0,0,1,161,162,
++34,34,55,121,151,227,20,17,18,49,0,0,0,0,22,40,38,102,40,119,120,17,0,0,1,17,0,
++0,0,0,1,22,56,187,98,135,128,0,0,0,0,0,0,0,0,0,0,1,17,17,17,23,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 3, player back
++175,160,2,3,0,1,91,5,4,60,114,66,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,1,17,16,17,16,0,0,0,0,0,0,0,0,0,0,17,24,51,33,34,16,0,0,0,0,0,0,0,0,0,1,
++120,38,35,50,18,16,0,0,0,0,0,0,0,0,1,23,106,68,66,54,20,21,65,17,0,1,17,0,0,0,
++23,85,34,34,36,69,85,83,136,135,17,25,33,0,0,20,72,116,68,68,69,69,72,136,51,56,
++130,51,33,0,17,120,132,135,119,120,37,82,67,51,51,51,53,178,177,0,23,51,50,115,
++38,98,53,66,67,50,35,35,53,34,177,1,115,147,146,114,99,102,37,66,67,52,34,34,53,
++38,177,1,121,57,50,118,54,35,101,66,19,17,17,17,68,65,17,1,131,147,146,118,102,
++99,101,74,67,33,68,68,64,0,0,1,137,51,50,118,54,35,101,66,19,52,34,34,85,81,17,
++0,26,51,162,114,99,102,37,74,19,50,34,35,53,38,177,0,17,170,164,131,38,98,37,82,
++19,50,35,35,53,34,177,0,0,20,71,52,68,68,69,66,18,52,51,55,133,50,177,0,0,0,67,
++69,34,37,84,68,68,17,136,113,17,25,33,0,0,0,4,70,58,68,66,37,81,0,17,16,0,1,17,
++0,0,0,0,1,118,51,51,130,16,0,0,0,0,0,0,0,0,0,0,0,23,120,120,17,0,0,0,0,0,0,0,0,
++0,0,0,0,1,17,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 4, player back run
++175,2,3,160,0,1,91,4,5,60,114,66,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,67,51,48,0,0,0,0,0,0,0,0,0,0,0,0,67,120,114,19,0,84,64,0,0,0,0,0,0,0,0,3,
++114,22,34,17,83,17,64,0,0,0,0,0,0,0,0,49,38,39,114,33,85,51,51,51,0,0,0,0,0,0,3,
++133,82,33,17,68,85,17,39,135,51,51,53,0,0,3,68,120,68,68,68,84,81,18,33,17,113,
++17,19,0,3,56,114,71,136,136,113,81,82,34,17,18,33,185,35,0,3,130,146,24,33,102,
++18,85,82,42,161,161,37,185,35,0,56,41,41,24,22,38,97,81,82,20,26,34,37,98,147,0,
++55,146,146,24,98,22,38,81,81,83,68,27,68,51,48,0,55,41,41,24,102,102,38,81,81,
++51,68,68,67,48,0,0,57,34,34,24,98,22,38,90,82,20,177,85,107,179,0,0,3,162,42,24,
++22,38,97,81,82,37,17,17,81,179,0,0,3,58,170,71,33,102,17,90,82,33,17,18,89,147,
++0,0,0,3,68,130,68,68,68,84,82,17,18,34,82,147,0,0,0,0,50,36,33,17,85,68,68,68,
++68,51,51,53,0,0,0,0,3,118,21,85,177,39,48,0,0,0,0,0,0,0,0,0,0,56,98,134,34,115,
++0,0,0,0,0,0,0,0,0,0,0,3,55,119,135,48,0,0,0,0,0,0,0,0,0,0,0,0,3,51,51,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 5, player back attack
++175,160,3,2,0,5,91,1,4,60,66,114,183,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,17,28,12,0,0,0,0,0,0,0,0,0,0,0,1,24,88,
++33,28,192,0,1,17,0,1,17,0,0,0,1,21,107,52,68,17,20,23,69,136,17,25,49,0,0,0,21,
++119,35,51,51,68,119,133,130,34,131,34,49,0,0,20,72,84,68,68,68,68,72,34,34,34,
++39,58,161,0,1,88,52,133,85,85,131,116,66,34,34,50,39,51,161,0,21,34,41,53,35,
++102,50,119,66,35,50,51,39,54,161,0,24,34,146,53,54,38,99,116,66,36,51,49,68,65,
++17,1,82,34,41,53,98,54,38,116,18,49,17,16,0,0,0,1,130,146,146,53,102,102,38,116,
++66,17,68,68,64,0,0,0,25,41,41,53,98,54,38,116,18,36,51,51,49,17,17,0,27,146,155,
++53,54,38,99,119,18,35,51,50,39,54,161,0,1,187,52,40,35,102,51,116,18,35,51,34,
++39,51,161,0,0,20,66,84,68,68,68,68,19,36,35,40,87,51,161,0,0,0,72,67,35,51,119,
++68,68,17,136,81,23,41,161,0,0,0,4,66,59,68,67,52,192,0,17,16,0,17,17,0,0,0,0,1,
++101,85,129,76,0,0,0,0,0,0,0,0,0,0,0,0,17,17,16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 6, player side
++175,160,3,2,4,91,5,60,1,114,66,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,17,16,0,0,0,0,0,0,0,0,0,0,0,1,17,19,85,
++65,0,0,0,0,0,0,0,0,0,0,0,20,53,82,34,33,17,16,0,0,0,17,16,0,0,0,0,22,34,35,129,
++17,136,33,0,1,17,58,16,0,0,17,17,52,51,17,51,56,25,52,17,19,49,17,17,0,1,100,36,
++18,70,99,17,19,25,51,68,35,20,66,33,0,22,114,114,67,98,36,102,49,19,50,34,68,34,
++37,161,0,20,39,34,67,101,82,34,70,17,50,50,34,50,53,161,1,66,114,51,35,66,34,85,
++35,65,57,50,34,51,50,49,1,71,34,17,50,20,34,37,34,49,131,51,35,51,23,49,1,34,
++114,17,19,65,17,50,34,33,24,17,51,49,23,49,0,23,34,21,25,20,35,19,50,51,17,0,17,
++16,1,17,0,25,121,19,17,1,17,17,19,51,49,0,0,0,0,0,0,1,17,17,0,0,0,0,24,51,81,0,
++0,0,0,0,0,0,0,0,0,0,0,0,18,133,81,0,0,0,0,0,0,0,0,0,0,0,0,0,22,85,16,0,0,0,0,0,
++0,0,0,0,0,0,0,0,22,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,17,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 7, player side run
++175,160,3,2,4,91,5,60,1,114,66,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,1,17,16,0,0,0,1,17,0,0,0,0,0,0,1,17,21,82,33,0,0,0,20,51,17,0,0,0,0,0,20,
++53,82,51,17,136,0,0,20,83,163,16,0,0,0,0,22,34,35,17,70,17,16,0,20,35,39,16,0,0,
++0,0,20,50,17,68,34,65,49,17,66,33,17,16,0,0,17,17,18,65,68,37,82,33,19,17,34,51,
++16,0,0,1,70,67,19,98,85,34,50,35,17,17,51,49,0,0,0,1,103,39,52,98,82,35,19,34,
++17,49,19,49,0,0,0,20,34,114,36,97,51,17,19,34,49,148,17,16,0,0,0,20,39,51,50,67,
++17,19,17,50,49,57,71,17,16,0,0,18,114,49,19,34,51,51,49,53,81,57,34,70,65,17,0,
++18,39,49,17,57,34,17,17,21,81,19,50,34,34,33,0,1,114,33,81,17,17,17,129,33,81,
++19,51,50,37,49,0,1,151,145,49,16,1,17,56,98,17,17,19,49,51,49,0,0,17,17,16,0,0,
++1,40,98,81,0,1,17,35,16,0,0,0,0,0,0,0,0,24,98,49,0,0,1,115,16,0,0,0,0,0,0,0,0,1,
++34,81,0,0,0,17,16,0,0,0,0,0,0,0,0,1,98,16,0,0,0,0,0,0,0,0,0,0,0,0,0,1,17,16,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++// 8, player side attack
++175,160,3,2,183,4,91,191,5,60,114,1,66,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,1,17,16,0,0,0,0,0,0,0,0,0,0,0,17,17,17,187,49,0,0,0,0,17,0,0,0,0,0,
++1,34,102,102,51,19,16,0,0,17,34,16,0,0,0,0,1,82,54,102,99,17,17,16,1,133,44,16,
++0,0,0,0,1,130,34,51,49,27,181,129,21,34,108,16,0,0,17,17,18,131,49,17,19,177,
++163,40,90,34,51,16,0,1,133,82,19,53,136,49,17,49,163,18,42,51,49,16,0,1,89,41,
++35,88,34,88,37,129,19,19,51,49,17,17,0,24,34,146,37,88,102,34,98,53,19,161,19,
++49,82,33,0,21,41,51,50,37,34,38,98,35,43,50,17,18,38,193,0,18,146,49,19,49,82,
++34,34,34,33,50,34,50,54,193,0,18,41,49,17,26,17,51,17,19,49,50,34,51,50,49,0,1,
++146,33,97,17,17,17,18,35,49,51,35,51,25,49,0,1,169,161,49,16,0,0,21,38,17,19,51,
++49,25,49,0,0,17,17,16,0,0,0,24,38,16,17,17,16,1,17,0,0,0,0,0,0,0,0,24,33,0,0,0,
++0,0,0,0,0,0,0,0,0,0,4,17,17,64,0,0,0,0,0,0,0,0,0,0,0,0,4,71,119,64,0,0,0,0,0,0,
++0,0,0,0,0,0,4,119,119,116,0,0,0,0,0,0,0,0,0,0,0,0,4,116,116,116,0,0,0,0,0,0,0,0,
++0,0,0,0,4,71,71,68,0,0,0,0,0,0,0,0,0,0,0,0,0,71,116,64,0,0,0,0,0,0,0,0,0,0,0,0,
++0,4,116,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
++};
++
+ SFG_PROGRAM_MEMORY uint8_t SFG_weaponImages[6 * SFG_TEXTURE_STORE_SIZE] =
+ {
+ // 0, knife
+diff --git a/main_sdl.c b/main_sdl.c
+index b2b28ae..61abbc5 100644
+--- a/main_sdl.c
++++ b/main_sdl.c
+@@ -35,6 +35,8 @@
+ // #define SFG_CPU_LOAD(percent) printf("CPU load: %d%\n",percent);
+ // #define GAME_LQ
+ 
++#define MULTIPLAYER_CHAT_KEY SDL_SCANCODE_RSHIFT // key to hold to chat
++
+ #ifndef __EMSCRIPTEN__
+   #ifndef GAME_LQ
+     // higher quality
+@@ -97,9 +99,18 @@
+ #include <unistd.h>
+ #include <SDL2/SDL.h>
+ 
++#include <arpa/inet.h>                                                          
++#include <sys/socket.h>
++
+ #include "game.h"
+ #include "sounds.h"
+ 
++struct sockaddr_in addressMe, addressHim;
++int sock; // socket
++
++#define NETWORK_BUFFER_SIZE 128
++uint8_t networkBuffer[NETWORK_BUFFER_SIZE];
++
+ const uint8_t *sdlKeyboardState;
+ uint8_t webKeyboardState[SFG_KEY_COUNT];
+ uint8_t sdlMouseButtonState = 0;
+@@ -120,6 +131,54 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
+   sdlScreen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
+ }
+ 
++// Converts an IP address to the game's data type.
++void addressToSFG(sockaddr_in *address, SFG_NetworkAddress gameAddress)
++{ 
++  uint32_t addr = ntohl(address->sin_addr.s_addr);
++
++  gameAddress[0] = addr % 256;
++  gameAddress[1] = (addr >> 8) % 256;
++  gameAddress[2] = (addr >> 16) % 256;
++  gameAddress[3] = (addr >> 24) % 256;
++
++  addr = ntohs(address->sin_port);
++
++  gameAddress[4] = addr % 256;
++  gameAddress[5] = addr / 256;
++}
++
++void addressFromSFG(sockaddr_in *address, SFG_NetworkAddress gameAddress)
++{
++  uint32_t addr = gameAddress[5];
++  addr <<= 8;
++  addr |= gameAddress[4];
++
++  address->sin_port = htons(addr);
++
++  addr = gameAddress[3];
++  addr <<= 8;
++  addr |= gameAddress[2];
++  addr <<= 8;
++  addr |= gameAddress[1];
++  addr <<= 8;
++  addr |= gameAddress[0];
++ 
++  address->sin_addr.s_addr = htonl(addr);
++}
++
++void SFG_networkMessageSend(SFG_NetworkAddress address,
++  uint8_t message[SFG_NETWORK_MESSAGE_SIZE])
++{
++  if (sock < 0)
++    return;
++
++  addressFromSFG(&addressHim,address);
++
++  if (sendto(sock,message,SFG_NETWORK_MESSAGE_SIZE,0,
++   (struct sockaddr *) &addressHim,sizeof(addressHim)) < 0)
++   puts("couldn't send UDP message");
++}
++
+ uint32_t SFG_getTimeMs()
+ {
+   return SDL_GetTicks();
+@@ -223,6 +282,9 @@ int8_t SFG_keyPressed(uint8_t key)
+   if (webKeyboardState[key]) // this only takes effect in the web version 
+     return 1;
+ 
++  if (sdlKeyboardState[MULTIPLAYER_CHAT_KEY])
++    return 0;
++
+   #define k(x) sdlKeyboardState[SDL_SCANCODE_ ## x]
+   #define b(x) ((sdlController != NULL) && \
+     SDL_GameControllerGetButton(sdlController,SDL_CONTROLLER_BUTTON_ ## x))
+@@ -303,11 +365,58 @@ void mainLoopIteration()
+     else if (event.type == SDL_QUIT)
+       running = 0;
+     else if (event.type == SDL_MOUSEMOTION)
+-      mouseMoved = 1; 
++      mouseMoved = 1;
++    else if (event.type == SDL_KEYDOWN &&
++      sdlKeyboardState[MULTIPLAYER_CHAT_KEY])
++    {
++      char c = 0;
++
++      if (event.key.keysym.sym >= SDLK_a &&
++        event.key.keysym.sym <= SDLK_z)
++        c = event.key.keysym.sym - SDLK_a + 'a';
++      else if (event.key.keysym.sym >= SDLK_0 &&
++        event.key.keysym.sym <= SDLK_9)
++        c = event.key.keysym.sym - SDLK_0 + '0';
++      else
++        switch (event.key.keysym.scancode)
++        {
++          case SDL_SCANCODE_SPACE:        c = ' '; break;
++          case SDL_SCANCODE_PERIOD:       c = '.'; break;
++          case SDL_SCANCODE_COMMA:        c = ','; break;
++          case SDL_SCANCODE_LEFTBRACKET:  c = '('; break;
++          case SDL_SCANCODE_RIGHTBRACKET: c = ')'; break;
++          case SDL_SCANCODE_MINUS:        c = '-'; break;
++          case SDL_SCANCODE_KP_PLUS:      c = '+'; break;
++          case SDL_SCANCODE_EQUALS:       c = '='; break;
++          case SDL_SCANCODE_APOSTROPHE:   c = '\''; break;
++          case SDL_SCANCODE_SLASH:        c = '/'; break;
++          case SDL_SCANCODE_KP_HASH:      c = '#'; break;
++          case SDL_SCANCODE_KP_MULTIPLY:  c = '*'; break;
++          case SDL_SCANCODE_KP_EXCLAM:    c = '!'; break;
++          case SDL_SCANCODE_KP_COLON:     c = ':'; break;
++          case SDL_SCANCODE_SEMICOLON:    c = '?'; break;
++          default: break;
++        }
++
++      if (c)
++        SFG_chatCharacterInput(c);
++    }
+   }
+ 
+   sdlMouseButtonState = SDL_GetMouseState(NULL,NULL);
+ 
++  struct sockaddr_in senderAddr;
++  int senderAddrLen = sizeof(senderAddr);
++  int bytesReceived = recvfrom(sock,networkBuffer,NETWORK_BUFFER_SIZE,0,                              
++    (sockaddr *) &senderAddr,(socklen_t *) &senderAddrLen);
++
++  if (bytesReceived > 0)
++  {
++    SFG_NetworkAddress address;
++    addressToSFG(&senderAddr,address);
++    SFG_networkMessageReceived(address,networkBuffer,bytesReceived);
++  }
++
+   if (!SFG_mainLoopBody())
+     running = 0;
+ 
+@@ -393,6 +502,9 @@ int main(int argc, char *argv[])
+   uint8_t argHelp = 0;
+   uint8_t argForceWindow = 0;
+   uint8_t argForceFullscreen = 0;
++  char *argAddress = 0;
++  int argPort = SFG_DEFAULT_NETWORK_PORT;
++  int argMyPort = SFG_DEFAULT_NETWORK_PORT;
+ 
+ #ifndef __EMSCRIPTEN__
+   argForceFullscreen = 1;
+@@ -409,13 +521,31 @@ int main(int argc, char *argv[])
+       argForceWindow = 1;
+     else if (argv[i][0] == '-' && argv[i][1] == 'f' && argv[i][2] == 0)       
+       argForceFullscreen = 1;
++    else if (argv[i][0] == '-' && argv[i][1] == 'a')
++      argAddress = argv[i] + 2;
++    else if (argv[i][0] == '-' && (argv[i][1] == 'p' || argv[i][1] == 'P'))
++    {
++      int port = 0;
++      int pos = 2;
++
++      while (argv[i][pos])
++      {
++        port = port * 10 + (argv[i][pos] - '0');
++        pos++;
++      }
++
++      if (argv[i][1] == 'p')
++        argPort = port;
++      else
++        argMyPort = port;
++    }
+     else
+       puts("SDL: unknown argument"); 
+   }
+ 
+   if (argHelp)
+   {
+-    puts("Anarch (SDL), version " SFG_VERSION_STRING "\n");
++    puts("Anarch (SDL): cooperative multiplayer, version " SFG_VERSION_STRING "\n");
+     puts("Anarch is a unique suckless FPS game. Collect weapons and items and destroy");
+     puts("robot enemies in your way in order to get to the level finish. Some door are");
+     puts("locked and require access cards. Good luck!\n");
+@@ -423,7 +553,10 @@ int main(int argc, char *argv[])
+     puts("CLI flags:\n");
+     puts("-h   print this help and exit");
+     puts("-w   force window");
+-    puts("-f   force fullscreen\n");
++    puts("-f   force fullscreen");
++    puts("-aA  set multiplayer partner's address to A");
++    puts("-pN  set multiplayer partner's port to N");
++    puts("-PN  set your multiplayer port to N\n");
+     puts("controls:\n");
+     puts("- arrows, numpad, [W] [S] [A] [D] [Q] [E]: movement");
+     puts("- mouse: rotation, [LMB] shoot, [RMB] toggle free look");
+@@ -435,6 +568,7 @@ int main(int argc, char *argv[])
+     puts("- [O] [P] [X] [Y] [Z] [mouse wheel] [mouse middle]: change weapons");
+     puts("- [TAB]: map");
+     puts("- [ESCAPE]: menu");
++    puts("- [RSHIFT]: hold and type for chat");
+ 
+     return 0;
+   }
+@@ -509,12 +643,47 @@ int main(int argc, char *argv[])
+   SDL_WarpMouseInWindow(window,
+     SFG_SCREEN_RESOLUTION_X / 2, SFG_SCREEN_RESOLUTION_Y / 2);
+ 
++  puts("initializing network");
++
++  sock = socket(AF_INET,SOCK_DGRAM | SOCK_NONBLOCK,IPPROTO_UDP);
++
++  if (sock < 0)
++    puts("couldn't open UDP socket");
++
++  addressMe.sin_family = AF_INET;
++  addressMe.sin_port = htons(argMyPort);
++  addressMe.sin_addr.s_addr = htonl(INADDR_ANY);
++
++  addressHim.sin_family = AF_INET;
++
++  if (argAddress != 0) // if partner address was given, inform the game
++  {
++    if (inet_aton(argAddress,&addressHim.sin_addr) == 0)
++      puts("couldn't translate partner address");
++
++    addressHim.sin_port = htons(argPort);
++
++    SFG_NetworkAddress partnerAddr;
++
++    addressToSFG(&addressHim,partnerAddr);
++    SFG_addPartnerAddress(partnerAddr);
++  }
++
++  if (bind(sock,(struct sockaddr *) &addressMe,sizeof(addressMe)) < 0)
++  {
++    puts("couldn't bind UDP socket");
++    close(sock);
++  }
++
+ #ifdef __EMSCRIPTEN__
+   emscripten_set_main_loop(mainLoopIteration,0,1);
+ #else
+   while (running)
+     mainLoopIteration();
+ #endif
++  
++  puts("destroying network");
++  close(sock);
+ 
+   puts("SDL: freeing SDL");
+ 
+@@ -526,6 +695,6 @@ int main(int argc, char *argv[])
+   SDL_DestroyWindow(window); 
+ 
+   puts("SDL: ending");
+-
++    
+   return 0;
+ }
+diff --git a/settings.h b/settings.h
+index a0d8c1f..5bb41a5 100644
+--- a/settings.h
++++ b/settings.h
+@@ -60,6 +60,23 @@
+   #define SFG_BRIGHTNESS 0
+ #endif
+ 
++/**
++  Default port through which multiplayer is communicating.
++*/
++#ifndef SFG_DEFAULT_NETWORK_PORT
++  #define SFG_DEFAULT_NETWORK_PORT 19601
++#endif
++
++/**
++  Interval (in milliseconds) at which network messages will be sent. Decreasing
++  the value may create less lag and smoother multiplayer but will increase
++  bandwidth. More players in game may require decreasing the interval to achieve
++  the same experience.
++*/
++#ifndef SFG_NETWORK_SEND_INTERVAL_MS
++  #define SFG_NETWORK_SEND_INTERVAL_MS 100
++#endif
++
+ /**
+   On platforms with mouse this sets its horizontal sensitivity. 128 means 1
+   RCL_Unit turn angle per mouse pixel travelled.
+@@ -113,6 +130,36 @@
+   #define SFG_FOV_VERTICAL 330
+ #endif
+ 
++/**
++  How many times item effects will be increased -- this is to compensate for
++  the fact that some of the items will be taken by other players.
++*/
++#ifndef SFG_MULTIPLAYER_ITEM_BOOST
++  #define SFG_MULTIPLAYER_ITEM_BOOST 3
++#endif
++
++/**
++  Number of fourths by which monster health will be multiplied -- this is to
++  make monsters stronger as they're facing more players.
++*/
++#ifndef SFG_MULTIPLAYER_MONSTER_BOOST
++  #define SFG_MULTIPLAYER_MONSTER_BOOST 7
++#endif
++
++/**
++  Sprite size for a player.
++*/
++#ifndef SFG_MULTIPLAYER_PLAYER_SPRITE_SIZE
++  #define SFG_MULTIPLAYER_PLAYER_SPRITE_SIZE 2
++#endif
++
++/**
++  Render distance limit for partner players in multiplayer.
++*/
++#ifndef SFG_MULTIPLAYER_PLAYER_DRAW_DISTANCE
++  #define SFG_MULTIPLAYER_PLAYER_DRAW_DISTANCE (RCL_UNITS_PER_SQUARE * 8)
++#endif
++
+ /**
+   Distance, in RCL_Units, to which textures will be drawn. Textures behind this
+   distance will be replaced by an average constant color, which maybe can help
+@@ -494,6 +541,13 @@
+   #define SFG_PREVIEW_MODE 0
+ #endif
+ 
++/**
++  Time in milliseconds of how long a chat text is displayed.
++*/
++#ifndef SFG_CHAT_DURATION
++  #define SFG_CHAT_DURATION 8000
++#endif
++
+ /**
+   How much faster movement is in the preview mode.
+ */
+diff --git a/texts.h b/texts.h
+index b7e53d4..1f4c133 100644
+--- a/texts.h
++++ b/texts.h
+@@ -33,6 +33,7 @@ static const char *SFG_menuItemTexts[] =
+ #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
+ #define SFG_TEXT_SAVED "saved"
+ #define SFG_TEXT_LEVEL_COMPLETE "level done"
++#define SFG_TEXT_MULTIPLAYER_TITLE "coop MP"
+ 
+ #define SFG_VERSION_STRING "1.1d"
+ /**<
