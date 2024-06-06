@@ -1940,7 +1940,7 @@ RCL_Vector2D SFG_resolveCollisionWithElement(
 }
 
 /**
-  Adds or substracts player's health during the playing state due to taking
+  Adds or subtracts player's health during the playing state due to taking
   damage (negative value) or getting healed. Negative value will be corrected by
   SFG_PLAYER_DAMAGE_MULTIPLIER in this function.
 */
@@ -2611,9 +2611,9 @@ void SFG_updateLevel()
 {
   // update projectiles:
 
-  uint8_t substractFrames =
+  uint8_t subtractFrames =
     ((SFG_game.frame - SFG_currentLevel.frameStart) & 0x01) ? 1 : 0;
-    /* ^ only substract frames to live every other frame because a maximum of
+    /* ^ only subtract frames to live every other frame because a maximum of
        256 frames would be too few */
 
   for (int8_t i = 0; i < SFG_currentLevel.projectileRecordCount; ++i)
@@ -2759,7 +2759,7 @@ void SFG_updateLevel()
       p->position[2] = pos[2];
     }
 
-    p->doubleFramesToLive -= substractFrames;
+    p->doubleFramesToLive -= subtractFrames;
   }
 
   // handle door:
@@ -4718,7 +4718,7 @@ void SFG_draw()
         SFG_LOSE_ANIMATION_DURATION;
     }
       
-    // add head bob just for the rendering (we'll will substract it back later)
+    // add head bob just for the rendering (we'll will subtract it back later)
 
     SFG_player.camera.height += headBobOffset;
 #endif // headbob enabled?
@@ -4861,7 +4861,7 @@ void SFG_draw()
     }
 
 #if SFG_HEADBOB_ENABLED
-    // after rendering sprites substract back the head bob offset
+    // after rendering sprites subtract back the head bob offset
     SFG_player.camera.height -= headBobOffset;
 
 #if SFG_HEADBOB_SHEAR != 0

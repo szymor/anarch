@@ -67,7 +67,7 @@ SFG_PROGRAM_MEMORY uint16_t paletteRGB565[256] = {
 };
 
 /** Adds value (brightness), possibly negative, to given color (represented by
-  its palette index). If you know you'll only be either adding or substracting,
+  its palette index). If you know you'll only be either adding or subtracting,
   use plusValue() or minusValue() functions, which should be faster. */
 static inline uint8_t palette_addValue(uint8_t color, int8_t add)
 {
@@ -87,7 +87,7 @@ static inline uint8_t palette_plusValue(uint8_t color, uint8_t plus)
   return ((newValue >> 3) == (color >> 3)) ? newValue : (color | 0x07);
 }
 
-/** Substracts a positive value (brightness) from given color (represented by
+/** Subtracts a positive value (brightness) from given color (represented by
   its palette index). This should be a little bit faster than addValue(). */
 static inline uint8_t palette_minusValue(uint8_t color, uint8_t minus)
 {

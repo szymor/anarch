@@ -297,7 +297,7 @@
 #define SFG_PLAYER_JUMP_OFFSET_PER_FRAME \
   (((SFG_PLAYER_JUMP_SPEED * RCL_UNITS_PER_SQUARE) / SFG_FPS) \
   - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME / 2) 
-  /* ^ This substraction corrects the initial veloc. so that the numeric curve
+  /* ^ This subtraction corrects the initial veloc. so that the numeric curve
      copies the analytical (smooth) curve. Without it the numeric curve goes
      ABOVE and makes player jump higher with lower FPS. To make sense of this
      try to solve the differential equation and plot it. */

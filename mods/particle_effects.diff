@@ -381,7 +381,7 @@ index 991058d..328ed68 100755
 +    }
 +
  #if SFG_HEADBOB_ENABLED
-     // after rendering sprites substract back the head bob offset
+     // after rendering sprites subtract back the head bob offset
      SFG_player.camera.height -= headBobOffset;
 diff --git a/settings.h b/settings.h
 index a0d8c1f..2155369 100644

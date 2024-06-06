@@ -36,7 +36,7 @@ index 991058d..a96df00 100755
    SFG_currentLevel.projectileRecordCount = 0;
    SFG_currentLevel.teleporterCount = 0;
 @@ -2762,6 +2767,41 @@ void SFG_updateLevel()
-     p->doubleFramesToLive -= substractFrames;
+     p->doubleFramesToLive -= subtractFrames;
    }
  
 +  // handle terminal texts:
