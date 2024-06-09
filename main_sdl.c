@@ -111,7 +111,6 @@ uint16_t sdlScreen[SFG_SCREEN_RESOLUTION_X * SFG_SCREEN_RESOLUTION_Y]; // RGB565
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
-SDL_Surface *screenSurface;
 
 // now implement the Anarch API functions (SFG_*)
 
@@ -455,8 +454,6 @@ int main(int argc, char *argv[])
   texture =
     SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB565,SDL_TEXTUREACCESS_STATIC,
     SFG_SCREEN_RESOLUTION_X,SFG_SCREEN_RESOLUTION_Y);
-
-  screenSurface = SDL_GetWindowSurface(window);
 
 #if SFG_FULLSCREEN
   argForceFullscreen = 1;
