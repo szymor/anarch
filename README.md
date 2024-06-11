@@ -18,6 +18,8 @@ everywhere, made for the benefit of all living beings*
 
 This game got some attention on 4chan: [1](https://archive.li/Yzcwt), [2](https://archive.li/xY4ia), [3](https://archive.li/tFWrL).
 
+The game was kindly translated to Lojban by Mouseborg! :) Thousand times thank you <3 [Here](https://codeberg.org/Mouseborg/Anarch-Lojban-Localization) is the repo.
+
 - [why this game is special](#why-this-game-is-special)
 - [stats and comparisons (for version 1.0)](#stats-and-comparisons-for-version-1-0)
 - [compiling](#compiling)
