@@ -1427,7 +1427,9 @@ RCL_Unit SFG_ceilingHeightAt(int16_t x, int16_t y)
     SFG_getMapTile(SFG_currentLevel.levelPointer,x,y,&properties);
 
   if (properties == SFG_TILE_PROPERTY_ELEVATOR)
-    return SFG_CEILING_MAX_HEIGHT;
+    return SFG_CEILING_MAX_HEIGHT; /* FIXME: Possible bug here? This function
+                                      returns height is UNITs but this line
+                                      will return 31 (also in below return). */
 
   uint8_t height = SFG_TILE_CEILING_HEIGHT(tile);
 

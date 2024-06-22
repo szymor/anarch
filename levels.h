@@ -24,7 +24,7 @@
 
    aaa:   ceiling texture index (from texture available on the map), 111
           means completely transparent texture
-   bbbbb: ceiling height (1111 meaning no ceiling) ABOVE the floor
+   bbbbb: ceiling height (11111 meaning no ceiling) ABOVE the floor
    ccc:   floor texture index, 111 means completely transparent texture
    ddddd: floor height
 */
