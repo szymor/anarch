@@ -545,8 +545,7 @@ static const uint8_t SFG_attackDamageTable[SFG_WEAPON_FIRE_TYPES_TOTAL] =
    ((((speedSquaresPerSec / 4 == 0) && (speedSquaresPerSec != 0)) ? 1 : speedSquaresPerSec / 4) | \
     ((timeToLiveMs / (8 * SFG_MS_PER_FRAME)) << 3)))
 
-// fixme: macro below returns speed per FRAME (i.e. UPF), not seconds?
-#define SFG_GET_PROJECTILE_SPEED_UPS(projectileNumber) \
+#define SFG_GET_PROJECTILE_SPEED_UPF(projectileNumber) \
   (((SFG_projectileAttributeTable[projectileNumber] & 0x07) * 4 * RCL_UNITS_PER_SQUARE) / SFG_FPS)
 
 #define SFG_GET_PROJECTILE_FRAMES_TO_LIVE(projectileNumber) \

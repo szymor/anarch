@@ -1836,9 +1836,9 @@ uint8_t SFG_launchProjectile(
   p.position[2] = shootFromHeight;
 
   p.direction[0] = 
-    (direction.x * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
+    (direction.x * SFG_GET_PROJECTILE_SPEED_UPF(type)) / RCL_UNITS_PER_SQUARE;
   p.direction[1] =
-    (direction.y * SFG_GET_PROJECTILE_SPEED_UPS(type)) / RCL_UNITS_PER_SQUARE;
+    (direction.y * SFG_GET_PROJECTILE_SPEED_UPF(type)) / RCL_UNITS_PER_SQUARE;
   p.direction[2] = verticalSpeed;
 
   return SFG_createProjectile(p);
@@ -2359,7 +2359,7 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
 
       RCL_Unit verticalSpeed = (
         ((projectile != SFG_PROJECTILE_NONE) ? 
-        SFG_GET_PROJECTILE_SPEED_UPS(projectile) : 0) * 
+        SFG_GET_PROJECTILE_SPEED_UPF(projectile) : 0) * 
         SFG_directionTangent(dir.x,dir.y,SFG_player.camera.height -
         middleHeight)) / RCL_UNITS_PER_SQUARE;
       
@@ -3632,7 +3632,7 @@ void SFG_gameStepPlaying()
           (SFG_player.camera.direction - SFG_PROJECTILE_SPREAD_ANGLE / 2) 
           + angleAdd;
           
-        RCL_Unit projectileSpeed = SFG_GET_PROJECTILE_SPEED_UPS(projectile);
+        RCL_Unit projectileSpeed = SFG_GET_PROJECTILE_SPEED_UPF(projectile);
         
         /* Vertical speed will be either determined by autoaim (if shearing is
            off) or the camera shear value. */
