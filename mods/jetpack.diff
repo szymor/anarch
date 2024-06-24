@@ -1,0 +1,46 @@
+Anarch mod that adds jetpack: instead of jumping the player will simply fly.
+
+diff --git a/game.h b/game.h
+index 1efd83d..f8228e4 100755
+--- a/game.h
++++ b/game.h
+@@ -3291,15 +3291,13 @@ void SFG_gameStepPlaying()
+   else
+     SFG_player.verticalSpeed = 0;
+ #else
++
++  if (SFG_keyIsDown(SFG_KEY_JUMP))
++    SFG_player.verticalSpeed = RCL_min(SFG_player.verticalSpeed +
++      SFG_GRAVITY_SPEED_INCREASE_PER_FRAME * 2,
++      SFG_GRAVITY_SPEED_INCREASE_PER_FRAME * SFG_JETPACK_MAX_VERTICAL_SPEED);
++
+   RCL_Unit verticalOffset = 
+-    (  
+-      (
+-        SFG_keyIsDown(SFG_KEY_JUMP) ||
+-        (SFG_keyIsDown(SFG_KEY_UP) && SFG_keyIsDown(SFG_KEY_C))
+-      ) &&
+-      (SFG_player.verticalSpeed == 0) &&
+-      (SFG_player.previousVerticalSpeed == 0)) ?
+-    SFG_PLAYER_JUMP_OFFSET_PER_FRAME : // jump
+     (SFG_player.verticalSpeed - SFG_GRAVITY_SPEED_INCREASE_PER_FRAME);
+ #endif
+ 
+diff --git a/settings.h b/settings.h
+index a0d8c1f..080a983 100644
+--- a/settings.h
++++ b/settings.h
+@@ -189,6 +189,13 @@
+   #define SFG_RAYCASTING_MAX_HITS 10
+ #endif
+ 
++/**
++  Maximum jetpack vertical speed.
++*/
++#ifndef SFG_JETPACK_MAX_VERTICAL_SPEED
++  #define SFG_JETPACK_MAX_VERTICAL_SPEED 20
++#endif
++
+ /**
+   Same as SFG_RAYCASTING_MAX_STEPS but for visibility rays that are used to
+   check whether sprites are visible etc.
