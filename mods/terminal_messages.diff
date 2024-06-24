@@ -1,3 +1,6 @@
+This mod adds messages to computer terminals found in the game, increasing
+"immersion": standing near a terminal will display a random message.
+
 diff --git a/game.h b/game.h
 index 991058d..a96df00 100755
 --- a/game.h

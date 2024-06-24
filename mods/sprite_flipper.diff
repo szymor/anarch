@@ -1,4 +1,4 @@
-This mod rotates and flips sprites some sprites during gameplay so as to make
+This mod rotates and flips some sprites during gameplay so as to make
 them appear animated. By drummyfish, released under CC0 1.0, public domain.
 
 diff --git a/game.h b/game.h
