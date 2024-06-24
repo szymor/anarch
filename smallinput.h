@@ -86,8 +86,17 @@ uint32_t input_recordSize;
     int32_t value;
   } LinuxInputEvent;
 
+#ifdef DEV_KEYBOARD
+  #define INPUT_KEYBOARD_FILE DEV_KEYBOARD
+#else
   #define INPUT_KEYBOARD_FILE "/dev/input/event0"
+#endif
+
+#ifdef DEV_MOUSE
+  #define INPUT_MOUSE_FILE DEV_MOUSE
+#else
   #define INPUT_MOUSE_FILE "/dev/input/event1"
+#endif
 
   int input_keyboardFile = 0;
   int input_mouseFile = 0;
