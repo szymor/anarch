@@ -120,6 +120,10 @@ level ideas:
 
 bugs:
 
+- coop multiplayer: Found bug in level 2 with 3 players, blue key didn't
+  synchronize (I had the key but other players not) while at the same time the
+  map showed a 4th ghost player completely in top right.
+
 done:
 
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
