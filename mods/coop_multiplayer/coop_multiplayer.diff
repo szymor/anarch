@@ -709,7 +709,7 @@ index 991058d..bb94225 100755
 +      SFG_PROJECTILE_FIREBALL : SFG_PROJECTILE_PLASMA;
 +
 +    verticalDirection = (verticalDirection *
-+      SFG_GET_PROJECTILE_SPEED_UPS(projectile)) / 2;
++      SFG_GET_PROJECTILE_SPEED_UPF(projectile)) / 2;
 +
 +    if (weapon == SFG_WEAPON_ROCKET_LAUNCHER ||
 +      weapon == SFG_WEAPON_PLASMAGUN)
@@ -1160,7 +1160,7 @@ index 991058d..bb94225 100755
 @@ -2358,13 +3014,14 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
        RCL_Unit verticalSpeed = (
          ((projectile != SFG_PROJECTILE_NONE) ? 
-         SFG_GET_PROJECTILE_SPEED_UPS(projectile) : 0) * 
+         SFG_GET_PROJECTILE_SPEED_UPF(projectile) : 0) * 
 -        SFG_directionTangent(dir.x,dir.y,SFG_player.camera.height -
 +        SFG_directionTangent(dir.x,dir.y,closestPlayerPos[2] -
          middleHeight)) / RCL_UNITS_PER_SQUARE;
