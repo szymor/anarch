@@ -35,7 +35,7 @@ if [ $1 = "sdl" ]; then
   # - g++
   # - SDL2 (dev) package
 
-  SDL_FLAGS=`sdl2-config --cflags --libs --static-libs`
+  SDL_FLAGS=`sdl2-config --cflags --libs`
   COMMAND="${COMPILER} ${C_FLAGS} main_sdl.c -I/usr/local/include ${SDL_FLAGS}"
 
   echo ${COMMAND}
