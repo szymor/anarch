@@ -1961,7 +1961,6 @@ index 991058d..bb94225 100755
      }
  
  #if SFG_HEADBOB_ENABLED
-void SFG_nextMusicTrack(void)
 @@ -4927,6 +6031,14 @@ void SFG_draw(void)
            SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
            i == 0 ? 93 : (i == 1 ? 124 : 60));
