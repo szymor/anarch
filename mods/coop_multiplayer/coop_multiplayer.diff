@@ -548,7 +548,7 @@ index 991058d..bb94225 100755
 +    SFG_player.chatBuffer[i] = i < SFG_CHAT_BUFFER_SIZE ? ' ' : 0;
 +}
 +
- void SFG_init()
+ void SFG_init(void)
  {
    SFG_LOG("initializing game")
  
@@ -567,7 +567,7 @@ index 991058d..bb94225 100755
  
    RCL_initRayConstraints(&SFG_game.rayConstraints);
    SFG_game.rayConstraints.maxHits = SFG_RAYCASTING_MAX_HITS;
-@@ -1744,6 +1971,8 @@ void SFG_init()
+@@ -1744,6 +1971,8 @@ void SFG_init(void)
      SFG_game.textureAverageColors[i] = maxIndex * 4;
    }
  
@@ -576,7 +576,7 @@ index 991058d..bb94225 100755
    for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_Y; ++i)
      SFG_game.backgroundScaleMap[i] =
        (i * SFG_TEXTURE_SIZE) / SFG_GAME_RESOLUTION_Y;
-@@ -1785,6 +2014,33 @@ void SFG_init()
+@@ -1785,6 +2014,33 @@ void SFG_init(void)
  #else
    SFG_setAndInitLevel(SFG_START_LEVEL - 1);
  #endif
