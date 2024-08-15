@@ -123,7 +123,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y)
   sfMouse_setPosition(p,(const sfWindow *) window);
 }
 
-uint32_t SFG_getTimeMs()
+uint32_t SFG_getTimeMs(void)
 {
   return sfClock_getElapsedTime(clock).microseconds / 1000 ;
 }
@@ -255,7 +255,7 @@ uint32_t screenshotNumber = 0;
 /**
   Saves a screenshot using the simple uncompressed PPM file format.
 */
-void screenshot()
+void screenshot(void)
 {
   char fileName[64];
 

@@ -39,7 +39,7 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
   SAF_drawPixel(x,y,palette[colorIndex]);
 }
 
-uint32_t SFG_getTimeMs()
+uint32_t SFG_getTimeMs(void)
 {
   return SAF_time();
 }

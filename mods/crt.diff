@@ -45,7 +45,7 @@ index 24285cb..4625ba1 100755
  }
 -#endif
  
- void SFG_recomputePLayerDirection()
+ void SFG_recomputePLayerDirection(void)
  {
 @@ -1691,6 +1699,23 @@ void SFG_init()
    SFG_game.cheatState = 0;

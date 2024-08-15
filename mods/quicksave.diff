@@ -78,7 +78,7 @@ index 991058d..14644f3 100755
  
  #if SFG_AVR
  /**
-@@ -633,6 +645,25 @@ void SFG_gameLoad()
+@@ -633,6 +645,25 @@ void SFG_gameLoad(void)
      SFG_game.saved = SFG_CANT_SAVE;
  }
  
@@ -125,7 +125,7 @@ index 991058d..14644f3 100755
      {
        current++;
        continue;
-@@ -3924,6 +3960,18 @@ void SFG_gameStepMenu()
+@@ -3924,6 +3960,18 @@ void SFG_gameStepMenu(void)
          SFG_setGameState(SFG_GAME_STATE_MAP);
          break;
  

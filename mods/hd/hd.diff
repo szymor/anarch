@@ -5,7 +5,7 @@ diff --git a/game.h b/game.h
 index 3c8d2f0..8a9858a 100755
 --- a/game.h
 +++ b/game.h
-@@ -4474,7 +4474,7 @@ void SFG_drawMenu()
+@@ -4474,7 +4474,7 @@ void SFG_drawMenu(void)
      (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL);
  
  #if SFG_GAME_RESOLUTION_Y > 50

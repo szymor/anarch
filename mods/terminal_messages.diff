@@ -38,7 +38,7 @@ index 991058d..a96df00 100755
    SFG_currentLevel.doorRecordCount = 0;
    SFG_currentLevel.projectileRecordCount = 0;
    SFG_currentLevel.teleporterCount = 0;
-@@ -2762,6 +2767,41 @@ void SFG_updateLevel()
+@@ -2762,6 +2767,41 @@ void SFG_updateLevel(void)
      p->doubleFramesToLive -= subtractFrames;
    }
  
@@ -80,7 +80,7 @@ index 991058d..a96df00 100755
    // handle door:
    if (SFG_currentLevel.doorRecordCount > 0) // has to be here
    {
-@@ -4876,6 +4916,12 @@ void SFG_draw()
+@@ -4876,6 +4916,12 @@ void SFG_draw(void)
  
      // draw HUD:
  

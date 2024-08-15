@@ -180,7 +180,7 @@ index 991058d..328ed68 100755
  }
  
  void SFG_getMonsterWorldPosition(SFG_MonsterRecord *monster, RCL_Unit *x,
-@@ -2645,6 +2754,31 @@ void SFG_updateLevel()
+@@ -2645,6 +2754,31 @@ void SFG_updateLevel(void)
        }
      }
  
@@ -212,7 +212,7 @@ index 991058d..328ed68 100755
      if (p->doubleFramesToLive == 0) // no more time to live?
      {
        eliminate = 1;
-@@ -2974,6 +3108,93 @@ void SFG_updateLevel()
+@@ -2974,6 +3108,93 @@ void SFG_updateLevel(void)
        }
      }
    }
@@ -306,7 +306,7 @@ index 991058d..328ed68 100755
  }
  
  /**
-@@ -3591,6 +3812,24 @@ void SFG_gameStepPlaying()
+@@ -3591,6 +3812,24 @@ void SFG_gameStepPlaying(void)
          default:                         sound = 0; break;
        }
  
@@ -331,7 +331,7 @@ index 991058d..328ed68 100755
        if (sound != 255)
          SFG_playGameSound(sound,255);
  
-@@ -3769,6 +4008,14 @@ void SFG_gameStepPlaying()
+@@ -3769,6 +4008,14 @@ void SFG_gameStepPlaying(void)
      SFG_processEvent(SFG_EVENT_VIBRATE,0);
      SFG_processEvent(SFG_EVENT_PLAYER_DIES,0);
      SFG_setGameState(SFG_GAME_STATE_LOSE);
@@ -346,7 +346,7 @@ index 991058d..328ed68 100755
    }
  #endif
  }
-@@ -4860,6 +5107,36 @@ void SFG_draw()
+@@ -4860,6 +5107,36 @@ void SFG_draw(void)
              p.depth);  
      }
  

@@ -100,7 +100,7 @@ void SFG_getMouseOffset(int16_t *x, int16_t *y);
 /**
   Returns time in milliseconds sice program start.
 */
-uint32_t SFG_getTimeMs();
+uint32_t SFG_getTimeMs(void);
 
 /** 
   Sleep (yield CPU) for specified amount of ms. This is used to relieve CPU
@@ -190,12 +190,12 @@ uint8_t SFG_load(uint8_t data[SFG_SAVE_SIZE]);
   halt. This functions handles reaching the target FPS and sleeping for
   relieving CPU, so don't do this.
 */
-uint8_t SFG_mainLoopBody();
+uint8_t SFG_mainLoopBody(void);
 
 /**
   Initializes the game, call this in the platform's initialization code.
 */
-void SFG_init();
+void SFG_init(void);
 
 #include "settings.h"
 
@@ -561,7 +561,7 @@ static const uint8_t SFG_ditheringPatterns[] =
   parameters have been chosen so that each number (0-255) is included in the
   output exactly once!
 */
-uint8_t SFG_random()
+uint8_t SFG_random(void)
 {
   SFG_game.currentRandom *= 13;
   SFG_game.currentRandom += 7;
@@ -607,7 +607,7 @@ uint8_t SFG_getDamageValue(uint8_t attackType)
 /**
   Saves game data to persistent storage.
 */
-void SFG_gameSave()
+void SFG_gameSave(void)
 {
   if (SFG_game.saved == SFG_CANT_SAVE)
     return;
@@ -620,7 +620,7 @@ void SFG_gameSave()
 /**
   Loads game data from persistent storage.
 */
-void SFG_gameLoad()
+void SFG_gameLoad(void)
 {
   if (SFG_game.saved == SFG_CANT_SAVE)
     return;
@@ -665,7 +665,7 @@ uint8_t SFG_isInActiveDistanceFromPlayer(RCL_Unit x, RCL_Unit y, RCL_Unit z)
 /**
   Function called when a level end to compute the stats etc.
 */
-void SFG_levelEnds()
+void SFG_levelEnds(void)
 {
   SFG_currentLevel.completionTime10sOfS = (SFG_MS_PER_FRAME *
     (SFG_game.frame - SFG_currentLevel.frameStart)) / 100; 
@@ -835,7 +835,7 @@ static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
 }
 #endif
 
-void SFG_recomputePLayerDirection()
+void SFG_recomputePLayerDirection(void)
 {
   SFG_player.camera.direction =
     RCL_wrap(SFG_player.camera.direction,RCL_UNITS_PER_SQUARE);
@@ -1362,7 +1362,7 @@ void SFG_playerRotateWeapon(uint8_t next)
   }
 }
 
-void SFG_initPlayer()
+void SFG_initPlayer(void)
 {
   RCL_initCamera(&SFG_player.camera);
 
@@ -1681,7 +1681,7 @@ void SFG_createDefaultSaveData(uint8_t *memory)
   memory[1] = SFG_DEFAULT_SETTINGS;
 }
 
-void SFG_init()
+void SFG_init(void)
 {
   SFG_LOG("initializing game")
 
@@ -2057,7 +2057,7 @@ RCL_Unit SFG_directionTangent(RCL_Unit dirX, RCL_Unit dirY, RCL_Unit dirZ)
 /**
   Returns a tangent in RCL_Unit of vertical autoaim, given current game state.
 */
-RCL_Unit SFG_autoaimVertically()
+RCL_Unit SFG_autoaimVertically(void)
 {
   for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
   {
@@ -2607,7 +2607,7 @@ uint8_t SFG_projectileCollides(SFG_ProjectileRecord *projectile,
   Updates a frame of the currently loaded level, i.e. enemies, projectiles,
   animations etc., with the exception of player.
 */
-void SFG_updateLevel()
+void SFG_updateLevel(void)
 {
   // update projectiles:
 
@@ -3053,7 +3053,7 @@ void SFG_drawText(
   }
 }
 
-void SFG_drawLevelStartOverlay()
+void SFG_drawLevelStartOverlay(void)
 {
   uint8_t stage = (SFG_game.stateTime * 4) / SFG_LEVEL_START_DURATION;
 
@@ -3085,7 +3085,7 @@ void SFG_drawLevelStartOverlay()
 /**
   Sets player's height to match the floor height below him.
 */
-void SFG_updatePlayerHeight()
+void SFG_updatePlayerHeight(void)
 {
   SFG_player.camera.height =
     SFG_floorCollisionHeightAt(
@@ -3093,7 +3093,7 @@ void SFG_updatePlayerHeight()
       RCL_CAMERA_COLL_HEIGHT_BELOW;
 }
 
-void SFG_winLevel()
+void SFG_winLevel(void)
 {
   SFG_levelEnds();
   SFG_setGameState(SFG_GAME_STATE_WIN);
@@ -3105,7 +3105,7 @@ void SFG_winLevel()
 /**
   Part of SFG_gameStep() for SFG_GAME_STATE_PLAYING.
 */
-void SFG_gameStepPlaying()
+void SFG_gameStepPlaying(void)
 {
 #if SFG_QUICK_WIN
   if (SFG_game.stateTime > 500)
@@ -3801,7 +3801,7 @@ uint8_t SFG_getMenuItem(uint8_t index)
   return SFG_MENU_ITEM_NONE;
 }
 
-void SFG_handleCheats()
+void SFG_handleCheats(void)
 {
   // this is a state machine handling cheat typing
 
@@ -3855,7 +3855,7 @@ void SFG_handleCheats()
   }
 }
 
-void SFG_gameStepMenu()
+void SFG_gameStepMenu(void)
 {
   uint8_t menuItems = 0;
 
@@ -3988,7 +3988,7 @@ void SFG_gameStepMenu()
   Performs one game step (logic, physics, menu, ...), happening SFG_MS_PER_FRAME
   after the previous step.
 */
-void SFG_gameStep()
+void SFG_gameStep(void)
 {
   SFG_GAME_STEP_COMMAND
 
@@ -4165,7 +4165,7 @@ static inline void SFG_clearScreen(uint8_t color)
 /**
   Draws fullscreen map of the current level.
 */
-void SFG_drawMap()
+void SFG_drawMap(void)
 {
   SFG_clearScreen(0);
    
@@ -4241,7 +4241,7 @@ void SFG_drawMap()
 /**
   Draws fullscreen story text (intro/outro).
 */
-void SFG_drawStoryText()
+void SFG_drawStoryText(void)
 {
   const char *text = SFG_outroText;
   uint16_t textColor = 23;
@@ -4439,7 +4439,7 @@ static inline uint16_t
   return (SFG_textLen(text) * SFG_characterSize(textSize));
 }
 
-void SFG_drawMenu()
+void SFG_drawMenu(void)
 {
   #define BACKGROUND_SCALE (SFG_GAME_RESOLUTION_X / (4 * SFG_TEXTURE_SIZE))
 
@@ -4563,7 +4563,7 @@ void SFG_drawMenu()
   #undef SCROLL_PIXELS_PER_FRAME
 }
 
-void SFG_drawWinOverlay()
+void SFG_drawWinOverlay(void)
 {
   uint32_t t = RCL_min(SFG_WIN_ANIMATION_DURATION,SFG_game.stateTime);
 
@@ -4657,7 +4657,7 @@ void SFG_drawWinOverlay()
   #undef INNER_STRIP_HEIGHT
 }
 
-void SFG_draw()
+void SFG_draw(void)
 {
 #if SFG_BACKGROUND_BLUR != 0
   SFG_backgroundBlurIndex = 0;
@@ -4948,7 +4948,7 @@ void SFG_draw()
   }
 }
 
-uint8_t SFG_mainLoopBody()
+uint8_t SFG_mainLoopBody(void)
 {
   /* Standard deterministic game loop, independed of actual achieved FPS.
      Each game logic (physics) frame is performed with the SFG_MS_PER_FRAME

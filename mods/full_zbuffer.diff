@@ -76,7 +76,7 @@ index 991058d..36bba8e 100755
      }
    }
  }
-@@ -4682,7 +4686,7 @@ void SFG_draw()
+@@ -4682,7 +4686,7 @@ void SFG_draw(void)
    } 
    else
    { 

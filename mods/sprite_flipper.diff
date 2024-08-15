@@ -83,7 +83,7 @@ index 991058d..7e1a103 100755
  
          if (color != SFG_TRANSPARENT_COLOR)
          {
-@@ -4262,7 +4293,7 @@ void SFG_drawStoryText()
+@@ -4262,7 +4293,7 @@ void SFG_drawStoryText(void)
      SFG_blitImage(SFG_monsterSprites + sprite * SFG_TEXTURE_STORE_SIZE,
          (SFG_GAME_RESOLUTION_X - SFG_TEXTURE_SIZE * SFG_FONT_SIZE_SMALL) / 2,
          SFG_GAME_RESOLUTION_Y - (SFG_TEXTURE_SIZE + 3) * SFG_FONT_SIZE_SMALL,
@@ -110,7 +110,7 @@ index 991058d..7e1a103 100755
  }
  
  uint16_t SFG_textLen(const char *text)
-@@ -4470,7 +4502,7 @@ void SFG_drawMenu()
+@@ -4470,7 +4502,7 @@ void SFG_drawMenu(void)
    uint16_t y = SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
  
    SFG_blitImage(SFG_logoImage,SFG_GAME_RESOLUTION_X / 2 - 
@@ -119,7 +119,7 @@ index 991058d..7e1a103 100755
  
  #if SFG_GAME_RESOLUTION_Y > 50
    y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
-@@ -4771,7 +4803,8 @@ void SFG_draw()
+@@ -4771,7 +4803,8 @@ void SFG_draw(void)
              RCL_perspectiveScaleVertical(
              SFG_SPRITE_SIZE_PIXELS(spriteSize),
              p.depth),
@@ -129,7 +129,7 @@ index 991058d..7e1a103 100755
          }
        }
      }
-@@ -4810,7 +4843,7 @@ void SFG_draw()
+@@ -4810,7 +4843,7 @@ void SFG_draw(void)
              SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
                p.position.y,
                RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
@@ -138,7 +138,7 @@ index 991058d..7e1a103 100755
          }
        }
  
-@@ -4857,7 +4890,8 @@ void SFG_draw()
+@@ -4857,7 +4890,8 @@ void SFG_draw(void)
              p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
              RCL_perspectiveScaleVertical(spriteSize,p.depth),
              SFG_fogValueDiminish(p.depth),

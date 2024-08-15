@@ -35,7 +35,7 @@ index 24285cb..65c9ebf 100755
    RCL_Unit previousVerticalSpeed;  /**< Vertical speed in previous frame, needed
                                     for determining whether player is in the
                                     air. */
-@@ -1391,6 +1392,9 @@ void SFG_initPlayer()
+@@ -1391,6 +1392,9 @@ void SFG_initPlayer(void)
    SFG_player.camera.direction = SFG_currentLevel.levelPointer->playerStart[2] *
      (RCL_UNITS_PER_SQUARE / 256);
  
@@ -45,7 +45,7 @@ index 24285cb..65c9ebf 100755
    SFG_recomputePLayerDirection(); 
  
    SFG_player.previousVerticalSpeed = 0;
-@@ -3549,7 +3553,16 @@ void SFG_gameStepPlaying()
+@@ -3549,7 +3553,16 @@ void SFG_gameStepPlaying(void)
    SFG_player.camera.height += 
      SFG_PREVIEW_MODE_SPEED_MULTIPLIER * SFG_player.verticalSpeed;
  #else

@@ -638,7 +638,7 @@ index 8f88bcc..949d929 100644
 -0,0,0,0,0,0,0,0,0,0,0,0
 -};
 +// forward decls so that we can use these functions in progen of images:
-+uint8_t SFG_random();
++uint8_t SFG_random(void);
 +uint16_t RCL_sqrt(int32_t value);
 +int32_t RCL_sin(int32_t value);
  

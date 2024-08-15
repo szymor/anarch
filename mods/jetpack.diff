@@ -4,7 +4,7 @@ diff --git a/game.h b/game.h
 index 1efd83d..f8228e4 100755
 --- a/game.h
 +++ b/game.h
-@@ -3291,15 +3291,13 @@ void SFG_gameStepPlaying()
+@@ -3291,15 +3291,13 @@ void SFG_gameStepPlaying(void)
    else
      SFG_player.verticalSpeed = 0;
  #else

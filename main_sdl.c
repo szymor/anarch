@@ -119,7 +119,7 @@ void SFG_setPixel(uint16_t x, uint16_t y, uint8_t colorIndex)
   sdlScreen[y * SFG_SCREEN_RESOLUTION_X + x] = paletteRGB565[colorIndex];
 }
 
-uint32_t SFG_getTimeMs()
+uint32_t SFG_getTimeMs(void)
 {
   return SDL_GetTicks();
 }
@@ -279,7 +279,7 @@ int8_t SFG_keyPressed(uint8_t key)
   
 int running;
 
-void mainLoopIteration()
+void mainLoopIteration(void)
 {
   SDL_Event event;
 

@@ -193,9 +193,9 @@ index 991058d..bb94225 100755
  /**
    Informs the frontend how music should play, e.g. turn on/off, change track,
    ... See SFG_MUSIC_* constants. Playing music is optional and the frontend may
-@@ -197,6 +214,26 @@ uint8_t SFG_mainLoopBody();
+@@ -197,6 +214,26 @@ uint8_t SFG_mainLoopBody(void);
  */
- void SFG_init();
+ void SFG_init(void);
  
 +/**
 +  Hands received data from network to the game for multiplayer play. Call this
@@ -220,7 +220,7 @@ index 991058d..bb94225 100755
  #include "settings.h"
  
  #if SFG_AVR
-@@ -231,6 +268,38 @@ void SFG_init();
+@@ -231,6 +268,38 @@ void SFG_init(void);
  
  #include "constants.h"
  
@@ -359,7 +359,7 @@ index 991058d..bb94225 100755
  void SFG_setItemCollisionMapBit(uint8_t x, uint8_t y, uint8_t value)
  {
    uint16_t byte;
-@@ -569,6 +693,15 @@ uint8_t SFG_random()
+@@ -569,6 +693,15 @@ uint8_t SFG_random(void)
    return SFG_game.currentRandom;
  }
  
@@ -405,7 +405,7 @@ index 991058d..bb94225 100755
    }
   
    return SFG_TILE_FLOOR_HEIGHT(tile) * SFG_WALL_HEIGHT_STEP - doorHeight;
-@@ -1391,6 +1527,8 @@ void SFG_initPlayer()
+@@ -1391,6 +1527,8 @@ void SFG_initPlayer(void)
    SFG_player.camera.direction = SFG_currentLevel.levelPointer->playerStart[2] *
      (RCL_UNITS_PER_SQUARE / 256);
  
@@ -414,7 +414,7 @@ index 991058d..bb94225 100755
    SFG_recomputePLayerDirection(); 
  
    SFG_player.previousVerticalSpeed = 0;
-@@ -1416,8 +1554,10 @@ void SFG_initPlayer()
+@@ -1416,8 +1554,10 @@ void SFG_initPlayer(void)
  
    SFG_player.justTeleported = 0;
  
@@ -1009,7 +1009,7 @@ index 991058d..bb94225 100755
  }
  
  /**
-@@ -2102,13 +2714,14 @@ RCL_Unit SFG_autoaimVertically()
+@@ -2102,13 +2714,14 @@ RCL_Unit SFG_autoaimVertically(void)
  
  /**
    Helper function, returns a pointer to level element representing item with
@@ -1253,7 +1253,7 @@ index 991058d..bb94225 100755
            monster->health = 0;
          }
        }
-@@ -2653,7 +3309,8 @@ void SFG_updateLevel()
+@@ -2653,7 +3309,8 @@ void SFG_updateLevel(void)
        (p->type != SFG_PROJECTILE_EXPLOSION) &&
        (p->type != SFG_PROJECTILE_DUST))
      {
@@ -1263,7 +1263,7 @@ index 991058d..bb94225 100755
              p,
              SFG_player.camera.position.x,
              SFG_player.camera.position.y,
-@@ -2661,7 +3318,8 @@ void SFG_updateLevel()
+@@ -2661,7 +3318,8 @@ void SFG_updateLevel(void)
          {
            eliminate = 1;
  
@@ -1273,7 +1273,7 @@ index 991058d..bb94225 100755
          }
  
        /* Check collision with the map (we don't use SFG_floorCollisionHeightAt
-@@ -2698,7 +3356,10 @@ void SFG_updateLevel()
+@@ -2698,7 +3356,10 @@ void SFG_updateLevel(void)
                     ))
              {
                eliminate = 1;
@@ -1285,7 +1285,7 @@ index 991058d..bb94225 100755
                break;
              }
            }
-@@ -2717,7 +3378,7 @@ void SFG_updateLevel()
+@@ -2717,7 +3378,7 @@ void SFG_updateLevel(void)
  
              if (SFG_projectileCollides(p,x,y,z))
              {
@@ -1294,7 +1294,7 @@ index 991058d..bb94225 100755
                     (e->type == SFG_LEVEL_ELEMENT_BARREL) &&
                     (SFG_getDamageValue(attackType) >= 
                       SFG_BARREL_EXPLOSION_DAMAGE_THRESHOLD)
-@@ -2736,7 +3397,8 @@ void SFG_updateLevel()
+@@ -2736,7 +3397,8 @@ void SFG_updateLevel(void)
      if (eliminate)
      {
        if (p->type == SFG_PROJECTILE_FIREBALL)
@@ -1304,7 +1304,7 @@ index 991058d..bb94225 100755
        else if (p->type == SFG_PROJECTILE_BULLET)
          SFG_createDust(p->position[0],p->position[1],p->position[2]);
        else if (p->type == SFG_PROJECTILE_PLASMA)
-@@ -2792,11 +3454,35 @@ void SFG_updateLevel()
+@@ -2792,11 +3454,35 @@ void SFG_updateLevel(void)
        
        uint8_t lock = SFG_DOOR_LOCK(door->state);
  
@@ -1341,7 +1341,7 @@ index 991058d..bb94225 100755
        {
          if (lock == 0)
          {
-@@ -2858,13 +3544,18 @@ void SFG_updateLevel()
+@@ -2858,13 +3544,18 @@ void SFG_updateLevel(void)
        SFG_LevelElement e =
          SFG_currentLevel.levelPointer->elements[item];
  
@@ -1367,7 +1367,7 @@ index 991058d..bb94225 100755
  
        SFG_currentLevel.itemRecords[SFG_currentLevel.checkedItemIndex] = item;
  
-@@ -2964,7 +3655,7 @@ void SFG_updateLevel()
+@@ -2964,7 +3655,7 @@ void SFG_updateLevel(void)
              SFG_floorCollisionHeightAt(
                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0]),
                SFG_MONSTER_COORD_TO_SQUARES(monster->coords[0])) +
@@ -1376,7 +1376,7 @@ index 991058d..bb94225 100755
        }
        else
        {
-@@ -3093,6 +3784,18 @@ void SFG_updatePlayerHeight()
+@@ -3093,6 +3784,18 @@ void SFG_updatePlayerHeight(void)
        RCL_CAMERA_COLL_HEIGHT_BELOW;
  }
  
@@ -1392,12 +1392,12 @@ index 991058d..bb94225 100755
 +  return 6 + index * 16;
 +}
 +
- void SFG_winLevel()
+ void SFG_winLevel(void)
  {
    SFG_levelEnds();
-@@ -3107,6 +3810,26 @@ void SFG_winLevel()
+@@ -3107,6 +3810,26 @@ void SFG_winLevel(void)
  */
- void SFG_gameStepPlaying()
+ void SFG_gameStepPlaying(void)
  {
 +#if 0
 +  // network debug
@@ -1422,7 +1422,7 @@ index 991058d..bb94225 100755
  #if SFG_QUICK_WIN
    if (SFG_game.stateTime > 500)
      SFG_winLevel();
-@@ -3390,7 +4113,8 @@ void SFG_gameStepPlaying()
+@@ -3390,7 +4113,8 @@ void SFG_gameStepPlaying(void)
    for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
      // ^ has to be int16_t (signed)
    {
@@ -1432,7 +1432,7 @@ index 991058d..bb94225 100755
        continue;
  
      const SFG_LevelElement *e = SFG_getActiveItemElement(i);
-@@ -3427,7 +4151,8 @@ void SFG_gameStepPlaying()
+@@ -3427,7 +4151,8 @@ void SFG_gameStepPlaying(void)
          {
            case SFG_LEVEL_ELEMENT_HEALTH:
              if (SFG_player.health < SFG_PLAYER_MAX_HEALTH)
@@ -1442,7 +1442,7 @@ index 991058d..bb94225 100755
              else
                eliminate = 0;
              break;
-@@ -3436,7 +4161,8 @@ void SFG_gameStepPlaying()
+@@ -3436,7 +4161,8 @@ void SFG_gameStepPlaying(void)
    if (SFG_player.ammo[SFG_AMMO_##type] < SFG_AMMO_MAX_##type) \
    {\
      SFG_player.ammo[SFG_AMMO_##type] = RCL_min(SFG_AMMO_MAX_##type,\
@@ -1452,7 +1452,7 @@ index 991058d..bb94225 100755
      if (onlyKnife) SFG_playerRotateWeapon(1); \
    }\
    else\
-@@ -3579,16 +4305,56 @@ void SFG_gameStepPlaying()
+@@ -3579,16 +4305,56 @@ void SFG_gameStepPlaying(void)
  
      if (canShoot)
      {
@@ -1514,7 +1514,7 @@ index 991058d..bb94225 100755
        }
  
        if (sound != 255)
-@@ -3640,10 +4406,17 @@ void SFG_gameStepPlaying()
+@@ -3640,10 +4406,17 @@ void SFG_gameStepPlaying(void)
            :
            (projectileSpeed * SFG_autoaimVertically()) / RCL_UNITS_PER_SQUARE;
  
@@ -1532,7 +1532,7 @@ index 991058d..bb94225 100755
              SFG_player.camera.position,
              SFG_player.camera.height,
              RCL_angleToDirection(direction),
-@@ -3765,10 +4538,9 @@ void SFG_gameStepPlaying()
+@@ -3765,10 +4538,9 @@ void SFG_gameStepPlaying(void)
    if (SFG_player.health == 0)
    {
      SFG_LOG("player dies");
@@ -1544,7 +1544,7 @@ index 991058d..bb94225 100755
    }
  #endif
  }
-@@ -3984,10 +4756,208 @@ void SFG_gameStepMenu()
+@@ -3984,10 +4756,208 @@ void SFG_gameStepMenu(void)
    }
  }
  
@@ -1750,10 +1750,10 @@ index 991058d..bb94225 100755
    after the previous step.
  */
 +
- void SFG_gameStep()
+ void SFG_gameStep(void)
  {
    SFG_GAME_STEP_COMMAND
-@@ -4006,6 +4976,35 @@ void SFG_gameStep()
+@@ -4006,6 +4976,35 @@ void SFG_gameStep(void)
        SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
      SFG_game.spriteAnimationFrame++;
  
@@ -1789,7 +1789,7 @@ index 991058d..bb94225 100755
    switch (SFG_game.state)
    {
      case SFG_GAME_STATE_PLAYING:
-@@ -4186,8 +5185,19 @@ void SFG_drawMap()
+@@ -4186,8 +5185,19 @@ void SFG_drawMap(void)
    uint16_t x;
    uint16_t y = topLeftY;
  
@@ -1811,7 +1811,7 @@ index 991058d..bb94225 100755
  
    for (int16_t j = 0; j < maxJ; ++j)
    {
-@@ -4204,10 +5214,16 @@ void SFG_drawMap()
+@@ -4204,10 +5214,16 @@ void SFG_drawMap(void)
          SFG_TileDefinition tile =
            SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
  
@@ -1831,7 +1831,7 @@ index 991058d..bb94225 100755
          {
            if (properties == SFG_TILE_PROPERTY_ELEVATOR)
              color = SFG_MAP_ELEVATOR_COLOR;
-@@ -4472,6 +5488,10 @@ void SFG_drawMenu()
+@@ -4472,6 +5488,10 @@ void SFG_drawMenu(void)
    SFG_blitImage(SFG_logoImage,SFG_GAME_RESOLUTION_X / 2 - 
      (SFG_TEXTURE_SIZE / 2) * SFG_FONT_SIZE_SMALL,y,SFG_FONT_SIZE_SMALL);
  
@@ -1842,7 +1842,7 @@ index 991058d..bb94225 100755
  #if SFG_GAME_RESOLUTION_Y > 50
    y += 32 * SFG_FONT_SIZE_MEDIUM + SFG_characterSize(SFG_FONT_SIZE_MEDIUM);
  #else
-@@ -4771,14 +5791,98 @@ void SFG_draw()
+@@ -4771,14 +5791,98 @@ void SFG_draw(void)
              RCL_perspectiveScaleVertical(
              SFG_SPRITE_SIZE_PIXELS(spriteSize),
              p.depth),
@@ -1943,7 +1943,7 @@ index 991058d..bb94225 100755
        {
          RCL_Vector2D worldPosition;
  
-@@ -4810,7 +5914,7 @@ void SFG_draw()
+@@ -4810,7 +5914,7 @@ void SFG_draw(void)
              SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
                p.position.y,
                RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
@@ -1952,7 +1952,7 @@ index 991058d..bb94225 100755
          }
        }
  
-@@ -4857,7 +5961,7 @@ void SFG_draw()
+@@ -4857,7 +5961,7 @@ void SFG_draw(void)
              p.position.x * SFG_RAYCASTING_SUBSAMPLE,p.position.y,
              RCL_perspectiveScaleVertical(spriteSize,p.depth),
              SFG_fogValueDiminish(p.depth),
@@ -1961,7 +1961,8 @@ index 991058d..bb94225 100755
      }
  
  #if SFG_HEADBOB_ENABLED
-@@ -4927,6 +6031,14 @@ void SFG_draw()
+void SFG_nextMusicTrack(void)
+@@ -4927,6 +6031,14 @@ void SFG_draw(void)
            SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
            i == 0 ? 93 : (i == 1 ? 124 : 60));
  

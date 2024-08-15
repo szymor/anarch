@@ -55,7 +55,7 @@ struct
   Gets the next 8bit 8KHz music sample for the bytebeat soundtrack. This
   function is to be used by the frontend that plays music.
 */
-uint8_t SFG_getNextMusicSample()
+uint8_t SFG_getNextMusicSample(void)
 {
   if (SFG_MusicState.t >= SFG_TRACK_SAMPLES)
   {
@@ -156,7 +156,7 @@ uint8_t SFG_getNextMusicSample()
 /**
   Switches the bytebeat to next music track.
 */
-void SFG_nextMusicTrack()
+void SFG_nextMusicTrack(void)
 {
   uint8_t current = SFG_MusicState.track;
 

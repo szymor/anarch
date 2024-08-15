@@ -13,7 +13,7 @@ index 991058d..e20f54b 100755
    uint8_t  weapon;                 ///< currently selected weapon
    uint8_t  health;
    uint32_t weaponCooldownFrames;   ///< frames left for weapon cooldown
-@@ -1396,6 +1397,7 @@ void SFG_initPlayer()
+@@ -1396,6 +1397,7 @@ void SFG_initPlayer(void)
    SFG_player.previousVerticalSpeed = 0;
  
    SFG_player.headBobFrame = 0;
@@ -21,7 +21,7 @@ index 991058d..e20f54b 100755
  
    SFG_player.weapon = SFG_WEAPON_KNIFE;
  
-@@ -3313,36 +3315,56 @@ void SFG_gameStepPlaying()
+@@ -3313,36 +3315,56 @@ void SFG_gameStepPlaying(void)
        RCL_min(0,SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
    }
  
@@ -135,7 +135,7 @@ index 991058d..e20f54b 100755
    SFG_WEAPON_IMAGE_POSITION_Y + bobOffset - 1,
    SFG_WEAPON_IMAGE_SCALE);
  }
-@@ -4871,7 +4896,7 @@ void SFG_draw()
+@@ -4871,7 +4896,7 @@ void SFG_draw(void)
  #endif // head bob enabled?
  
  #if SFG_PREVIEW_MODE == 0
