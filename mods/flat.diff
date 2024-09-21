@@ -1,0 +1,33 @@
+Simple mod that makes floors and ceilings the same height (similarly to the
+GOOBERS cheat in Doom), making it a kind of wolf3d shooter.
+
+diff --git a/levels.h b/levels.h
+index 01be6ac..25b18e2 100644
+--- a/levels.h
++++ b/levels.h
+@@ -37,9 +37,8 @@ typedef SFG_TileDefinition SFG_TileDictionary[SFG_TILE_DICTIONARY_SIZE];
+ 
+ /// helper macros for SFG_TileDefinition
+ #define SFG_TD(floorH, ceilH, floorT, ceilT)\
+-  ((floorH & 0x001f) |\
+-   ((floorT & 0x0007) << 5) |\
+-   ((ceilH & 0x001f) << 8) |\
++   (((floorT & 0x0007) << 5) |\
++   (ceilH > 2 ? 0x0500 : 0) |\
+    ((ceilT & 0x0007) << 13))
+ 
+ #define SFG_TILE_FLOOR_HEIGHT(tile) (tile & 0x1f)
+@@ -160,7 +159,12 @@ static inline SFG_TileDefinition SFG_getMapTile
+     uint8_t tile = level->mapArray[y * SFG_MAP_SIZE + x];
+ 
+     *properties = tile & 0xc0;
+-    return level->tileDictionary[tile & 0x3f];
++
++    if (*properties == SFG_TILE_PROPERTY_ELEVATOR)
++      *properties = SFG_TILE_PROPERTY_NORMAL;
++
++    return level->tileDictionary[tile & 0x3f] |
++      (*properties == SFG_TILE_PROPERTY_DOOR ? 0x0004 : 0);
+   }
+ 
+   *properties = SFG_TILE_PROPERTY_NORMAL;
