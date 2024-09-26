@@ -1,0 +1,27 @@
+CEO: drummyfish
+team manager: drummyfish
+lead programmer: drummyfish
+engine programmer: drummyfish
+game programmer: drummyfish
+tool programmer: drummyfish
+AI programmer: drummyfish
+porting: drummyfish
+lead artist: drummyfish
+level design: drummyfish
+writer: drummyfish
+graphics: drummyfish
+audio: drummyfish
+sound effects: drummyfish
+music: drummyfish
+testing: drummyfish
+website design: drummyfish
+tech support: drummyfish
+accompanying material: drummyfish
+quality assurance: drummyfish
+distribution and logistics: drummyfish
+accounting: drummyfish
+public relations: drummyfish
+documentation: drummyfish
+assistance: drummyfish
+office maintenance: drummyfish
+special thanks to: no one
