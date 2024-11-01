@@ -163,7 +163,7 @@ Because I find it ridiculously depressing that in a world where we have millions
 
 Yes, there exist other libre games, but they suffer from at least one of many possible flaws: dependency on the current state of capitalist dystopia (using capitalist libraries, languages, build systems, relying on powerful HW, being bloated etc.), burdening self-interest (requirements such as credit, copyleft, keeping de-facto ownership by knowhow etc.), triviality ("pong"), lax attitude to usage rights (using assets from unclear sources, not stating rights clearly enough, not archiving evidence etc.) and so on.
 
-I would rather like to ask, in turn, why <b>no one</b> is doing what this project is trying to do. Creating something completely for everyone, even people in far future, is extremely valuable, considering only relatively minor effort is required for something that will be there <b>forever and for everyone</b>. I hope at least one person on the planet will join me.
+I would rather like to ask, in turn, why <b>no one</b> is doing what this project is trying to do. Creating something completely for everyone, even people in far future, is extremely valuable, considering only relatively minor effort is required for something that will be there <b>forever and for everyone</b>. I hope at least one man on the planet will join me.
 
 ### Is this a joke?
 
@@ -193,7 +193,7 @@ What we perceive as good graphics is heavily dependant on what we've learned to 
 
 ### Why doesn't this have feature X? Even Doom had it.
 
-Though inspired by Doom, this is **NOT** Doom. Keep in mind that this isn't primarily a PC game, this is a small platform independent game that happens to also natively run on PC. Also this game's goals are different than those of commercial games, it is still to a big degree just an experimental game. It has been written by a single person who had to do the design, engine programming, game programming, tool programming, graphics, sound recording, testing, media creation, all in spare time.
+Though inspired by Doom, this is **NOT** Doom. Keep in mind that this isn't primarily a PC game, this is a small platform independent game that happens to also natively run on PC. Also this game's goals are different than those of commercial games, it is still to a big degree just an experimental game. It has been written by a single man who had to do the design, engine programming, game programming, tool programming, graphics, sound recording, testing, media creation, all in spare time.
 Please don't hate me.
 
 ### Shouldn't games simply be fun? You're complicating everything with ideological bullshit when it's really just about entertainment.
@@ -297,7 +297,7 @@ Firstly don't panic and please don't hate me, I didn't put that bug there intent
 
 I am an anarcho-pacifist programmer called drummyfish (real name Miloslav Číž). I love all living beings, even you (even if you hate me). You can read more about me at [my website](http://www.tastyfish.cz). You can read about my technology and life philosophy at my [less retarded wiki](https://www.tastyfish.cz/lrs/main.html).
 
-### You sound like an insane person, are you crazy?
+### You sound like an insane man, are you crazy?
 
 I have mental issues as most people nowadays and I go crazy from living in this world, but these don't affect my reasoning. I challenge you to critically evaluate the ideas I present.
 
