@@ -54,6 +54,7 @@ The game was kindly translated to Lojban by Mouseborg! :) Thousand times thank y
   - unofficially ran on/ported to [OpenPandora](https://git.sr.ht/~magic_sam/Anarch) by MagicSam ([forum thread](https://pyra-handheld.com/boards/threads/anarch.99869/#post-1714158))
   - unofficial [libretro port](https://codeberg.org/iyzsong/anarch-libretro) by iyzsong
   - rumor has it Anarch was also run in Emacs
+  - there's now also an unofficial port on Playstation and Switch store (please let me apologize for first having assumed it was a cash grab scam, I actually received a generous donation from the developer, thank you <3)
 - Has **completely NO external dependencies**, not even rendering or IO, that is left to each platform's frontend, but each frontend is very simple. Uses **no dynamic heap allocation** (no malloc).
 - Can fit into **less than 256 kB (60 kB with procgen mod)** (including all content, textures etc.).
 - Uses **no build system**, can typically be compiled with a single run of compiler (**single compilation unit**).
