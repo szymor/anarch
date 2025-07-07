@@ -1,0 +1,79 @@
+Simple dithered motion blur effect applied to whole rendering.
+
+diff --git a/game.h b/game.h
+index 84129cc..cc26c59 100755
+--- a/game.h
++++ b/game.h
+@@ -407,6 +407,8 @@ struct
+          6  32b little endian total play time, in 10ths of sec
+          10 16b little endian total enemies killed from start */
+   uint8_t continues;  ///< Whether the game continues or was exited.
++
++  unsigned int frameCycle;
+ } SFG_game;
+ 
+ #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+@@ -816,9 +818,6 @@ uint16_t SFG_keyRegisters(uint8_t key)
+   return SFG_keyJustPressed(key) || SFG_keyRepeated(key);
+ }
+ 
+-#if SFG_RESOLUTION_SCALEDOWN == 1
+-  #define SFG_setGamePixel SFG_setPixel
+-#else
+ 
+ /**
+   Sets the game pixel (a pixel that can potentially be bigger than the screen
+@@ -826,14 +825,20 @@ uint16_t SFG_keyRegisters(uint8_t key)
+ */
+ static inline void SFG_setGamePixel(uint16_t x, uint16_t y, uint8_t colorIndex)
+ {
+-  uint16_t screenY = y * SFG_RESOLUTION_SCALEDOWN;
+-  uint16_t screenX = x * SFG_RESOLUTION_SCALEDOWN;
++  if (((x + y) % SFG_MOTION_BLUR_FRAMES) == SFG_game.frameCycle)
++#if SFG_RESOLUTION_SCALEDOWN == 1
++    SFG_setPixel(x,y,colorIndex);
++#else
++  {
++    uint16_t screenY = y * SFG_RESOLUTION_SCALEDOWN;
++    uint16_t screenX = x * SFG_RESOLUTION_SCALEDOWN;
+ 
+-  for (uint16_t j = screenY; j < screenY + SFG_RESOLUTION_SCALEDOWN; ++j)
+-    for (uint16_t i = screenX; i < screenX + SFG_RESOLUTION_SCALEDOWN; ++i)
+-      SFG_setPixel(i,j,colorIndex);
+-}
++    for (uint16_t j = screenY; j < screenY + SFG_RESOLUTION_SCALEDOWN; ++j)
++      for (uint16_t i = screenX; i < screenX + SFG_RESOLUTION_SCALEDOWN; ++i)
++        SFG_setPixel(i,j,colorIndex);
++  }
+ #endif
++}
+ 
+ void SFG_recomputePLayerDirection(void)
+ {
+@@ -4663,6 +4668,8 @@ void SFG_draw(void)
+   SFG_backgroundBlurIndex = 0;
+ #endif
+ 
++  SFG_game.frameCycle = (SFG_game.frameCycle + 1) % SFG_MOTION_BLUR_FRAMES;
++
+   if (SFG_game.state == SFG_GAME_STATE_MENU)
+   {
+     SFG_drawMenu();
+diff --git a/settings.h b/settings.h
+index a0d8c1f..5419027 100644
+--- a/settings.h
++++ b/settings.h
+@@ -164,6 +164,13 @@
+   #define SFG_FOG_DIMINISH_STEP 2048
+ #endif
+ 
++/**
++  Length of the motion blur effect in frames, should be kept a power of two.
++*/
++#ifndef SFG_MOTION_BLUR_FRAMES
++  #define SFG_MOTION_BLUR_FRAMES 4
++#endif
++
+ /**
+   If set, floor and ceiling will be colored differently depending on their
+   height. This can be useful when fog is turned on and different floor levels
