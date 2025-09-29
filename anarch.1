@@ -1,0 +1,63 @@
+.Dd September 29, 2025
+.Dt ANARCH 1
+.Sh NAME
+.Nm anarch
+.Nd oldschool keep-it-simple FPS game
+.Sh SYNOPSIS
+.Nm
+.Op Fl hwf
+.Sh DESCRIPTION
+.Nm
+is a fast shooter game in which the player navigates
+through several levels to complete his mission for
+saving the world from revolting robots.
+
+The game was made in "keep it simple" spirit, aiming
+to be very small, efficient and dependency-free,
+which makes it very portable and moddable. As there
+are many different versions of the game now, it is
+possible that some will differ in some aspects from
+the default SDL version assumed by this manual page.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl h
+Print help and exit.
+.It Fl w
+Force the game to run in window.
+.It Fl f
+Force the game to run in full-screen mode.
+.El
+
+.Sh CONTROLS
+In its most basic form the game is playable with only 4 arrow
+keys and 3 additional buttons. The SDL version further adds
+mouse support and additional buttons for the user's comfort. By
+default the controls are mapped as follows.
+
+.Bl -tag -width Ds
+.It movement keys ([WSADQE], or [ARROWS], or [NUMPAD]), mouse
+Used to move and look around.
+.It [SPACE]
+Makes the player jump.
+.It button 1 ([LMB], [J], [RETURN], [CTRL])
+Shoot or confirm.
+.It button 2 ([K], [SHIFT])
+Strafe or cancel.
+.It button 3 ([L])
+Helper button for consoles.
+.It [O], [P], [X], [Y], [Z], mouse wheel
+Change weapons.
+.It [F]
+Cycle current and previous weapon.
+.It [TAB]
+Show map.
+.It [ESCAPE]
+Open menu.
+.El
+
+.Sh CONFIGURATION
+The basic version of the game doesn't use any config files. Instead,
+configuration is done by changing values in the source code
+.Ar settings.h
+file and recompiling the game. For more information refer to the game's
+README and comments in the source code itself.
