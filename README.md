@@ -47,6 +47,7 @@ The game was kindly translated to Lojban by Mouseborg! :) Thousand times thank y
   - ESPboy (128 x 128, 160 MHz)
   - Nibble (128 x 128, 160 MHz)
   - ncurses (not very playable)
+  - unofficial port to Android by Marcin Serwin, can be found on [F-Droid](https://f-droid.org/en/packages/dev.serwin.AnarchRE/)
   - unofficial [bare metal Raspberry Pi port](https://github.com/msx80/anarch-baremetalpi) by msx80
   - unofficial [DOS port](https://gitlab.com/wuuff/anarch-dos) by Wuuff
   - another unofficial [DOS port](https://codeberg.org/gera/anarch-dos) by gera

@@ -5,6 +5,8 @@ general:
 - run on raspbery pi
 - mod: terminal messages (when standing near terminal, a message appears)
 - option for turning off the status bar
+- Port to NetBSD.
+- Make walking simulator mod.
 
 level ideas:
 
