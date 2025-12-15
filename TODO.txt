@@ -2,8 +2,6 @@ general:
 
 - Port to OpenDingux.
 - Rewrite python scripts to C (faster, less bloat, fewer dependencies).
-- run on raspbery pi
-- mod: terminal messages (when standing near terminal, a message appears)
 - option for turning off the status bar
 - Port to NetBSD.
 - Make walking simulator mod.
@@ -128,6 +126,10 @@ bugs:
 
 done:
 
+- make X11 port
+- run on raspbery pi
+- mod: terminal messages (when standing near terminal, a message appears)
+- Blitz reported that SFG_FOG_DIMINISH_STEP has no effect
 - try to remove the debug flag (-g1) from compiler and see if it decreases size
 - compile on BSD and WinShit
 - Profile, epsecially Pokitto, small periodical tearing can be noticed (some

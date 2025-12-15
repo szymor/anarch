@@ -4771,7 +4771,8 @@ void SFG_draw(void)
             RCL_perspectiveScaleVertical(
             SFG_SPRITE_SIZE_PIXELS(spriteSize),
             p.depth),
-            p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+            SFG_fogValueDiminish(p.depth),
+            p.depth);
         }
       }
     }
@@ -4810,7 +4811,8 @@ void SFG_draw(void)
             SFG_drawScaledSprite(sprite,p.position.x * SFG_RAYCASTING_SUBSAMPLE,
               p.position.y,
               RCL_perspectiveScaleVertical(SFG_SPRITE_SIZE_PIXELS(spriteSize),
-              p.depth),p.depth / (RCL_UNITS_PER_SQUARE * 2),p.depth);
+              p.depth),
+              SFG_fogValueDiminish(p.depth),p.depth);
         }
       }
 

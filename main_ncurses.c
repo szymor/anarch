@@ -16,7 +16,7 @@
 
 #include <ncurses.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #define SFG_SCREEN_RESOLUTION_X 120
@@ -38,9 +38,9 @@ const char asciiPalette[] =
 
 uint32_t currentTime()
 {
-  struct timespec t;
-  timespec_get(&t,TIME_UTC);
-  return 1000 * ((int64_t) t.tv_sec) + ((int64_t) t.tv_nsec) / 1000000;
+  struct timeval t;
+  gettimeofday(&t,NULL);
+  return t.tv_sec * 1000 + t.tv_usec / 1000;
 }
 
 int8_t SFG_keyPressed(uint8_t key)
@@ -122,13 +122,12 @@ int main(void)
     }
 
     refresh();
-
     goOn = SFG_mainLoopBody();
 
     for (int i = 0; i < SFG_KEY_COUNT; ++i)
       ncButtonStates[i] = 0;
 
-    while (1)
+    for (int i = 0; i < 1024; ++i)
     {
       int c = getch();
 
@@ -141,10 +140,10 @@ int main(void)
         case KEY_LEFT:    ncButtonStates[SFG_KEY_LEFT] = 1; break;
         case KEY_RIGHT:   ncButtonStates[SFG_KEY_RIGHT] = 1; break;
         case KEY_DOWN:    ncButtonStates[SFG_KEY_DOWN] = 1; break;
-        case 'a':
+        case 'a':         // fallthrough
         case KEY_ENTER:   ncButtonStates[SFG_KEY_A] = 1; break;
-        case KEY_CANCEL:
-        case KEY_CLOSE:
+        case KEY_CANCEL:  // fallthrough
+        case KEY_CLOSE:   // fallthrough
         case 's':         ncButtonStates[SFG_KEY_B] = 1; break;
         case 'd':         ncButtonStates[SFG_KEY_C] = 1; break;
         case ' ':         ncButtonStates[SFG_KEY_JUMP] = 1; break;

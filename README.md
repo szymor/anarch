@@ -36,7 +36,7 @@ The game was kindly translated to Lojban by Mouseborg! :) Thousand times thank y
 - **Extemely low HW demands** (much less than Doom, no GPU, no FPU, just kilobytes of RAM and storage).
 - **Suckless, KISS, minimal, simple**, short code (~10000 LOC).
 - **Extremely portable**. So far ported to and tested on:
-  - GNU/Linux PC: SDL, csfml, terminal (experimental), Linux framebuffer (experimental)
+  - GNU/Linux PC: SDL, csfml, bare X11, terminal (experimental), Linux framebuffer (experimental)
   - OpenBSD SDL
   - FreeBSD SDL
   - Winshit XP SDL
