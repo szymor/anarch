@@ -1,0 +1,68 @@
+Mod that stops time if the player is not moving (or more precisely not holding
+any keys or moving mouse). By drummyfish.
+
+diff --git a/game.h b/game.h
+index 8ab69b6..1cc2dae 100644
+--- a/game.h
++++ b/game.h
+@@ -407,6 +407,7 @@ struct
+          6  32b little endian total play time, in 10ths of sec
+          10 16b little endian total enemies killed from start */
+   uint8_t continues;  ///< Whether the game continues or was exited.
++  uint32_t stillFor;
+ } SFG_game;
+ 
+ #define SFG_SAVE_TOTAL_TIME (SFG_game.save[6] + SFG_game.save[7] * 256 + \
+@@ -1265,6 +1266,8 @@ RCL_Unit SFG_movingWallHeight
+   RCL_Unit height = RCL_nonZero(high - low);
+   RCL_Unit halfHeight = height / 2;
+ 
++  time -= SFG_game.stillFor * SFG_MS_PER_FRAME;
++
+   RCL_Unit sinArg =
+     (time * ((SFG_MOVING_WALL_SPEED * RCL_UNITS_PER_SQUARE) / 1000)) / height;
+ 
+@@ -3990,18 +3993,29 @@ void SFG_gameStepMenu(void)
+ */
+ void SFG_gameStep(void)
+ {
++  int16_t mouseX = 0, mouseY = 0;
++  uint8_t simulate = 0;
++
+   SFG_GAME_STEP_COMMAND
+ 
+   SFG_game.soundsPlayedThisFrame = 0;
+   
+   SFG_game.blink = (SFG_game.frame / SFG_BLINK_PERIOD_FRAMES) % 2;
+ 
++  SFG_getMouseOffset(&mouseX,&mouseY);
++
++  simulate |= (mouseX != 0) | (mouseY != 0);
++
+   for (uint8_t i = 0; i < SFG_KEY_COUNT; ++i)
++  {
+     if (!SFG_keyPressed(i))
+       SFG_game.keyStates[i] = 0;
+     else if (SFG_game.keyStates[i] < 255)
+       SFG_game.keyStates[i]++;
+ 
++    simulate |= SFG_game.keyStates[i];
++  }
++
+   if ((SFG_currentLevel.frameStart - SFG_game.frame) %
+       SFG_SPRITE_ANIMATION_FRAME_DURATION == 0)
+     SFG_game.spriteAnimationFrame++;
+@@ -4010,7 +4024,12 @@ void SFG_gameStep(void)
+   {
+     case SFG_GAME_STATE_PLAYING:
+       SFG_handleCheats();
+-      SFG_gameStepPlaying();
++
++      if (simulate)
++        SFG_gameStepPlaying();
++      else
++        SFG_game.stillFor++;
++
+       break;
+ 
+     case SFG_GAME_STATE_MENU: 
