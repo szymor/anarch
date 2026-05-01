@@ -1,0 +1,132 @@
+Mod that adds a simple floor texture. Only the most common floor height will
+be textured, with the single "best" texture found in the level.
+
+diff --git a/game.h b/game.h
+index 8ab69b6..f550950 100644
+--- a/game.h
++++ b/game.h
+@@ -227,6 +227,8 @@ void SFG_init(void);
+ #define RCL_HORIZONTAL_FOV SFG_FOV_HORIZONTAL
+ #define RCL_VERTICAL_FOV SFG_FOV_VERTICAL
+ 
++#define RCL_COMPUTE_FLOOR_TEXCOORDS 1
++
+ #include "raycastlib.h" 
+ 
+ #include "constants.h"
+@@ -452,6 +454,8 @@ struct
+   uint32_t completionTime10sOfS; ///< completion time in 10ths of second
+   uint8_t floorColor;
+   uint8_t ceilingColor;
++  RCL_Unit floorTextureHeight;
++  uint8_t floorTexture;
+ 
+   SFG_DoorRecord doorRecords[SFG_MAX_DOORS];
+   uint8_t doorRecordCount;
+@@ -960,7 +964,9 @@ void SFG_pixelFunc(RCL_PixelInfo *pixel)
+ #if SFG_DIFFERENT_FLOOR_CEILING_COLORS
+         2 + (pixel->height / SFG_WALL_HEIGHT_STEP) % 4
+ #else
+-        SFG_currentLevel.floorColor
++    pixel->height == SFG_currentLevel.floorTextureHeight ? SFG_getTexelFull(
++      SFG_currentLevel.floorTexture,pixel->texCoords.x,pixel->texCoords.y) :
++      SFG_currentLevel.floorColor
+ #endif
+       ) : 
+       (pixel->height < SFG_CEILING_MAX_HEIGHT ?
+@@ -1668,6 +1674,50 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+   SFG_game.spriteAnimationFrame = 0;
+ 
+   SFG_initPlayer();
++
++  SFG_LOG("computing floor texture height");
++
++  SFG_TileDefinition tileHistogram[SFG_TILE_DICTIONARY_SIZE];
++
++  for (int i = 0; i < SFG_TILE_DICTIONARY_SIZE; ++i)
++    tileHistogram[i] = 0;
++
++  for (int i = 0; i < SFG_MAP_SIZE * SFG_MAP_SIZE; ++i)
++  {
++    uint8_t t = SFG_currentLevel.levelPointer->mapArray[i] & 0x3f;
++
++    // only count tiles with ceiling height != 0
++    if (SFG_currentLevel.levelPointer->tileDictionary[t] & 0x1f00)
++      tileHistogram[t]++;
++  }
++
++  uint8_t mostCommon = 0;
++
++  for (int i = 1; i < SFG_TILE_DICTIONARY_SIZE; ++i)
++    if (tileHistogram[i] > tileHistogram[mostCommon])
++      mostCommon = i;
++
++  SFG_currentLevel.floorTextureHeight = SFG_WALL_HEIGHT_STEP *
++    SFG_TILE_FLOOR_HEIGHT(
++    SFG_currentLevel.levelPointer->tileDictionary[mostCommon]);
++
++  RCL_floorTexcoordsHeight = SFG_currentLevel.floorTextureHeight;
++
++  SFG_currentLevel.floorTexture = 0;
++
++  for (int i = 0; i < 7; ++i)
++  {
++    uint8_t t = SFG_currentLevel.levelPointer->textureIndices[i];
++
++    if (t == 12 || t == 14) // preferred textures
++    {
++      SFG_currentLevel.floorTexture = i;
++      break;
++    }
++    else if (t == 0 || t == 4) // acceptable textures
++      SFG_currentLevel.floorTexture = i;
++  }
++
+   SFG_setGameState(SFG_GAME_STATE_LEVEL_START);
+   SFG_setMusic(SFG_MUSIC_NEXT);
+   SFG_processEvent(SFG_EVENT_LEVEL_STARTS,levelNumber);
+diff --git a/raycastlib.h b/raycastlib.h
+index b1a51eb..39f22a5 100644
+--- a/raycastlib.h
++++ b/raycastlib.h
+@@ -63,13 +63,7 @@
+ #define RCL_COMPUTE_FLOOR_TEXCOORDS 0
+ #endif
+ 
+-#ifndef RCL_FLOOR_TEXCOORDS_HEIGHT
+-#define RCL_FLOOR_TEXCOORDS_HEIGHT 0 /** If RCL_COMPUTE_FLOOR_TEXCOORDS == 1,
+-                                      this says for what height level the
+-                                      texture coords will be computed for
+-                                      (for simplicity/performance only one
+-                                      level is allowed). */
+-#endif
++RCL_Unit RCL_floorTexcoordsHeight = 0;
+ 
+ #ifndef RCL_USE_COS_LUT
+ #define RCL_USE_COS_LUT 0 /**< type of look up table for cos function:
+@@ -1319,7 +1313,7 @@ void _RCL_columnFunctionComplex(RCL_HitResult *hits, uint16_t hitCount, uint16_t
+     limit = _RCL_drawHorizontalColumn(fPosY,fZ1Screen,cPosY + 1,
+      _RCL_camera.resolution.y,fZ1World,-1,RCL_COMPUTE_FLOOR_DEPTH,
+      // ^ purposfully allow outside screen bounds
+-       RCL_COMPUTE_FLOOR_TEXCOORDS && p.height == RCL_FLOOR_TEXCOORDS_HEIGHT,
++       RCL_COMPUTE_FLOOR_TEXCOORDS && p.height == RCL_floorTexcoordsHeight,
+        1,&ray,&p);
+ 
+     if (fPosY > limit)
+@@ -1557,12 +1551,13 @@ void _RCL_columnFunctionSimple(RCL_HitResult *hits, uint16_t hitCount,
+ static inline void _RCL_precomputeFloorDistances(RCL_Camera camera,
+   RCL_Unit *dest, uint16_t startIndex)
+ {
+-  RCL_Unit camHeightScreenSize =
+-    (camera.height * camera.resolution.y) / RCL_UNITS_PER_SQUARE;
++  RCL_Unit camHeightScreenSize = // fixed a bug here for Anarch
++    ((camera.height - RCL_floorTexcoordsHeight) * camera.resolution.y)
++    / RCL_UNITS_PER_SQUARE;
+ 
+   for (uint16_t i = startIndex; i < camera.resolution.y; ++i)
+     dest[i] = RCL_perspectiveScaleVerticalInverse(camHeightScreenSize,
+-             RCL_abs(i - _RCL_middleRow));
++      RCL_abs(i - _RCL_middleRow));
+ }
+ 
+ void RCL_renderComplex(RCL_Camera cam, RCL_ArrayFunction floorHeightFunc,
