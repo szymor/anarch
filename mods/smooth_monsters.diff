@@ -1,0 +1,73 @@
+This mod makes monster movement smooth using interpolation.
+
+diff --git a/game.h b/game.h
+index 8ab69b6..2a15c78 100644
+--- a/game.h
++++ b/game.h
+@@ -276,6 +276,7 @@ typedef struct
+   uint8_t stateType;  /**< Holds state (lower 4 bits) and type of monster (upper
+                            4 bits). */
+   uint8_t coords[2];  /**< monster position, in 1/4s of a square */
++  uint8_t coordsPrev[2];
+   uint8_t health;
+ } SFG_MonsterRecord;
+ 
+@@ -1616,6 +1617,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+ 
+         monster->coords[0] = e->coords[0] * 4 + 2;
+         monster->coords[1] = e->coords[1] * 4 + 2;
++        monster->coordsPrev[0] = monster->coords[0];
++        monster->coordsPrev[1] = monster->coords[1];
+ 
+         SFG_currentLevel.monsterRecordCount++;
+ 
+@@ -2264,6 +2267,9 @@ void SFG_monsterPerformAI(SFG_MonsterRecord *monster)
+ 
+   int8_t coordAdd[2];
+ 
++  monster->coordsPrev[0] = monster->coords[0];
++  monster->coordsPrev[1] = monster->coords[1];
++
+   coordAdd[0] = 0;
+   coordAdd[1] = 0;
+ 
+@@ -4742,8 +4748,37 @@ void SFG_draw(void)
+       {
+         RCL_Vector2D worldPosition;
+ 
+-        worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
+-        worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
++        if (state != SFG_MONSTER_STATE_DYING && state != SFG_MONSTER_STATE_DEAD)
++        {
++          // interpolate previous and current position:
++
++          RCL_Unit t = (RCL_UNITS_PER_SQUARE * ((SFG_game.frame - 1 -
++            SFG_currentLevel.frameStart) % SFG_AI_UPDATE_FRAME_INTERVAL))
++            / SFG_AI_UPDATE_FRAME_INTERVAL;
++
++          worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coordsPrev[0]);
++          worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coordsPrev[1]);
++
++          worldPosition.x +=
++            ((SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]) - worldPosition.x) * t) /
++            RCL_UNITS_PER_SQUARE;
++
++          worldPosition.y +=
++            ((SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]) - worldPosition.y) * t) /
++            RCL_UNITS_PER_SQUARE;
++
++          // add small "circular" movement to look more "natural":
++
++          t = SFG_getTimeMs() + worldPosition.x + worldPosition.y;
++
++          worldPosition.x += RCL_sin(t) / 32;
++          worldPosition.y += RCL_cos(t) / 32;
++        }
++        else
++        {
++          worldPosition.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[0]);
++          worldPosition.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m.coords[1]);
++        }
+ 
+         uint8_t spriteSize = SFG_GET_MONSTER_SPRITE_SIZE(
+           SFG_MONSTER_TYPE_TO_INDEX(SFG_MR_TYPE(m)));
