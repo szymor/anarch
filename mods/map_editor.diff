@@ -1,0 +1,1540 @@
+This is a mod that turns the game into map (/level) editor. A small how-to: you
+load a level like you normally do, but you spawn in spectator mode (hold B to
+fly up/down). Top right of the screen shows info about your coordinates and the
+tile you're currently above. The bottom bar shows your current tool. Console
+(your OS terminal) is useful as it logs various things, so run the game from
+console and in window mode to see the logs. There are several tools to edit the
+map, each is briefly documented in the source code. You change tools with keys
+that normally change weapons. A tool usually does something when you press A, or
+when you hold A and press arrows. There is no traditional undo, but you can make
+a snapshot of the whole map with the "snapshot" tool and then restore it anytime
+with "restore" tool, so keep snapshotting the map at points when it's nice. To
+export (/save) the map, use the map print tool which will print the map into
+console. You can then copy paste it in the source code of the game and recompile
+to have the new map in the game. If the editor is confusing, study the map
+format in levels.h.
+
+diff --git a/game.h b/game.h
+index 8ab69b6..0dd8a97 100644
+--- a/game.h
++++ b/game.h
+@@ -24,6 +24,7 @@
+ #define _SFG_GAME_H
+ 
+ #include <stdint.h> // Needed for fixed width types, can easily be replaced.
++#include <stdio.h>  // for map editor printout
+ 
+ /*
+   The following keys are mandatory to be implemented on any platform in order
+@@ -197,6 +198,11 @@ uint8_t SFG_mainLoopBody(void);
+ */
+ void SFG_init(void);
+ 
++#define SFG_PREVIEW_MODE 1
++#define SFG_ALL_LEVELS 1
++#define SFG_IMMORTAL 1
++#define SFG_REVEAL_MAP 1
++
+ #include "settings.h"
+ 
+ #if SFG_AVR
+@@ -444,7 +450,7 @@ struct
+ */
+ struct
+ {
+-  const SFG_Level *levelPointer;
++  SFG_Level *levelPointer;
+   uint8_t levelNumber;
+   const uint8_t* textures[7];    ///< textures the level is using
+   uint32_t timeStart;
+@@ -551,6 +557,35 @@ static const uint8_t SFG_ditheringPatterns[] =
+ };
+ #endif
+ 
++#define SFG_TOOLS_TOTAL 15
++
++char *SFG_toolStrings[SFG_TOOLS_TOTAL] = {
++  "tile edit",       // 0: copy (A+U), paste (A+D) or change (A+L, A+R) current tile
++  "tile height",     // 1: shift current tile def's floor up (A+U), floor down (A+D), ceiling up (A+R) or ceiling down (A+L)
++  "tile tex",        // 2: change current tile def's floor texture (A+U, A+D) or ceiling texture (A+L, A+R)
++  "tile type",       // 3: change curreent tile's type (A)
++  "element",         // 4: change element at current position (A+L, A+R), or copy (A+U) or paste (A+D) an element
++  "map colors",      // 5: change map's floor color (A+U, A+D) or ceiling color (A+L, A+R)
++  "startpos",        // 6: set player's start position and direction (A)
++  "background",      // 7: change map's background (A)
++  "textures",        // 8: change map's texture slots
++  "offset v",        // 9: shift whole map up (A+U) or down (A+D) without overflow, or up (A+R) or down (A+L) with overflow
++  "offset h",        // 10: shift whole map forw. (A+U), back (A+D), left (A+L) or right (A+R)
++  "print map",       // 11: print the map to console
++  "print stats",     // 12: print map statistics to console
++  "snapshot",        // 13: save snapshot of the map to RAM (A+U)
++  "restore",         // 14: restore map snapshot from RAM (A+U)
++};
++
++struct
++{
++  uint8_t currentTool;
++  uint8_t copiedTile;
++  uint8_t copiedElement;
++  uint8_t textureSlot;
++  SFG_Level snapshot;
++} SFG_mapEditor;
++
+ /*
+   FUNCTIONS
+ ===============================================================================
+@@ -1509,38 +1544,25 @@ void SFG_setGameState(uint8_t state)
+   SFG_game.stateTime = 0;
+ }
+ 
+-void SFG_setAndInitLevel(uint8_t levelNumber)
+-{
+-  SFG_LOG("setting and initializing level");
+-
+-  const SFG_Level *level;
+-
+-#if SFG_AVR
+-  memcpy_P(&SFG_ramLevel,SFG_levels[levelNumber],sizeof(SFG_Level));
+-  level = &SFG_ramLevel;
+-#else
+-  level = SFG_levels[levelNumber];
+-#endif
+-
+-  SFG_game.currentRandom = 0;
+ 
+-  if (SFG_game.saved != SFG_CANT_SAVE)
+-    SFG_game.saved = 0;
++void SFG_refreshLevel(void)
++{
++  SFG_LOG("refreshing level");
+ 
+-  SFG_currentLevel.levelNumber = levelNumber;
+   SFG_currentLevel.monstersDead = 0;
+-  SFG_currentLevel.backgroundImage = level->backgroundImage;
+-  SFG_currentLevel.levelPointer = level;
++  SFG_currentLevel.backgroundImage =
++    SFG_currentLevel.levelPointer->backgroundImage;
+   SFG_currentLevel.bossCount = 0;
+-  SFG_currentLevel.floorColor = level->floorColor;
+-  SFG_currentLevel.ceilingColor = level->ceilingColor;
++  SFG_currentLevel.floorColor =
++   SFG_currentLevel.levelPointer->floorColor;
++  SFG_currentLevel.ceilingColor =
++    SFG_currentLevel.levelPointer->ceilingColor;
+   SFG_currentLevel.completionTime10sOfS = 0;
+ 
+   for (uint8_t i = 0; i < 7; ++i)
+     SFG_currentLevel.textures[i] =
+-      SFG_wallTextures + level->textureIndices[i] * SFG_TEXTURE_STORE_SIZE;
+-
+-  SFG_LOG("initializing doors");
++      SFG_wallTextures + SFG_currentLevel.levelPointer->textureIndices[i] *
++        SFG_TEXTURE_STORE_SIZE;
+ 
+   SFG_currentLevel.checkedDoorIndex = 0;
+   SFG_currentLevel.doorRecordCount = 0;
+@@ -1559,7 +1581,7 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+     {
+       uint8_t properties;
+      
+-      SFG_getMapTile(level,i,j,&properties);
++      SFG_getMapTile(SFG_currentLevel.levelPointer,i,j,&properties);
+ 
+       if ((properties & SFG_TILE_PROPERTY_MASK) == SFG_TILE_PROPERTY_DOOR)
+       {
+@@ -1584,8 +1606,6 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+       break;
+   }
+ 
+-  SFG_LOG("initializing level elements");
+-
+   SFG_currentLevel.itemRecordCount = 0;
+   SFG_currentLevel.checkedItemIndex = 0;
+ 
+@@ -1638,7 +1658,8 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+       {
+         uint8_t properties;
+      
+-        SFG_getMapTile(level,e->coords[0],e->coords[1],&properties);
++        SFG_getMapTile(SFG_currentLevel.levelPointer,e->coords[0],
++          e->coords[1],&properties);
+ 
+         if ((properties & SFG_TILE_PROPERTY_MASK) == SFG_TILE_PROPERTY_DOOR)
+         {
+@@ -1661,6 +1682,44 @@ void SFG_setAndInitLevel(uint8_t levelNumber)
+       }
+     }
+   } 
++}
++
++void SFG_setAndInitLevel(uint8_t levelNumber)
++{
++  SFG_LOG("setting and initializing level");
++
++  SFG_Level *level;
++
++#if SFG_AVR
++  memcpy_P(&SFG_ramLevel,SFG_levels[levelNumber],sizeof(SFG_Level));
++  level = &SFG_ramLevel;
++#else
++  level = SFG_levels[levelNumber];
++#endif
++  SFG_currentLevel.levelPointer = level;
++
++  SFG_game.currentRandom = 0;
++
++  if (SFG_game.saved != SFG_CANT_SAVE)
++    SFG_game.saved = 0;
++
++  SFG_currentLevel.levelNumber = levelNumber;
++
++  SFG_refreshLevel();
++
++  /* make first snapshot of a level an "empty map" so that a map can be cleared
++     easily by just loading this "default" snapshot: */
++
++  SFG_mapEditor.snapshot = SFG_level0;
++
++  for (int i = 0; i < SFG_TILE_DICTIONARY_SIZE; ++i)
++    SFG_mapEditor.snapshot.tileDictionary[i] = SFG_TD(0,31,0,1);
++
++  for (int i = 0; i < SFG_MAP_SIZE * SFG_MAP_SIZE; ++i)
++    SFG_mapEditor.snapshot.mapArray[i] = 0;
++
++  for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++    SFG_mapEditor.snapshot.elements[i].type = SFG_LEVEL_ELEMENT_NONE;
+ 
+   SFG_currentLevel.timeStart = SFG_game.frameTime; 
+   SFG_currentLevel.frameStart = SFG_game.frame;
+@@ -2762,84 +2821,6 @@ void SFG_updateLevel(void)
+     p->doubleFramesToLive -= subtractFrames;
+   }
+ 
+-  // handle door:
+-  if (SFG_currentLevel.doorRecordCount > 0) // has to be here
+-  {
+-    /* Check door on whether a player is standing nearby. For performance
+-       reasons we only check a few doors and move to others in the next
+-       frame. */
+-   
+-    if (SFG_currentLevel.checkedDoorIndex == 0)
+-    {
+-      uint8_t count = SFG_player.cards >> 6;
+-
+-      SFG_player.cards = (count <= 1) ?
+-        (SFG_player.cards & 0x07) :
+-        ((SFG_player.cards & 0x7f) | ((count - 1) << 6));
+-    }
+- 
+-    for (uint16_t i = 0;
+-         i < RCL_min(SFG_ELEMENT_DISTANCES_CHECKED_PER_FRAME,
+-           SFG_currentLevel.doorRecordCount);
+-         ++i) 
+-    {
+-      SFG_DoorRecord *door =
+-        &(SFG_currentLevel.doorRecords[SFG_currentLevel.checkedDoorIndex]);
+-
+-      uint8_t upDownState = door->state & SFG_DOOR_UP_DOWN_MASK;
+-
+-      uint8_t newUpDownState = 0;
+-      
+-      uint8_t lock = SFG_DOOR_LOCK(door->state);
+-
+-      if ( // player near door?
+-        (door->coords[0] >= (SFG_player.squarePosition[0] - 1)) &&
+-        (door->coords[0] <= (SFG_player.squarePosition[0] + 1)) &&
+-        (door->coords[1] >= (SFG_player.squarePosition[1] - 1)) &&
+-        (door->coords[1] <= (SFG_player.squarePosition[1] + 1)))
+-      {
+-        if (lock == 0)
+-        {
+-          newUpDownState = SFG_DOOR_UP_DOWN_MASK;    
+-        }
+-        else
+-        {
+-          lock = 1 << (lock - 1);
+-
+-          if (SFG_player.cards & lock) // player has the card?
+-            newUpDownState = SFG_DOOR_UP_DOWN_MASK;
+-          else
+-            SFG_player.cards = 
+-              (SFG_player.cards & 0x07) | (lock << 3) | (2 << 6);
+-        }
+-      }
+-
+-      if (upDownState != newUpDownState)
+-        SFG_playGameSound(1,255);
+-
+-      door->state = (door->state & ~SFG_DOOR_UP_DOWN_MASK) | newUpDownState;
+-
+-      SFG_currentLevel.checkedDoorIndex++;
+-
+-      if (SFG_currentLevel.checkedDoorIndex >= SFG_currentLevel.doorRecordCount)
+-        SFG_currentLevel.checkedDoorIndex = 0;
+-    }
+-
+-    // move door up/down:
+-    for (uint32_t i = 0; i < SFG_currentLevel.doorRecordCount; ++i)
+-    {
+-      SFG_DoorRecord *door = &(SFG_currentLevel.doorRecords[i]);
+-
+-      int8_t height = door->state & SFG_DOOR_VERTICAL_POSITION_MASK;
+-
+-      height = (door->state & SFG_DOOR_UP_DOWN_MASK) ?
+-            RCL_min(0x1f,height + SFG_DOOR_INCREMENT_PER_FRAME) :
+-            RCL_max(0x00,height - SFG_DOOR_INCREMENT_PER_FRAME);
+-
+-      door->state = (door->state & ~SFG_DOOR_VERTICAL_POSITION_MASK) | height;
+-    }
+-  }
+-
+   // handle items, in a similar manner to door:
+   if (SFG_currentLevel.itemRecordCount > 0) // has to be here
+   {
+@@ -3112,9 +3093,7 @@ void SFG_gameStepPlaying(void)
+     SFG_winLevel();
+ #endif
+ 
+-  if (
+-    (SFG_keyIsDown(SFG_KEY_C) && SFG_keyIsDown(SFG_KEY_DOWN)) ||
+-    SFG_keyIsDown(SFG_KEY_MENU))
++  if (SFG_keyIsDown(SFG_KEY_MENU))
+   {
+     SFG_setGameState(SFG_GAME_STATE_MENU);
+     SFG_playGameSound(3,SFG_MENU_CLICK_VOLUME);
+@@ -3149,49 +3128,37 @@ void SFG_gameStepPlaying(void)
+ 
+   int8_t canSwitchWeapon = SFG_player.weaponCooldownFrames == 0;
+ 
+-  if (SFG_keyJustPressed(SFG_KEY_NEXT_WEAPON) && canSwitchWeapon)
+-    SFG_playerRotateWeapon(1);
+-  else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON) && canSwitchWeapon)
+-    SFG_playerRotateWeapon(0);
+-  else if (SFG_keyJustPressed(SFG_KEY_CYCLE_WEAPON) &&
+-    SFG_player.previousWeaponDirection)
+-    SFG_playerRotateWeapon(SFG_player.previousWeaponDirection > 0);
++  if (SFG_keyJustPressed(SFG_KEY_NEXT_WEAPON) ||
++    SFG_keyJustPressed(SFG_KEY_CYCLE_WEAPON) ||
++    (SFG_keyPressed(SFG_KEY_C) && SFG_keyJustPressed(SFG_KEY_STRAFE_RIGHT)))
++     SFG_mapEditor.currentTool = (SFG_mapEditor.currentTool + 1)
++       % SFG_TOOLS_TOTAL;
++  else if (SFG_keyJustPressed(SFG_KEY_PREVIOUS_WEAPON) ||
++    (SFG_keyPressed(SFG_KEY_C) && SFG_keyJustPressed(SFG_KEY_STRAFE_LEFT)))
++    SFG_mapEditor.currentTool = SFG_mapEditor.currentTool ?
++      SFG_mapEditor.currentTool - 1 : (SFG_TOOLS_TOTAL - 1);
+ 
+-  uint8_t shearingOn = SFG_game.settings & 0x04;
++  uint8_t shearingOn = 1;
+ 
+-  if (SFG_keyIsDown(SFG_KEY_B))
++  if (SFG_keyIsDown(SFG_KEY_C))
+   {
+-    if (shearingOn)                      // B + U/D: shearing (if on)
++    if (SFG_keyIsDown(SFG_KEY_UP))
+     {
+-      if (SFG_keyIsDown(SFG_KEY_UP))
+-      {
+-        SFG_player.camera.shear =
+-          RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
+-                  SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
++      SFG_player.camera.shear =
++        RCL_min(SFG_CAMERA_MAX_SHEAR_PIXELS,
++                SFG_player.camera.shear + SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+ 
+-        shearing = 1;
+-      }
+-      else if (SFG_keyIsDown(SFG_KEY_DOWN))
+-      {
+-        SFG_player.camera.shear =
+-          RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
+-                  SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+-
+-        shearing = 1;
+-      }
++      shearing = 1;
+     }
++    else if (SFG_keyIsDown(SFG_KEY_DOWN))
++    {
++      SFG_player.camera.shear =
++        RCL_max(-1 * SFG_CAMERA_MAX_SHEAR_PIXELS,
++                SFG_player.camera.shear - SFG_CAMERA_SHEAR_STEP_PER_FRAME);
+ 
+-    if (!SFG_keyIsDown(SFG_KEY_C))
+-    {                                    // B + L/R: strafing
+-      if (SFG_keyIsDown(SFG_KEY_LEFT))
+-        strafe = -1;
+-      else if (SFG_keyIsDown(SFG_KEY_RIGHT))
+-        strafe = 1;
++      shearing = 1;
+     }
+-  }
+ 
+-  if (SFG_keyIsDown(SFG_KEY_C))          // C + A/B/L/R: weapon switching
+-  {
+     if ((SFG_keyJustPressed(SFG_KEY_LEFT) || SFG_keyJustPressed(SFG_KEY_A)) &&
+       canSwitchWeapon)
+       SFG_playerRotateWeapon(0);
+@@ -3200,21 +3167,20 @@ void SFG_gameStepPlaying(void)
+       canSwitchWeapon)
+       SFG_playerRotateWeapon(1);
+   }
+-  else if (!SFG_keyIsDown(SFG_KEY_B))    // L/R: turning
++  
++  if (SFG_keyIsDown(SFG_KEY_LEFT) && !SFG_keyIsDown(SFG_KEY_A))
+   {
+-    if (SFG_keyIsDown(SFG_KEY_LEFT))
+-    {
+-      SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
+-      recomputeDirection = 1;
+-    }
+-    else if (SFG_keyIsDown(SFG_KEY_RIGHT))
+-    {
+-      SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
+-      recomputeDirection = 1;
+-    } 
++    SFG_player.camera.direction -= SFG_PLAYER_TURN_UNITS_PER_FRAME;
++    recomputeDirection = 1;
+   }
++  else if (SFG_keyIsDown(SFG_KEY_RIGHT) && !SFG_keyIsDown(SFG_KEY_A))
++  {
++    SFG_player.camera.direction += SFG_PLAYER_TURN_UNITS_PER_FRAME;
++    recomputeDirection = 1;
++  } 
+ 
+-  if (!SFG_keyIsDown(SFG_KEY_B) || !shearingOn)     // U/D: movement
++  if (!SFG_keyIsDown(SFG_KEY_B) && !SFG_keyIsDown(SFG_KEY_C) &&
++    !SFG_keyIsDown(SFG_KEY_A))  // U/D: movement
+   {
+     if (SFG_keyIsDown(SFG_KEY_UP))
+     {
+@@ -3257,9 +3223,11 @@ void SFG_gameStepPlaying(void)
+   if (recomputeDirection)
+     SFG_recomputePLayerDirection();
+ 
+-  if (SFG_keyIsDown(SFG_KEY_STRAFE_LEFT))
++  if (SFG_keyIsDown(SFG_KEY_STRAFE_LEFT) && !SFG_keyPressed(SFG_KEY_C) &&
++    !SFG_keyIsDown(SFG_KEY_A))
+     strafe = -1;
+-  else if (SFG_keyIsDown(SFG_KEY_STRAFE_RIGHT))
++  else if (SFG_keyIsDown(SFG_KEY_STRAFE_RIGHT) && !SFG_keyPressed(SFG_KEY_C) &&
++    !SFG_keyIsDown(SFG_KEY_A))
+     strafe = 1;
+ 
+   if (strafe != 0)
+@@ -3284,9 +3252,10 @@ void SFG_gameStepPlaying(void)
+   }
+ 
+ #if SFG_PREVIEW_MODE
+-  if (SFG_keyIsDown(SFG_KEY_B))
++  if ((SFG_keyIsDown(SFG_KEY_B) && SFG_keyIsDown(SFG_KEY_UP)) ||
++    SFG_keyIsDown(SFG_KEY_JUMP))
+     SFG_player.verticalSpeed = SFG_PLAYER_MOVE_UNITS_PER_FRAME;
+-  else if (SFG_keyIsDown(SFG_KEY_C))
++  else if (SFG_keyIsDown(SFG_KEY_B) && SFG_keyIsDown(SFG_KEY_DOWN))
+     SFG_player.verticalSpeed = -1 * SFG_PLAYER_MOVE_UNITS_PER_FRAME;
+   else
+     SFG_player.verticalSpeed = 0;
+@@ -3348,197 +3317,6 @@ void SFG_gameStepPlaying(void)
+ 
+   RCL_Unit previousHeight = SFG_player.camera.height;
+ 
+-  // handle player collision with level elements:
+-
+-  // monsters:
+-  for (uint16_t i = 0; i < SFG_currentLevel.monsterRecordCount; ++i)
+-  {
+-    SFG_MonsterRecord *m = &(SFG_currentLevel.monsterRecords[i]);
+-
+-    uint8_t state = SFG_MR_STATE(*m);
+-
+-    if (state == SFG_MONSTER_STATE_INACTIVE || state == SFG_MONSTER_STATE_DEAD)
+-      continue;
+-
+-    RCL_Vector2D mPos;
+-
+-    mPos.x = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[0]);
+-    mPos.y = SFG_MONSTER_COORD_TO_RCL_UNITS(m->coords[1]);
+-
+-    if (
+-         SFG_elementCollides(
+-           SFG_player.camera.position.x,
+-           SFG_player.camera.position.y,
+-           SFG_player.camera.height,
+-           mPos.x,
+-           mPos.y,
+-           SFG_floorHeightAt(
+-               SFG_MONSTER_COORD_TO_SQUARES(m->coords[0]),
+-               SFG_MONSTER_COORD_TO_SQUARES(m->coords[1]))
+-         )
+-       )
+-    {
+-      moveOffset = SFG_resolveCollisionWithElement(
+-        SFG_player.camera.position,moveOffset,mPos);
+-    }
+-  }
+-
+-  uint8_t collidesWithTeleporter = 0;
+-
+-  /* item collisions with player (only those that don't stop player's movement,
+-     as those are handled differently, via itemCollisionMap): */
+-  for (int16_t i = 0; i < SFG_currentLevel.itemRecordCount; ++i)
+-    // ^ has to be int16_t (signed)
+-  {
+-    if (!(SFG_currentLevel.itemRecords[i] & SFG_ITEM_RECORD_ACTIVE_MASK))
+-      continue;
+-
+-    const SFG_LevelElement *e = SFG_getActiveItemElement(i);
+-
+-    if (e != 0)
+-    {
+-      RCL_Vector2D ePos;
+-
+-      ePos.x = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[0]);
+-      ePos.y = SFG_ELEMENT_COORD_TO_RCL_UNITS(e->coords[1]);
+-
+-      if (!SFG_itemCollides(e->type) &&
+-          SFG_elementCollides(
+-            SFG_player.camera.position.x,
+-            SFG_player.camera.position.y,
+-            SFG_player.camera.height,
+-            ePos.x,
+-            ePos.y,
+-            SFG_floorHeightAt(e->coords[0],e->coords[1]))
+-         )
+-      {
+-        uint8_t eliminate = 1;
+-
+-        uint8_t onlyKnife = 1;
+-
+-        for (uint8_t j = 0; j < SFG_AMMO_TOTAL; ++j)
+-          if (SFG_player.ammo[j] != 0)
+-          {
+-            onlyKnife = 0;
+-            break;
+-          }
+-
+-        switch (e->type)
+-        {
+-          case SFG_LEVEL_ELEMENT_HEALTH:
+-            if (SFG_player.health < SFG_PLAYER_MAX_HEALTH)
+-              SFG_playerChangeHealth(SFG_HEALTH_KIT_VALUE);
+-            else
+-              eliminate = 0;
+-            break;
+-
+-#define addAmmo(type) \
+-  if (SFG_player.ammo[SFG_AMMO_##type] < SFG_AMMO_MAX_##type) \
+-  {\
+-    SFG_player.ammo[SFG_AMMO_##type] = RCL_min(SFG_AMMO_MAX_##type,\
+-      SFG_player.ammo[SFG_AMMO_##type] + SFG_AMMO_INCREASE_##type);\
+-    if (onlyKnife) SFG_playerRotateWeapon(1); \
+-  }\
+-  else\
+-    eliminate = 0;
+-
+-          case SFG_LEVEL_ELEMENT_BULLETS:
+-            addAmmo(BULLETS)
+-            break;
+-
+-          case SFG_LEVEL_ELEMENT_ROCKETS:
+-            addAmmo(ROCKETS)
+-            break;
+-
+-          case SFG_LEVEL_ELEMENT_PLASMA:
+-            addAmmo(PLASMA)
+-            break;
+-
+-#undef addAmmo
+-
+-          case SFG_LEVEL_ELEMENT_CARD0:
+-          case SFG_LEVEL_ELEMENT_CARD1:
+-          case SFG_LEVEL_ELEMENT_CARD2:
+-            SFG_player.cards |= 1 << (e->type - SFG_LEVEL_ELEMENT_CARD0);
+-            break;
+-
+-          case SFG_LEVEL_ELEMENT_TELEPORTER:
+-            collidesWithTeleporter = 1;
+-            eliminate = 0;
+-            break;
+-
+-          case SFG_LEVEL_ELEMENT_FINISH:
+-            SFG_winLevel();
+-            eliminate = 0;
+-            break;
+-
+-          default:
+-            eliminate = 0;
+-            break;
+-        }
+-
+-        if (eliminate) // take the item
+-        {
+-#if !SFG_PREVIEW_MODE
+-          SFG_removeItem(i);
+-          SFG_player.lastItemTakenFrame = SFG_game.frame;
+-          i--;
+-          SFG_playGameSound(3,255);
+-          SFG_processEvent(SFG_EVENT_PLAYER_TAKES_ITEM,e->type);
+-#endif
+-        }
+-        else if (
+-          e->type == SFG_LEVEL_ELEMENT_TELEPORTER &&
+-          SFG_currentLevel.teleporterCount > 1 &&
+-          !SFG_player.justTeleported)
+-        {
+-          // teleport to random destination teleporter
+-
+-          uint8_t teleporterNumber =
+-            SFG_random() % (SFG_currentLevel.teleporterCount - 1) + 1;
+-
+-          for (uint16_t j = 0; j < SFG_currentLevel.itemRecordCount; ++j)
+-          {
+-            SFG_LevelElement e2 = 
+-              SFG_currentLevel.levelPointer->elements
+-                [SFG_currentLevel.itemRecords[j] &
+-                ~SFG_ITEM_RECORD_ACTIVE_MASK];
+-
+-            if ((e2.type == SFG_LEVEL_ELEMENT_TELEPORTER) && (j != i))
+-              teleporterNumber--;
+-
+-            if (teleporterNumber == 0)
+-            {
+-              SFG_player.camera.position.x =
+-                SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[0]);
+-
+-              SFG_player.camera.position.y =
+-                SFG_ELEMENT_COORD_TO_RCL_UNITS(e2.coords[1]);
+-
+-              SFG_player.camera.height =
+-                SFG_floorHeightAt(e2.coords[0],e2.coords[1]) +
+-                RCL_CAMERA_COLL_HEIGHT_BELOW;
+-
+-              SFG_currentLevel.itemRecords[j] |= SFG_ITEM_RECORD_ACTIVE_MASK;
+-              /* ^ we have to make the new teleporter immediately active so
+-                 that it will immediately collide */
+-
+-              SFG_player.justTeleported = 1;
+-
+-              SFG_playGameSound(4,255);
+-              SFG_processEvent(SFG_EVENT_PLAYER_TELEPORTS,0);
+-
+-              break;
+-            } // if teleporterNumber == 0
+-          } // for level items
+-        } // if eliminate
+-      } // if item collides
+-    } // if element != 0 
+-  } // for, item collision check
+-
+-  if (!collidesWithTeleporter)
+-    SFG_player.justTeleported = 0;
+-
+ #if SFG_PREVIEW_MODE
+   SFG_player.camera.position.x +=
+     SFG_PREVIEW_MODE_SPEED_MULTIPLIER * moveOffset.x;
+@@ -3717,6 +3495,633 @@ void SFG_gameStepPlaying(void)
+       }
+     } // endif: has enough ammo?
+   } // attack
++#else
++
++  uint8_t *mapTilePointer = SFG_currentLevel.levelPointer->mapArray +
++    SFG_player.squarePosition[1] * SFG_MAP_SIZE + SFG_player.squarePosition[0];
++
++  SFG_TileDefinition *tileDefPointer =
++    SFG_currentLevel.levelPointer->tileDictionary + ((*mapTilePointer) & 0x3f);
++
++#define _MASK_ADD(what,mask,inc) \
++  what = ((what) & ~mask) | (((what) + inc) & mask);
++
++#define _KEY_U SFG_keyRegisters(SFG_KEY_UP)
++#define _KEY_D SFG_keyRegisters(SFG_KEY_DOWN)
++#define _KEY_R \
++  (SFG_keyRegisters(SFG_KEY_RIGHT) || SFG_keyRegisters(SFG_KEY_STRAFE_RIGHT))
++#define _KEY_L \
++  (SFG_keyRegisters(SFG_KEY_LEFT) || SFG_keyRegisters(SFG_KEY_STRAFE_LEFT))
++
++  switch (SFG_mapEditor.currentTool)
++  {
++    case 0: // tile edit
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        if (_KEY_U)
++        {
++          SFG_mapEditor.copiedTile = *mapTilePointer;
++          SFG_playSound(3,255);
++          SFG_LOG("tile copied");
++        }
++        else if (_KEY_D)
++        {
++          *mapTilePointer = SFG_mapEditor.copiedTile;
++          SFG_playSound(3,255);
++          SFG_LOG("tile pasted");
++        }
++        else if (_KEY_L)
++        {
++          _MASK_ADD(*mapTilePointer,0x3f,-1)
++          SFG_playSound(3,255);
++          SFG_LOG("tile prev");
++        }
++        else if (_KEY_R)
++        {
++          _MASK_ADD(*mapTilePointer,0x3f,1)
++          SFG_playSound(3,255);
++          SFG_LOG("tile next");
++        }
++      }
++
++      break;
++
++    case 1: // tile height
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        if (_KEY_U)
++        {
++          _MASK_ADD(*tileDefPointer,0x001f,1)
++          SFG_LOG("floor up");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_D)
++        {
++          _MASK_ADD(*tileDefPointer,0x001f,-1)
++          SFG_LOG("floor down");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_R)
++        {
++          _MASK_ADD(*tileDefPointer,0x1f00,0x0100)
++          SFG_LOG("ceiling up");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_L)
++        {
++          _MASK_ADD(*tileDefPointer,0x1f00,-0x0100)
++          SFG_LOG("ceiling down");
++          SFG_playSound(3,255);
++        }
++      }
++
++      break;
++
++    case 2: // tile tex
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        if (_KEY_U)
++        {
++          _MASK_ADD(*tileDefPointer,0x00e0,0x0020)
++          SFG_LOG("floor texture next");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_D)
++        {
++          _MASK_ADD(*tileDefPointer,0x00e0,-0x0020)
++          SFG_LOG("floor texture prev");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_L)
++        {
++          _MASK_ADD(*tileDefPointer,0xe000,0x2000)
++          SFG_LOG("ceiling texture next");
++          SFG_playSound(3,255);
++        }
++        else if (_KEY_R)
++        {
++          _MASK_ADD(*tileDefPointer,0xe000,-0x2000)
++          SFG_LOG("ceiling texture prev");
++          SFG_playSound(3,255);
++        }
++      }
++
++      break;
++
++    case 3: // tile type
++      if (SFG_keyRegisters(SFG_KEY_A))
++      {
++        *mapTilePointer += 0x40;
++        SFG_playSound(3,255);
++      }
++
++      break;
++
++    case 4: // element
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        SFG_LevelElement *element = 0;
++        int state = 0; // 0 = nothing, 1 = change, 2 = error
++
++        for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++          if (SFG_currentLevel.levelPointer->elements[i].coords[0] ==
++            SFG_player.squarePosition[0] &&
++            SFG_currentLevel.levelPointer->elements[i].coords[1] ==
++            SFG_player.squarePosition[1])
++          {
++            element = SFG_currentLevel.levelPointer->elements + i;
++            break;
++          }
++
++        if (!element) // nothing found, point to first NONE element
++        {
++          for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++            if (SFG_currentLevel.levelPointer->elements[i].type ==
++              SFG_LEVEL_ELEMENT_NONE)
++            {
++              element = SFG_currentLevel.levelPointer->elements + i;
++              element->coords[0] = SFG_player.squarePosition[0];
++              element->coords[1] = SFG_player.squarePosition[1];
++              break;
++            }
++        }
++
++        if (_KEY_R)
++        {
++          if (element)
++          {
++            element->type++;
++            state = 1;
++          }
++          else
++            state = 2;
++        }
++        else if (_KEY_L)
++        {
++          if (element)
++          {
++            element->type--;
++            state = 1;
++          }
++          else
++            state = 2;
++        }
++        else if (element && (_KEY_U)) 
++        {
++          SFG_mapEditor.copiedElement = element->type;
++          SFG_playSound(3,255);
++          SFG_LOG("element copied");
++        }
++        else if (_KEY_D)
++        {
++          if (element)
++          {
++            element->type = SFG_mapEditor.copiedElement;
++            state = 1;
++          }
++          else
++            state = 2;
++        }
++
++        if (state == 1 && element)
++        {
++          // fix non-existing element types:
++
++          if (element->type > 0x13 && element->type < 0x20)
++            element->type = 0x20;
++          else if (element->type > 0x26)
++            element->type = 0;
++
++          SFG_refreshLevel();
++          SFG_playSound(3,255);
++          SFG_LOG("element changed");
++        }
++        else if (state == 2)
++        {
++          SFG_playSound(4,255);
++          SFG_LOG("level element array full");
++        }
++      }
++
++      break;
++
++    case 5: // colors
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        if (_KEY_U)
++          SFG_currentLevel.levelPointer->floorColor++;
++        else if (_KEY_D)
++          SFG_currentLevel.levelPointer->floorColor--;
++        else if (_KEY_R)
++          SFG_currentLevel.levelPointer->ceilingColor++;
++        else if (_KEY_L)
++          SFG_currentLevel.levelPointer->ceilingColor--;
++
++        if (SFG_currentLevel.floorColor !=
++          SFG_currentLevel.levelPointer->floorColor ||
++          SFG_currentLevel.ceilingColor !=
++          SFG_currentLevel.levelPointer->ceilingColor)
++        {
++          SFG_playSound(3,255);
++          SFG_LOG("map color changed");
++          SFG_refreshLevel();
++        }
++      }
++      break;
++
++    case 6: // startpos
++      if (SFG_keyJustPressed(SFG_KEY_A))
++      {
++        SFG_currentLevel.levelPointer->playerStart[0] =
++          SFG_player.squarePosition[0];
++        SFG_currentLevel.levelPointer->playerStart[1] =
++          SFG_player.squarePosition[1];
++        SFG_currentLevel.levelPointer->playerStart[2] =
++          SFG_player.camera.direction / 4;
++
++        SFG_playSound(3,255);
++        SFG_LOG("player start set");
++      }
++
++      break;
++
++    case 7: // background
++      if (SFG_keyRegisters(SFG_KEY_A))
++      {
++        SFG_currentLevel.levelPointer->backgroundImage =
++          (SFG_currentLevel.levelPointer->backgroundImage + 1) % 3;
++
++        SFG_currentLevel.backgroundImage =
++          SFG_currentLevel.levelPointer->backgroundImage;
++
++        SFG_playSound(3,255);
++        SFG_refreshLevel();
++        SFG_LOG("background changed");
++      }
++      break;
++
++    case 8: // textures
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        uint8_t *valuePointer = SFG_mapEditor.textureSlot < 7 ?
++           SFG_currentLevel.levelPointer->textureIndices +
++           SFG_mapEditor.textureSlot :
++           &(SFG_currentLevel.levelPointer->doorTextureIndex);
++
++        if (_KEY_R)
++          SFG_mapEditor.textureSlot++;
++        else if (_KEY_L)
++          SFG_mapEditor.textureSlot--;
++        else if (_KEY_U)
++        {
++          *valuePointer = ((*valuePointer) + 1) % SFG_WALL_TEXTURE_COUNT;
++          SFG_playSound(3,255);
++          SFG_refreshLevel();
++          SFG_LOG("texture slot next");
++        }
++        else if (_KEY_D)
++        {
++          *valuePointer = (*valuePointer) ? (*valuePointer) - 1 :
++            (SFG_WALL_TEXTURE_COUNT - 1);
++
++          SFG_playSound(3,255);
++          SFG_refreshLevel();
++          SFG_LOG("texture slot prev");
++        }
++
++        SFG_mapEditor.textureSlot %= 8;
++      }
++
++      break;    
++
++    case 9: // offset v
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        int add = 0;
++        int clamp = 1;
++
++        if (_KEY_U)
++          add = 1;
++        else if (_KEY_D)
++          add = -1;
++
++        if (_KEY_R)
++        {
++          add = 1;
++          clamp = 0;
++        }
++        else if (_KEY_L)
++        {
++          add = -1;
++          clamp = 0;
++        }
++
++        if (add)
++        {
++          SFG_TileDefinition *td =
++            SFG_currentLevel.levelPointer->tileDictionary;
++
++          for (int i = 0; i < SFG_TILE_DICTIONARY_SIZE; ++i)
++          {
++            uint16_t newHeight = ((*td) & 0x001f) + add;
++
++            if (!(clamp && (newHeight & 0xffe0)))
++              *td = ((*td) & 0xffe0) | (newHeight & 0x001f);
++
++            td++;
++          }
++
++          SFG_playSound(3,255);
++          SFG_LOG("map shifted vertically");
++        }
++      }
++
++      break;
++
++    case 10: // offset h
++      if (SFG_keyPressed(SFG_KEY_A))
++      {
++        uint8_t *mapArray = SFG_currentLevel.levelPointer->mapArray;
++        int offsetV = 0, offsetH = 0;
++
++        if (_KEY_U)
++        {
++          for (int i = 0; i < SFG_MAP_SIZE * (SFG_MAP_SIZE - 1); ++i)
++          {
++            *mapArray = *(mapArray + SFG_MAP_SIZE);
++            mapArray++;
++          }
++
++          offsetV = -1;
++        }
++        else if (_KEY_D)
++        {
++          mapArray += SFG_MAP_SIZE * SFG_MAP_SIZE - 1;
++
++          for (int i = 0; i < SFG_MAP_SIZE * (SFG_MAP_SIZE - 1); ++i)
++          {
++            *mapArray = *(mapArray - SFG_MAP_SIZE);
++            mapArray--;
++          }
++
++          offsetV = 1;
++        }
++        else if ((_KEY_L) || (_KEY_R))
++        {
++          int dir = 1;
++
++          if (_KEY_L)
++          {
++            dir = -1;
++            mapArray += SFG_MAP_SIZE * SFG_MAP_SIZE - 2;
++          }
++          else
++            mapArray++;
++
++          offsetH = -1 * dir;
++
++          for (int i = 0; i < SFG_MAP_SIZE * SFG_MAP_SIZE - 1; ++i)
++          {
++            *(mapArray - dir) = *mapArray;
++            mapArray += dir;
++          }
++
++          mapArray -= dir;
++
++          for (int i = 0; i < SFG_MAP_SIZE; ++i)
++          {
++            *mapArray = *(mapArray - dir);
++            mapArray -= dir * SFG_MAP_SIZE;
++          }
++        }
++
++        if (offsetV || offsetH)
++        {
++          for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++          {
++            SFG_LevelElement *elem =
++              SFG_currentLevel.levelPointer->elements + i;
++
++            elem->coords[0] += offsetH;
++            elem->coords[1] += offsetV;
++
++            if ((elem->coords[0] | elem->coords[1]) > 63)
++            {
++              elem->type = SFG_LEVEL_ELEMENT_NONE;
++              elem->coords[0] = 0;
++              elem->coords[1] = 0;
++              SFG_LOG("level element culled");
++            }
++          }
++
++          SFG_playSound(3,255);
++          SFG_refreshLevel();
++          SFG_LOG("map shifted horizontally");
++        }
++      }
++
++      break;
++
++    case 11: // print map
++      if (SFG_keyJustPressed(SFG_KEY_A))
++      {
++        SFG_Level *level = SFG_currentLevel.levelPointer;
++
++        printf(
++          "  {          // level\n    {        // mapArray\n    #define o 0\n");
++
++        uint8_t specialTiles[26];
++
++        for (int i = 0; i < 26; ++i)
++          specialTiles[i] = 0;
++
++        for (int i = 0; i < SFG_MAP_SIZE * SFG_MAP_SIZE; ++i)
++        {
++          uint8_t tile = level->mapArray[i];
++
++          if (tile & 0xc0)
++          {
++            int found = 0;
++
++            for (int j = 0; j < 26; ++j)
++              if (specialTiles[j] == tile)
++              {
++                found = 1;
++                break;
++              }
++
++            if (!found)
++            {
++              for (int j = 0; j < 26; ++j)
++                if (!specialTiles[j])
++                {
++                  specialTiles[j] = tile;
++                  break;
++                }
++            }
++          }
++        }
++
++        for (int i = 0; i < 26; ++i)
++          if (specialTiles[i])
++            printf("    #define %c%c %d | 0x%x\n",
++              'A' + i,'A' + i,specialTiles[i] & 0x3f,specialTiles[i] & 0xc0);
++
++        printf("    // 0  1  2  3  4  5  6  7  8  9  ");
++
++        for (int i = 10; i < 64; ++i)
++          printf("%d ",i);
++
++        printf("\n");
++
++        uint8_t *tile = level->mapArray;
++
++        for (int i = 0; i < SFG_MAP_SIZE; ++i)
++        {
++          printf("/*%2d*/ ",i);
++
++          for (int j = 0; j < SFG_MAP_SIZE; ++j)
++          {
++            if (*tile == 0)
++              printf(" o");
++            else if (*tile & 0xc0)
++            {
++              int k;
++
++              for (k = 0; k < 26; ++k)
++                if (specialTiles[k] == *tile)
++                {
++                  printf("%c%c",'A' + k,'A' + k);
++                  break;
++                }
++
++              if (k >= 26)
++                printf("%d",*tile); // define not found, just print normally
++            }
++            else
++              printf("%2d",*tile);
++
++            printf("%c",(i == j && i == SFG_MAP_SIZE - 1) ? ' ' : ',');
++            tile++;
++          }
++
++          printf("/*%2d*/\n",i);
++        }
++
++        for (int i = 0; i < 26; ++i)
++          if (specialTiles[i])
++            printf("    #undef %c%c\n",'A' + i,'A' + i);
++
++        printf("    #undef o\n");
++
++        printf("    },\n    {        // tileDictionary\n      ");
++
++        for (int i = 0; i < SFG_TILE_DICTIONARY_SIZE; ++i)
++        {
++          SFG_TileDefinition td =
++            level->tileDictionary[i];
++
++          printf("SFG_TD(%2d,%2d,%d,%d)",SFG_TILE_FLOOR_HEIGHT(td),
++            SFG_TILE_CEILING_HEIGHT(td),SFG_TILE_FLOOR_TEXTURE(td),
++            SFG_TILE_CEILING_TEXTURE(td));
++
++          printf("%c",i <= SFG_TILE_DICTIONARY_SIZE - 1 ? ',' : ' ');
++
++          if ((i + 1) % 4 == 0)
++            printf(" // %d\n      ",(i / 4) * 4);
++        }
++        
++        printf("},                    // tileDictionary\n    {");
++
++        for (int i = 0; i < 7; ++i)
++          printf("%2d%c",level->textureIndices[i],i < 6 ? ',' : '}');
++
++        printf(", // textureIndices\n"
++          "    %2d,                     // doorTextureIndex\n"
++          "    %2d,                     // floorColor\n"
++          "    %2d,                     // ceilingColor\n"
++          "    {%2d, %2d, %2d},           // player start: x, y, direction\n"
++          "    %d,                      // background image\n"
++          "    {                       // elements",
++            level->doorTextureIndex,level->floorColor,level->ceilingColor,
++            level->playerStart[0],level->playerStart[1],level->playerStart[2],
++            level->backgroundImage);
++
++        for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++        {
++          if (i % 2 == 0)
++            printf("\n     ");
++
++          printf("{%s, {%d,%d}}",
++            SFG_levelElementStrings[level->elements[i].type],
++            level->elements[i].coords[0],level->elements[i].coords[1]);
++
++          if (i < SFG_MAX_LEVEL_ELEMENTS - 1)
++            printf(",");
++        }
++
++        printf("\n    }, // elements\n  } // level\n");
++      }
++
++      break;
++
++    case 12: // print stats
++      if (SFG_keyJustPressed(SFG_KEY_A))
++      {
++        printf("map stats:\n");
++
++        int elementsTotal = 0, monstersTotal = 0, medkitTotal = 0,
++          bulletsTotal = 0, rocketsTotal = 0, plasmaTotal = 0;
++
++        for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++        {
++          uint8_t element = SFG_currentLevel.levelPointer->elements[i].type;
++
++          elementsTotal += element != SFG_LEVEL_ELEMENT_NONE;
++          monstersTotal += (element & 0x20) != 0;
++          medkitTotal += element == SFG_LEVEL_ELEMENT_HEALTH;
++          bulletsTotal += element == SFG_LEVEL_ELEMENT_BULLETS;
++          rocketsTotal += element == SFG_LEVEL_ELEMENT_ROCKETS;
++          plasmaTotal += element == SFG_LEVEL_ELEMENT_PLASMA;
++        }
++
++        printf("  level elements: %d / %d\n",
++          elementsTotal,SFG_MAX_LEVEL_ELEMENTS);
++        printf("  monsters: %d\n",monstersTotal);
++        printf("  medkits: %d\n",medkitTotal);
++        printf("  bullets: %d\n",bulletsTotal);
++        printf("  rockets: %d\n",rocketsTotal);
++        printf("  plasma: %d\n",plasmaTotal);
++
++        printf("\n");
++      }
++
++      break;
++
++    case 13: // snapshot
++      if (SFG_keyPressed(SFG_KEY_A) && SFG_keyJustPressed(SFG_KEY_UP))
++      {
++        SFG_mapEditor.snapshot = *(SFG_currentLevel.levelPointer);
++        SFG_playSound(3,255);
++        SFG_LOG("snapshot taken");
++      }
++
++      break;
++
++    case 14: // restore
++      if (SFG_keyPressed(SFG_KEY_A) && SFG_keyJustPressed(SFG_KEY_UP))
++      {
++        *(SFG_currentLevel.levelPointer) = SFG_mapEditor.snapshot;
++        SFG_refreshLevel();
++        SFG_playSound(3,255);
++        SFG_LOG("snapshot restored");
++      }
++
++      break;
++
++    default: break;
++  }
++
+ #endif // SFG_PREVIEW_MODE == 0
+ 
+   SFG_player.squarePosition[0] =
+@@ -3744,7 +4149,6 @@ void SFG_gameStepPlaying(void)
+      <
+      (RCL_CAMERA_COLL_HEIGHT_ABOVE + RCL_CAMERA_COLL_HEIGHT_BELOW)))
+   {
+-    SFG_LOG("player is squeezed");
+     SFG_player.health = 0;
+   }
+ 
+@@ -4898,38 +5302,66 @@ void SFG_draw(void)
+       color = color2;
+     }
+ 
+-    #define TEXT_Y (SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - \
+-      SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM)
+-
+-    SFG_drawNumber( // health
+-      SFG_player.health,
+-      SFG_HUD_MARGIN,
+-      TEXT_Y,
+-      SFG_FONT_SIZE_MEDIUM,
+-      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 6 : 175);
+-
+-    SFG_drawNumber( // ammo
+-      SFG_player.weapon != SFG_WEAPON_KNIFE ?
+-        SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)] : 0,
+-      SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
+-        (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM * 3,
+-      TEXT_Y,
+-      SFG_FONT_SIZE_MEDIUM,
+-      6); 
+-
+-    for (uint8_t i = 0; i < 3; ++i) // access cards
+-      if ( 
+-        ((SFG_player.cards >> i) | ((SFG_player.cards >> (i + 3))
+-        & SFG_game.blink)) & 0x01)
+-        SFG_fillRectangle(
+-          SFG_HUD_MARGIN + (SFG_FONT_CHARACTER_SIZE + 1) *
+-            SFG_FONT_SIZE_MEDIUM * (5 + i),
+-          TEXT_Y,
+-          SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
+-          SFG_FONT_SIZE_MEDIUM * SFG_FONT_CHARACTER_SIZE,
+-          i == 0 ? 93 : (i == 1 ? 124 : 60));
+-
+-    #undef TEXT_Y
++    int charWidth = ((SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_SMALL);
++    
++    SFG_drawText("tool",SFG_HUD_MARGIN,SFG_SCREEN_RESOLUTION_Y - SFG_HUD_MARGIN
++      - (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM,
++      SFG_FONT_SIZE_MEDIUM,7,0,0);
++
++    SFG_drawText(SFG_toolStrings[SFG_mapEditor.currentTool],
++      SFG_SCREEN_RESOLUTION_X / 2,SFG_SCREEN_RESOLUTION_Y - SFG_HUD_MARGIN -
++      (SFG_FONT_CHARACTER_SIZE + 1)
++      * SFG_FONT_SIZE_MEDIUM,SFG_FONT_SIZE_MEDIUM,
++      SFG_keyPressed(SFG_KEY_A) ? 95 : 7,0,0);
++
++    uint8_t mapTile = SFG_currentLevel.levelPointer->mapArray[
++      SFG_player.squarePosition[1] * SFG_MAP_SIZE +
++      SFG_player.squarePosition[0]];
++
++    SFG_TileDefinition tileDef = SFG_currentLevel.levelPointer->tileDictionary[
++      mapTile & 0x3f];
++
++    // coords:
++    SFG_drawNumber(SFG_player.squarePosition[0],1,1,SFG_FONT_SIZE_SMALL,7);
++    SFG_drawNumber(SFG_player.squarePosition[1],1 + charWidth * 3,1,
++      SFG_FONT_SIZE_SMALL,7);
++    SFG_drawNumber(SFG_player.camera.height,1 + charWidth * 6,1,
++      SFG_FONT_SIZE_SMALL,7);
++
++    SFG_drawText("tile, type",1,1 + charWidth,SFG_FONT_SIZE_SMALL,7,0,0);
++    SFG_drawNumber(mapTile & 0x3f,1 + 13 * charWidth,1 + charWidth,
++      SFG_FONT_SIZE_SMALL,7);
++    SFG_drawText(
++      (mapTile & 0x40) ? 
++        ((mapTile & 0x80) ? "door" : "elev") :
++        ((mapTile & 0x80) ? "push" : "norm"),
++      1 + 16 * charWidth,1 + charWidth,SFG_FONT_SIZE_SMALL,7,0,0);
++
++    SFG_drawText("f tex, heigh",1,1 + 2 * charWidth,SFG_FONT_SIZE_SMALL,7,0,0);
++    SFG_drawNumber(SFG_TILE_FLOOR_TEXTURE(tileDef),1 + 13 * charWidth,1 + 2 *
++      charWidth,SFG_FONT_SIZE_SMALL,7);
++    SFG_drawNumber(SFG_TILE_FLOOR_HEIGHT(tileDef),1 + 16 * charWidth,1 + 2 *
++      charWidth,SFG_FONT_SIZE_SMALL,7);
++
++    SFG_drawText("c tex, heigh",1,1 + 3 * charWidth,SFG_FONT_SIZE_SMALL,7,0,0);
++    SFG_drawNumber(SFG_TILE_CEILING_TEXTURE(tileDef),1 + 13 * charWidth,1 + 3 *
++      charWidth,SFG_FONT_SIZE_SMALL,7);
++    SFG_drawNumber(SFG_TILE_CEILING_HEIGHT(tileDef),1 + 16 * charWidth,1 + 3 *
++      charWidth,SFG_FONT_SIZE_SMALL,7);
++
++    SFG_drawText("element",1,1 + 4 * charWidth,SFG_FONT_SIZE_SMALL,7,0,0);
++
++    for (int i = 0; i < SFG_MAX_LEVEL_ELEMENTS; ++i)
++      if (SFG_currentLevel.levelPointer->elements[i].coords[0] ==
++        SFG_player.squarePosition[0] &&
++        (SFG_currentLevel.levelPointer->elements[i].coords[1] ==
++        SFG_player.squarePosition[1]))
++      {
++        SFG_drawText(SFG_levelElementStrings[
++          SFG_currentLevel.levelPointer->elements[i].type] + 18,
++          1 + 13 * charWidth,1 + 4 * charWidth,SFG_FONT_SIZE_SMALL,7,16,0);
++        break;
++      }
+ 
+     // border indicator
+ 
+@@ -4948,6 +5380,23 @@ void SFG_draw(void)
+     else if (SFG_game.state == SFG_GAME_STATE_LEVEL_START)
+       SFG_drawLevelStartOverlay();
+   }
++
++  if (SFG_mapEditor.currentTool == 8 && SFG_keyPressed(SFG_KEY_A))
++  {
++    for (int i = 0; i < 8; ++i)
++      if (i != SFG_mapEditor.textureSlot || SFG_game.blink)
++      {
++        int whereX = i * (4 + SFG_TEXTURE_SIZE * 2);
++        int16_t num = i != 7 ?
++          SFG_currentLevel.levelPointer->textureIndices[i] :
++          SFG_currentLevel.levelPointer->doorTextureIndex;
++
++        SFG_blitImage(SFG_wallTextures + SFG_TEXTURE_STORE_SIZE * num,whereX,
++          4,2);
++
++        SFG_drawNumber(num,whereX + 2,6,3,7);
++      }
++  }
+ }
+ 
+ uint8_t SFG_mainLoopBody(void)
+diff --git a/levels.h b/levels.h
+index 01be6ac..9457064 100644
+--- a/levels.h
++++ b/levels.h
+@@ -118,6 +118,37 @@ typedef struct
+ #define SFG_LEVEL_ELEMENT_MONSTER_TURRET 0x25
+ #define SFG_LEVEL_ELEMENT_MONSTER_EXPLODER 0x26
+ 
++char *SFG_levelElementStrings[] = {
++  "SFG_LEVEL_ELEMENT_NONE",
++  "SFG_LEVEL_ELEMENT_BARREL",
++  "SFG_LEVEL_ELEMENT_HEALTH",
++  "SFG_LEVEL_ELEMENT_BULLETS",
++  "SFG_LEVEL_ELEMENT_ROCKETS",
++  "SFG_LEVEL_ELEMENT_PLASMA",
++  "SFG_LEVEL_ELEMENT_TREE",
++  "SFG_LEVEL_ELEMENT_FINISH",
++  "SFG_LEVEL_ELEMENT_TELEPORTER",
++  "SFG_LEVEL_ELEMENT_TERMINAL",
++  "SFG_LEVEL_ELEMENT_COLUMN",
++  "SFG_LEVEL_ELEMENT_RUIN",
++  "SFG_LEVEL_ELEMENT_LAMP",
++  "SFG_LEVEL_ELEMENT_CARD0",
++  "SFG_LEVEL_ELEMENT_CARD1",
++  "SFG_LEVEL_ELEMENT_CARD2",
++  "SFG_LEVEL_ELEMENT_LOCK0",
++  "SFG_LEVEL_ELEMENT_LOCK1",
++  "SFG_LEVEL_ELEMENT_LOCK2",
++  "SFG_LEVEL_ELEMENT_BLOCKER",
++  "", "", "", "", "", "", "", "", "", "", "", "",
++  "SFG_LEVEL_ELEMENT_MONSTER_SPIDER",
++  "SFG_LEVEL_ELEMENT_MONSTER_DESTROYER",
++  "SFG_LEVEL_ELEMENT_MONSTER_WARRIOR",
++  "SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT",
++  "SFG_LEVEL_ELEMENT_MONSTER_ENDER",
++  "SFG_LEVEL_ELEMENT_MONSTER_TURRET",
++  "SFG_LEVEL_ELEMENT_MONSTER_EXPLODER"
++  };
++
+ #define SFG_MONSTERS_TOTAL 7
+ 
+ #define SFG_MONSTER_TYPE_TO_INDEX(monsterType) \
+@@ -178,7 +209,7 @@ static inline SFG_TileDefinition SFG_getMapTile
+   with provided tools.
+ */
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
++SFG_Level SFG_level0 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -353,7 +384,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level0 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
++SFG_Level SFG_level1 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -536,7 +567,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level1 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level2 =
++SFG_Level SFG_level2 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -711,7 +742,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level2 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level3 =
++SFG_Level SFG_level3 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -903,7 +934,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level3 =
+ 
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level4 =
++SFG_Level SFG_level4 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1076,7 +1107,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level4 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level5 =
++SFG_Level SFG_level5 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1253,7 +1284,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level5 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level6 =
++SFG_Level SFG_level6 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1432,7 +1463,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level6 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level7 =
++SFG_Level SFG_level7 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1615,7 +1646,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level7 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level8 =
++SFG_Level SFG_level8 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1798,7 +1829,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level8 =
+   } // level
+   ;
+ 
+-SFG_PROGRAM_MEMORY SFG_Level SFG_level9 =
++SFG_Level SFG_level9 =
+   {          // level
+     {        // mapArray
+     #define o 0
+@@ -1973,7 +2004,7 @@ SFG_PROGRAM_MEMORY SFG_Level SFG_level9 =
+   } // level
+   ;
+ 
+-static const SFG_Level * SFG_levels[SFG_NUMBER_OF_LEVELS] =
++SFG_Level * SFG_levels[SFG_NUMBER_OF_LEVELS] =
+ {
+   &SFG_level0, &SFG_level1, &SFG_level2, &SFG_level3, &SFG_level4, &SFG_level5,
+   &SFG_level6, &SFG_level7, &SFG_level8, &SFG_level9
