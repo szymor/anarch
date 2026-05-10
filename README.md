@@ -10,7 +10,7 @@ everywhere, made for the benefit of all living beings*
 
 ![](media/3screens.png)
 
-**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`. You can now also make **tool assisted speedruns** with the demo mod. Now there is also a **mod that replaces the assets with Freedoom ones**: see [here](https://git.coom.tech/drummyfish/drummy_stuff/src/branch/master/programming/anarch_fd) (separate repo as for different license). And we have a **cooperative multiplayer** mod too. Now we also have a sort WYSIWYG of **level editor** (as a mod) :)
+**NOTE: for a more consoomerist experience there are now mods in the mod directory with which you may rice the game.** See `mods/consoomer_edition.sh`. You can now also make **tool assisted speedruns** with the demo mod. Now there is also a **mod that replaces the assets with Freedoom ones**: see [here](https://git.coom.tech/drummyfish/drummy_stuff/src/branch/master/programming/anarch_fd) (separate repo as for different license). And we have a **cooperative multiplayer** mod too. Now we also have a sort of WYSIWYG **level editor** (as a mod) :)
 
 ![](media/riced.png)
 
