@@ -6,7 +6,7 @@
 
 echo "making consoomer edition"
 
-for f in "smooth_monsters" "floor_texture" "full_zbuffer" "sprite_flipper" "weapon_swing" "particle_effects" "quicksave" "terminal_messages" "hd/hd" "crt" "movement_inertia" 
+for f in "smooth_monsters" "smooth_text" "floor_texture" "full_zbuffer" "sprite_flipper" "weapon_swing" "particle_effects" "quicksave" "terminal_messages" "hd/hd" "crt" "movement_inertia" 
 do
   echo "=== APPLYING $f ==="
   patch --ignore-whitespace -p1 < mods/$f.diff
