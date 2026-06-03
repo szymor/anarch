@@ -1,0 +1,87 @@
+This mod improves the look of the vanilla HUD bar and adds a compass.
+
+diff --git a/game.h b/game.h
+index 8ab69b6..1b40d45 100644
+--- a/game.h
++++ b/game.h
+@@ -4336,6 +4336,19 @@ uint8_t SFG_drawNumber(
+   return 5 - position;
+ }
+ 
++uint8_t SFG_drawNumberWithShadow(
++  int16_t number,
++  uint16_t x,
++  uint16_t y,
++  uint8_t size,
++  uint8_t color,
++  uint8_t shadowSize,
++  uint8_t shadowColor)
++{
++  SFG_drawNumber(number,x + shadowSize,y + shadowSize,size,shadowColor);
++  return SFG_drawNumber(number,x,y,size,color);
++}
++
+ /**
+   Draws a screen border that indicates something is happening, e.g. being hurt
+   or taking an item.
+@@ -4893,29 +4906,41 @@ void SFG_draw(void)
+       j < SFG_GAME_RESOLUTION_Y; ++j)
+     {
+       for (uint16_t i = 0; i < SFG_GAME_RESOLUTION_X; ++i)
+-        SFG_setGamePixel(i,j,color);
++        SFG_setGamePixel(i,j,(color ^ (((i + j / 2) & 0x0010) >> 1)) +
++          ((i == SFG_GAME_RESOLUTION_X / 3) |
++          (i == 2 * SFG_GAME_RESOLUTION_X / 3)));
+ 
+-      color = color2;
++      color = color2 ^ ((j & 0x0010) >> 1);
+     }
+ 
+     #define TEXT_Y (SFG_GAME_RESOLUTION_Y - SFG_HUD_MARGIN - \
+       SFG_FONT_CHARACTER_SIZE * SFG_FONT_SIZE_MEDIUM)
+ 
+-    SFG_drawNumber( // health
++    #define SHADOW_SIZE (SFG_GAME_RESOLUTION_X / 400 + 1)
++    #define SHADOW_COLOR 11
++
++    SFG_drawNumberWithShadow( // health
+       SFG_player.health,
+       SFG_HUD_MARGIN,
+       TEXT_Y,
+       SFG_FONT_SIZE_MEDIUM,
+-      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 6 : 175);
++      SFG_player.health > SFG_PLAYER_HEALTH_WARNING_LEVEL ? 6 : 175,
++      SHADOW_SIZE,SHADOW_COLOR);
+ 
+-    SFG_drawNumber( // ammo
++    SFG_drawNumberWithShadow( // ammo
+       SFG_player.weapon != SFG_WEAPON_KNIFE ?
+         SFG_player.ammo[SFG_weaponAmmo(SFG_player.weapon)] : 0,
+       SFG_GAME_RESOLUTION_X - SFG_HUD_MARGIN -
+         (SFG_FONT_CHARACTER_SIZE + 1) * SFG_FONT_SIZE_MEDIUM * 3,
+       TEXT_Y,
+       SFG_FONT_SIZE_MEDIUM,
+-      6); 
++      6,SHADOW_SIZE,SHADOW_COLOR); 
++
++    SFG_drawText(SFG_compassText + ((SFG_player.camera.direction + 40) * 16)
++      / RCL_UNITS_PER_SQUARE,(SFG_GAME_RESOLUTION_X -
++      (SFG_FONT_CHARACTER_SIZE + 1) * 9 * SFG_FONT_SIZE_SMALL) / 2,
++      SFG_GAME_RESOLUTION_Y - (SFG_HUD_BAR_HEIGHT - SFG_FONT_CHARACTER_SIZE *
++      SFG_FONT_SIZE_SMALL) / 2,SFG_FONT_SIZE_SMALL,3,9,0);
+ 
+     for (uint8_t i = 0; i < 3; ++i) // access cards
+       if ( 
+diff --git a/texts.h b/texts.h
+index 9acaad9..3633761 100644
+--- a/texts.h
++++ b/texts.h
+@@ -29,6 +29,8 @@ static const char *SFG_menuItemTexts[] =
+   "exit"
+ };
+ 
++static const char *SFG_compassText = "S...W...N...E...S...W...";
++
+ #define SFG_TEXT_KILLS "kills"
+ #define SFG_TEXT_SAVE_PROMPT "save? L no yes R"
+ #define SFG_TEXT_SAVED "saved"
