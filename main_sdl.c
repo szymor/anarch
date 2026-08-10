@@ -318,12 +318,6 @@ void mainLoopIteration(void)
   SDL_RenderPresent(renderer);
 }
 
-#ifdef __EMSCRIPTEN__
-typedef void (*em_callback_func)(void);
-void emscripten_set_main_loop(
-       em_callback_func func, int fps, int simulate_infinite_loop);
-#endif
-
 uint16_t audioBuff[SFG_SFX_SAMPLE_COUNT];
 uint16_t audioPos = 0; // audio position for the next audio buffer fill
 uint32_t audioUpdateFrame = 0; // game frame at which audio buffer fill happened
