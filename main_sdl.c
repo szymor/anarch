@@ -177,7 +177,15 @@ int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+  // web version uses relative mouse movement (pointer lock) for looking
+  int dx = 0, dy = 0;
+
+  SDL_GetRelativeMouseState(&dx,&dy);
+
+  *x += dx;
+  *y += dy;
+#else
   if (mouseMoved)
   {
     int mX, mY;
@@ -272,6 +280,11 @@ int8_t SFG_keyPressed(uint8_t key)
   
 int running;
 
+#ifdef __EMSCRIPTEN__
+int8_t relativeMouseOn = -1; /**< Current relative mouse mode state, for
+                                  detecting changes (-1: uninitialized). */
+#endif
+
 void mainLoopIteration(void)
 {
   SDL_Event event;
@@ -281,6 +294,18 @@ void mainLoopIteration(void)
 
   if (SFG_game.frame % 512 == 0)
     SDL_PauseAudio(0);
+
+  // enable relative mouse (pointer lock) while playing so the mouse can look
+  // around, release it in menus so the cursor can be used for clicking
+  int8_t relativeMouseDesired = (SFG_game.state == SFG_GAME_STATE_PLAYING ||
+    SFG_game.state == SFG_GAME_STATE_LEVEL_START);
+
+  if (relativeMouseDesired != relativeMouseOn)
+  {
+    SDL_SetRelativeMouseMode(relativeMouseDesired ? SDL_TRUE : SDL_FALSE);
+    SDL_ShowCursor(relativeMouseDesired ? 0 : 1);
+    relativeMouseOn = relativeMouseDesired;
+  }
 #endif
 
   while (SDL_PollEvent(&event)) // also automatically updates sdlKeyboardState
