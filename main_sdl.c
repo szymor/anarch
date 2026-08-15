@@ -172,13 +172,6 @@ void SFG_sleepMs(uint16_t timeMs)
 #endif
 }
 
-#ifdef __EMSCRIPTEN__
-void webButton(uint8_t key, uint8_t down) // HTML button pressed
-{
-  webKeyboardState[key] = down;
-}
-#endif
-
 int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
                           this is needed to fix an SDL limitation. */
 

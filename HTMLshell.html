@@ -19,33 +19,129 @@
   <title>game</title>
 
   <style>
-    table
+    html, body
     {
-      width: 100%;
-    }
-
-    td
-    {
-      width: 11%;
-      padding: 0;
       margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
     }
 
-    button
+    body
     {
-      width: 100%;
+      background: black;
     }
 
     canvas
     {
       display: block;
-      margin: 10px auto 30px;
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+    }
+
+    #helpButton
+    {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 34px;
+      height: 34px;
+      z-index: 10;
+      border: 1px solid #666;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: #ddd;
+      font: bold 18px sans-serif;
+      cursor: pointer;
+    }
+
+    #helpOverlay
+    {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.7);
+    }
+
+    #helpPanel
+    {
+      background: #101010;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 20px 28px;
+      font: 14px monospace;
+      max-width: 80vw;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    #helpPanel h1
+    {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    #helpPanel table
+    {
+      border-collapse: collapse;
+    }
+
+    #helpPanel td
+    {
+      padding: 2px 14px 2px 0;
+      vertical-align: top;
+    }
+
+    #helpPanel td:first-child
+    {
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    #helpClose
+    {
+      margin-top: 14px;
+      padding: 4px 14px;
+      border: 1px solid #666;
+      background: #222;
+      color: #ddd;
+      font: 14px monospace;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
   <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+
+  <button id="helpButton" title="Controls" onclick="toggleHelp()">?</button>
+
+  <div id="helpOverlay" onclick="toggleHelp()">
+    <div id="helpPanel" onclick="event.stopPropagation()">
+      <h1>Controls</h1>
+      <table>
+        <tr><td>Move</td><td>arrows / numpad / W A S D Q E</td></tr>
+        <tr><td>Look</td><td>mouse (rotation), RMB: toggle free look</td></tr>
+        <tr><td>Jump</td><td>Space</td></tr>
+        <tr><td>A button (shoot, confirm)</td><td>J / Enter / Ctrl / LMB</td></tr>
+        <tr><td>B button (cancel, strafe)</td><td>K / Shift</td></tr>
+        <tr><td>C button (modifier)</td><td>L: C+Down = menu, C+Up = jump,<br>C+Left/A = prev. weapon, C+Right/B = next weapon</td></tr>
+        <tr><td>Cycle weapon</td><td>F</td></tr>
+        <tr><td>Change weapon</td><td>O P X Y Z / mouse wheel / mouse middle</td></tr>
+        <tr><td>Map</td><td>Tab</td></tr>
+        <tr><td>Menu</td><td>Esc</td></tr>
+      </table>
+      <button id="helpClose" onclick="toggleHelp()">Close</button>
+    </div>
+  </div>
   
   <script type='text/javascript'>
     Module = {
@@ -65,31 +161,25 @@
           {
             return document.getElementById('canvas');
           }
-        )(),
-      onRuntimeInitialized: function()
-        {
-          pressFunc = Module.cwrap('webButton', '', ['number','number']);
-        }
+        )()
     };
 
-    function down(button)
+    function toggleHelp()
     {
-      pressFunc(button,1);
+      var overlay = document.getElementById('helpOverlay');
+      overlay.style.display =
+        (overlay.style.display == 'flex') ? 'none' : 'flex';
     }
 
-    function up(button)
-    {
-      pressFunc(button,0);
-    }
+    document.addEventListener('keydown',
+      function(event)
+      {
+        if (event.key == 'h' || event.key == 'H' || event.key == '?')
+          toggleHelp();
+      });
   </script>
 
   {{{ SCRIPT }}}
-
-  <table style="user-select:none; -moz-user-select: none; -ms-user-select:none; -webkit-user-select: none; -o-user-select:none;" onselectstart="return false;" unselectable="on">
-    <tr> <td></td> <td><button onmousedown="down(0)" ontouchstart="down(0)" onmouseup="up(0)" ontouchend="up(0)" onmouseout="up(0)" ontouchleave="(0)">U</button></td> <td></td> <td></td> <td><button onmousedown="down(4)" ontouchstart="down(4)" onmouseup="up(4)" ontouchend="up(4)" onmouseout="up(4)" ontouchleave="(4)">A</button></td> <td></td> <td></td> </tr>
-    <tr> <td><button onmousedown="down(3)" ontouchstart="down(3)" onmouseup="up(3)" ontouchend="up(3)" onmouseout="up(3)" ontouchleave="(3)">L</button></td> <td></td> <td><button onmousedown="down(1)" ontouchstart="down(1)" onmouseup="up(1)" ontouchend="up(1)" onmouseout="up(1)" ontouchleave="(1)">R</button></td> <td></td> <td></td> <td><button onmousedown="down(5)" ontouchstart="down(5)" onmouseup="up(5)" ontouchend="up(5)" onmouseout="up(5)" ontouchleave="(5)">B</button></td> <td></td> </tr>
-    <tr> <td></td> <td><button onmousedown="down(2)" ontouchstart="down(2)" onmouseup="up(2)" ontouchend="up(2)" onmouseout="up(2)" ontouchleave="(2)">D</button></td> <td></td> <td></td> <td></td> <td></td> <td><button onmousedown="down(6)" ontouchstart="down(6)" onmouseup="up(6)" ontouchend="up(6)" onmouseout="up(6)" ontouchleave="(6)">C</button></td> </tr>
-  </table>
 
 </body>
 </html>
