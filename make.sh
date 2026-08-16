@@ -84,7 +84,7 @@ elif [ "$FRONTEND" = "emscripten" ]; then
   # emscripten (browser Javascript) build, requires:
   # - emscripten
 
-  COMMAND="emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o anarch.html -s EXPORTED_FUNCTIONS='[\"_main\"]'"
+  COMMAND="emcc ./main_sdl.c -s USE_SDL=2 -O3 -lopenal --shell-file HTMLshell.html -o anarch.html -s EXPORTED_FUNCTIONS='[\"_main\",\"_webButton\",\"_webSetTouchControls\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\"]'"
 elif [ $1 = "sdl1" ]; then
   # PC SDL 1.2 build, requires:
   # - g++

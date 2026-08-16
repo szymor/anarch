@@ -172,16 +172,32 @@ void SFG_sleepMs(uint16_t timeMs)
 #endif
 }
 
+#ifdef __EMSCRIPTEN__
+void webButton(uint8_t key, uint8_t down) // on-screen HTML control pressed
+{
+  webKeyboardState[key] = down;
+}
+
+uint8_t webTouchControls = 0; // set by JS when a touch device is detected
+
+void webSetTouchControls(uint8_t enabled) // called by JS at startup
+{
+  webTouchControls = enabled;
+}
+#endif
+
 int8_t mouseMoved = 0; /* Whether the mouse has moved since program started,
                           this is needed to fix an SDL limitation. */
 
 void SFG_getMouseOffset(int16_t *x, int16_t *y)
 {
 #ifdef __EMSCRIPTEN__
-  // web version uses relative mouse movement (pointer lock) for looking
+  // web version uses relative mouse movement (pointer lock) for looking,
+  // unless touch controls are active (no mouse on a phone/tablet)
   int dx = 0, dy = 0;
 
-  SDL_GetRelativeMouseState(&dx,&dy);
+  if (!webTouchControls)
+    SDL_GetRelativeMouseState(&dx,&dy);
 
   *x += dx;
   *y += dy;
@@ -296,8 +312,10 @@ void mainLoopIteration(void)
     SDL_PauseAudio(0);
 
   // enable relative mouse (pointer lock) while playing so the mouse can look
-  // around, release it in menus so the cursor can be used for clicking
-  int8_t relativeMouseDesired = (SFG_game.state == SFG_GAME_STATE_PLAYING ||
+  // around, release it in menus so the cursor can be used for clicking;
+  // on touch devices there is no mouse, so keep it disabled
+  int8_t relativeMouseDesired = !webTouchControls &&
+    (SFG_game.state == SFG_GAME_STATE_PLAYING ||
     SFG_game.state == SFG_GAME_STATE_LEVEL_START);
 
   if (relativeMouseDesired != relativeMouseOn)
@@ -453,6 +471,12 @@ int main(int argc, char *argv[])
   SFG_init();
 
   puts("SDL: initializing SDL");
+
+#ifdef __EMSCRIPTEN__
+  // don't let screen touches synthesize mouse clicks (would fire LMB = shoot),
+  // the on-screen controls handle touch input instead
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#endif
 
   SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
 

@@ -40,6 +40,134 @@
       object-fit: contain;
     }
 
+    #controls
+    {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 5;
+      pointer-events: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .padBtn
+    {
+      position: absolute;
+      width: 13vmin;
+      height: 13vmin;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 0.4vmin solid rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.7);
+      font: bold 5vmin sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .padBtn:active
+    {
+      background: rgba(255,255,255,0.35);
+    }
+
+    #dpad
+    {
+      position: absolute;
+      left: 6vmin;
+      bottom: 6vmin;
+      width: 42vmin;
+      height: 42vmin;
+    }
+
+    #btnUp    { left: 14.5vmin; top: 0; }
+    #btnDown  { left: 14.5vmin; top: 29vmin; }
+    #btnLeft  { left: 0; top: 14.5vmin; }
+    #btnRight { left: 29vmin; top: 14.5vmin; }
+
+    .actBtn
+    {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 0.4vmin solid rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.75);
+      font: bold 5vmin sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .actBtn:active
+    {
+      background: rgba(255,255,255,0.35);
+    }
+
+    #actions
+    {
+      position: absolute;
+      right: 6vmin;
+      bottom: 6vmin;
+      width: 42vmin;
+      height: 42vmin;
+    }
+
+    #btnShoot
+    {
+      right: 0;
+      bottom: 0;
+      width: 20vmin;
+      height: 20vmin;
+      font-size: 7vmin;
+      background: rgba(255,0,0,0.18);
+      border-color: rgba(255,0,0,0.45);
+    }
+
+    #btnJump
+    {
+      right: 22vmin;
+      bottom: 3vmin;
+      width: 14vmin;
+      height: 14vmin;
+      font-size: 4.5vmin;
+    }
+
+    #btnC
+    {
+      right: 3vmin;
+      bottom: 22vmin;
+      width: 14vmin;
+      height: 14vmin;
+      font-size: 4.5vmin;
+    }
+
+    #btnB
+    {
+      right: 19vmin;
+      bottom: 22vmin;
+      width: 14vmin;
+      height: 14vmin;
+      font-size: 4.5vmin;
+    }
+
+    #btnMap
+    {
+      top: 6vmin;
+      left: 6vmin;
+      width: 11vmin;
+      height: 11vmin;
+      font-size: 3.5vmin;
+    }
+
     #helpButton
     {
       position: fixed;
@@ -142,6 +270,22 @@
       <button id="helpClose" onclick="toggleHelp()">Close</button>
     </div>
   </div>
+
+  <div id="controls" oncontextmenu="return false">
+    <div id="dpad">
+      <button id="btnUp"   class="padBtn">&#9650;</button>
+      <button id="btnDown" class="padBtn">&#9660;</button>
+      <button id="btnLeft" class="padBtn">&#9664;</button>
+      <button id="btnRight" class="padBtn">&#9654;</button>
+    </div>
+    <button id="btnMap" class="actBtn">TAB</button>
+    <div id="actions">
+      <button id="btnShoot" class="actBtn">FIRE</button>
+      <button id="btnJump" class="actBtn">JUMP</button>
+      <button id="btnC" class="actBtn">C</button>
+      <button id="btnB" class="actBtn">B</button>
+    </div>
+  </div>
   
   <script type='text/javascript'>
     Module = {
@@ -161,7 +305,60 @@
           {
             return document.getElementById('canvas');
           }
-        )()
+        )(),
+      onRuntimeInitialized: function()
+        {
+          var press =
+            Module.cwrap('webButton', null, ['number','number']);
+          var setTouch =
+            Module.cwrap('webSetTouchControls', null, ['number']);
+
+          // show the on-screen controls and disable the mouse only when the
+          // primary input is touch (smartphone/tablet), otherwise keep mouse
+          // look and hide the OSD
+          var isTouch =
+            (window.matchMedia &&
+              window.matchMedia('(pointer: coarse)').matches) ||
+            ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0);
+
+          setTouch(isTouch ? 1 : 0);
+          document.getElementById('controls').style.display =
+            isTouch ? 'block' : 'none';
+
+          function bindControl(id, key)
+          {
+            var el = document.getElementById(id);
+
+            el.addEventListener('pointerdown',
+              function(event)
+              {
+                event.preventDefault();
+                el.setPointerCapture(event.pointerId);
+                press(key, 1);
+              });
+
+            function up(event)
+            {
+              event.preventDefault();
+              press(key, 0);
+            }
+
+            el.addEventListener('pointerup', up);
+            el.addEventListener('pointercancel', up);
+            el.addEventListener('lostpointercapture', up);
+          }
+
+          bindControl('btnUp', 0);      // SFG_KEY_UP
+          bindControl('btnRight', 1);   // SFG_KEY_RIGHT
+          bindControl('btnDown', 2);    // SFG_KEY_DOWN
+          bindControl('btnLeft', 3);    // SFG_KEY_LEFT
+          bindControl('btnShoot', 4);   // SFG_KEY_A (fire, confirm)
+          bindControl('btnJump', 7);    // SFG_KEY_JUMP
+          bindControl('btnC', 6);       // SFG_KEY_C (modifier)
+          bindControl('btnB', 5);       // SFG_KEY_B (cancel, strafe)
+          bindControl('btnMap', 10);    // SFG_KEY_MAP (TAB, hold to view)
+        }
     };
 
     function toggleHelp()
